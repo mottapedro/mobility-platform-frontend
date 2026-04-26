@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createRide } from '../../../services/api'
 import { usePassenger } from '../../../hooks/usePassenger'
+import { ProtectedRoute } from '../../../components/AuthGuard'
 import type { RideContext } from '../../../types'
 
 const FALLBACK_PASSENGER_ID = 'b3a5278a-0ebf-4d97-8699-669951c8e41c'
@@ -110,7 +111,8 @@ export default function PassengerCreatePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0500] px-4 py-10">
+    <ProtectedRoute requiredRole="passenger">
+      <main className="min-h-screen bg-[#0a0500] px-4 py-10">
       <div className="mx-auto max-w-lg">
         <div className="mb-8">
           <button
@@ -224,5 +226,6 @@ export default function PassengerCreatePage() {
         </form>
       </div>
     </main>
+  </ProtectedRoute>
   )
 }

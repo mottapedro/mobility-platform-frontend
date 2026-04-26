@@ -74,3 +74,11 @@ export interface CreateRidePayload {
   scheduledAt: string
   context?: RideContext
 }
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+export interface AuthUser {
+  id: string
+  name: string
+  email: string
+  role: 'driver' | 'passenger'
+}

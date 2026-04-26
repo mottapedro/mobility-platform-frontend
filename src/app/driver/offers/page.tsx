@@ -6,6 +6,7 @@ import { useOffers } from '../../../hooks/useOffers'
 import { respondOffer } from '../../../services/api'
 import { DriverOfferCard } from '../../../components/driver/DriverOfferCard'
 import { RideMap } from '../../../components/driver/RideMap'
+import { ProtectedRoute } from '../../../components/AuthGuard'
 import type { Offer, RideContext } from '../../../types'
 
 function sortOffers(offers: (Offer & { rideContext?: RideContext | null })[]) {
@@ -48,7 +49,8 @@ export default function DriverOffersPage() {
   )
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-10">
+    <ProtectedRoute requiredRole="driver">
+      <main className="min-h-screen bg-[#0a0a0a] px-4 py-10">
       <div className="mx-auto max-w-lg">
         <div className="mb-8">
           <button
@@ -132,5 +134,6 @@ export default function DriverOffersPage() {
         )}
       </div>
     </main>
+  </ProtectedRoute>
   )
 }
