@@ -41,6 +41,14 @@ export type RideStatus =
   | 'ACCEPTED'
   | 'EXPIRED'
 
+// ─── V1.3 — Contexto da corrida ────────────────────────────────────────────
+export interface RideContext {
+  isAirport?: boolean
+  isPet?: boolean
+  isLuggage?: boolean
+  isVip?: boolean
+}
+
 export interface Ride {
   id: string
   passengerId: string
@@ -50,6 +58,7 @@ export interface Ride {
   status: RideStatus
   selectedDriverId: string | null
   createdAt: string
+  context?: RideContext | null
   passenger: {
     user: {
       name: string
@@ -63,4 +72,5 @@ export interface CreateRidePayload {
   origin: string
   destination: string
   scheduledAt: string
+  context?: RideContext
 }

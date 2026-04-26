@@ -4,8 +4,34 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createRide } from '../../../services/api'
 import { usePassenger } from '../../../hooks/usePassenger'
+import type { RideContext } from '../../../types'
 
 const FALLBACK_PASSENGER_ID = 'b3a5278a-0ebf-4d97-8699-669951c8e41c'
+
+interface ContextCheckboxProps {
+  label: string
+  emoji: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}
+
+function ContextCheckbox({ label, emoji, checked, onChange }: ContextCheckboxProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all ${
+        checked
+          ? 'border-orange-500 bg-orange-500/15 text-orange-400'
+          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
+      }`}
+    >
+      <span>{emoji}</span>
+      <span>{label}</span>
+      {checked && <span className="ml-auto text-orange-500">✓</span>}
+    </button>
+  )
+}
 
 export default function PassengerCreatePage() {
   const router = useRouter()
@@ -17,7 +43,11 @@ export default function PassengerCreatePage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Resolve passengerId from localStorage (fallback to hardcoded UUID for MVP)
+  const [isVip, setIsVip] = useState(false)
+  const [isAirport, setIsAirport] = useState(false)
+  const [isPet, setIsPet] = useState(false)
+  const [isLuggage, setIsLuggage] = useState(false)
+
   useEffect(() => {
     const stored = localStorage.getItem('passengerId')
     if (stored) {
@@ -30,14 +60,33 @@ export default function PassengerCreatePage() {
 
   const { data, loading, error } = usePassenger(passengerId)
 
+  // Se o ID salvo não existe mais no banco (ex: banco limpo por testes),
+  // descarta o ID antigo e usa o FALLBACK
+  useEffect(() => {
+    if (!loading && data === null && passengerId && passengerId !== FALLBACK_PASSENGER_ID) {
+      localStorage.setItem('passengerId', FALLBACK_PASSENGER_ID)
+      setPassengerId(FALLBACK_PASSENGER_ID)
+    }
+  }, [loading, data, passengerId])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitError(null)
 
     if (!origin.trim() || !destination.trim() || !scheduledAt) {
-      setSubmitError('Preencha todos os campos.')
+      setSubmitError('Preencha todos os campos obrigatórios.')
       return
     }
+
+    if (new Date(scheduledAt) <= new Date()) {
+      setSubmitError('A data deve ser futura.')
+      return
+    }
+
+    const hasContext = isVip || isAirport || isPet || isLuggage
+    const context: RideContext | undefined = hasContext
+      ? { isVip, isAirport, isPet, isLuggage }
+      : undefined
 
     setSubmitting(true)
     try {
@@ -46,13 +95,15 @@ export default function PassengerCreatePage() {
         origin: origin.trim(),
         destination: destination.trim(),
         scheduledAt: new Date(scheduledAt).toISOString(),
+        ...(context ? { context } : {}),
       })
       localStorage.setItem('currentRideId', ride.id)
       router.push('/driver/offers')
-    } catch {
-      setSubmitError(
-        'Erro ao criar corrida. Verifique se o backend estÃ¡ rodando.'
-      )
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? 'Erro ao criar corrida. Verifique se o backend esta rodando.'
+      setSubmitError(msg)
     } finally {
       setSubmitting(false)
     }
@@ -61,19 +112,17 @@ export default function PassengerCreatePage() {
   return (
     <main className="min-h-screen bg-[#0a0500] px-4 py-10">
       <div className="mx-auto max-w-lg">
-        {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.push('/')}
             className="mb-4 text-sm text-zinc-500 hover:text-orange-400 transition-colors"
           >
-            â† Voltar
+            ← Voltar
           </button>
           <h1 className="text-2xl font-bold text-white">Criar corrida</h1>
           <p className="mt-1 text-sm text-zinc-400">Passageiro</p>
         </div>
 
-        {/* Allied Driver Card */}
         <div className="mb-6 rounded-xl border border-orange-500/30 bg-orange-500/10 p-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-orange-400">
             Motorista aliado indicado
@@ -112,13 +161,12 @@ export default function PassengerCreatePage() {
           )}
         </div>
 
-        {/* Ride Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-zinc-300">Origem</label>
             <input
               type="text"
-              placeholder="Ex: Barra da Tijuca, RJ"
+              placeholder="Ex: Barra da Tijuca, Rio de Janeiro"
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
               className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500 transition-colors"
@@ -129,7 +177,7 @@ export default function PassengerCreatePage() {
             <label className="text-sm font-medium text-zinc-300">Destino</label>
             <input
               type="text"
-              placeholder="Ex: Aeroporto GaleÃ£o, RJ"
+              placeholder="Ex: Aeroporto Galeão, Rio de Janeiro"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500 transition-colors"
@@ -138,7 +186,7 @@ export default function PassengerCreatePage() {
 
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-zinc-300">
-              HorÃ¡rio da corrida
+              Hor&#225;rio da corrida
             </label>
             <input
               type="datetime-local"
@@ -146,6 +194,18 @@ export default function PassengerCreatePage() {
               onChange={(e) => setScheduledAt(e.target.value)}
               className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500 transition-colors [color-scheme:dark]"
             />
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              Informações adicionais
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <ContextCheckbox emoji="⭐" label="VIP" checked={isVip} onChange={setIsVip} />
+              <ContextCheckbox emoji="✈️" label="Aeroporto" checked={isAirport} onChange={setIsAirport} />
+              <ContextCheckbox emoji="🐶" label="Pet" checked={isPet} onChange={setIsPet} />
+              <ContextCheckbox emoji="🧳" label="Bagagem" checked={isLuggage} onChange={setIsLuggage} />
+            </div>
           </div>
 
           {submitError && (
