@@ -28,6 +28,23 @@ export async function getRide(rideId: string): Promise<Ride> {
   return data
 }
 
+export async function getPendingRides(): Promise<Ride[]> {
+  const { data } = await api.get<Ride[]>('/rides?status=pending')
+  return data
+}
+
+export async function updateRideStatus(
+  rideId: string,
+  status: 'accepted' | 'rejected'
+): Promise<void> {
+  await api.patch(`/rides/${rideId}`, { status })
+}
+
+export async function getRidesByPassenger(passengerId: string): Promise<Ride[]> {
+  const { data } = await api.get<Ride[]>(`/rides?passengerId=${passengerId}`)
+  return data
+}
+
 export async function respondOffer(
   offerId: string,
   accept: boolean

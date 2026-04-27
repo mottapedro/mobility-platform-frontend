@@ -39,6 +39,7 @@ export type RideStatus =
   | 'MATCHING'
   | 'WAITING_DRIVER'
   | 'ACCEPTED'
+  | 'REJECTED'
   | 'EXPIRED'
 
 // ─── V1.3 — Contexto da corrida ────────────────────────────────────────────

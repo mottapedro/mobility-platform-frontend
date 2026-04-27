@@ -1,13 +1,12 @@
 ﻿'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createRide } from '../../../services/api'
 import { usePassenger } from '../../../hooks/usePassenger'
 import { ProtectedRoute } from '../../../components/AuthGuard'
+import { useAuth } from '../../../contexts/AuthContext'
 import type { RideContext } from '../../../types'
-
-const FALLBACK_PASSENGER_ID = 'b3a5278a-0ebf-4d97-8699-669951c8e41c'
 
 interface ContextCheckboxProps {
   label: string
@@ -36,8 +35,9 @@ function ContextCheckbox({ label, emoji, checked, onChange }: ContextCheckboxPro
 
 export default function PassengerCreatePage() {
   const router = useRouter()
+  const { user } = useAuth()
+  const passengerId = user!.id
 
-  const [passengerId, setPassengerId] = useState<string>('')
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
@@ -49,26 +49,7 @@ export default function PassengerCreatePage() {
   const [isPet, setIsPet] = useState(false)
   const [isLuggage, setIsLuggage] = useState(false)
 
-  useEffect(() => {
-    const stored = localStorage.getItem('passengerId')
-    if (stored) {
-      setPassengerId(stored)
-    } else {
-      localStorage.setItem('passengerId', FALLBACK_PASSENGER_ID)
-      setPassengerId(FALLBACK_PASSENGER_ID)
-    }
-  }, [])
-
   const { data, loading, error } = usePassenger(passengerId)
-
-  // Se o ID salvo não existe mais no banco (ex: banco limpo por testes),
-  // descarta o ID antigo e usa o FALLBACK
-  useEffect(() => {
-    if (!loading && data === null && passengerId && passengerId !== FALLBACK_PASSENGER_ID) {
-      localStorage.setItem('passengerId', FALLBACK_PASSENGER_ID)
-      setPassengerId(FALLBACK_PASSENGER_ID)
-    }
-  }, [loading, data, passengerId])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -98,8 +79,11 @@ export default function PassengerCreatePage() {
         scheduledAt: new Date(scheduledAt).toISOString(),
         ...(context ? { context } : {}),
       })
-      localStorage.setItem('currentRideId', ride.id)
-      router.push('/driver/offers')
+      const stored = localStorage.getItem('passengerRideIds')
+      const ids: string[] = stored ? JSON.parse(stored) : []
+      ids.unshift(ride.id)
+      localStorage.setItem('passengerRideIds', JSON.stringify(ids))
+      router.push('/passenger/rides')
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error
