@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getPassenger } from '../services/api'
+import { getPassenger } from '../services/rides'
+import { ApiError } from '../services/api'
 import type { Passenger } from '../types'
 
 interface UsePassengerResult {
@@ -26,8 +27,9 @@ export function usePassenger(passengerId: string): UsePassengerResult {
         setData(passenger)
       })
       .catch((err) => {
-        // 404 = passageiro não existe ainda (MVP com ID hardcoded) — não é erro real
-        if (err?.response?.status === 404) {
+        // 4xx = passageiro não existe no backend (ex: ID mock) — não é erro real
+        const status = err instanceof ApiError ? err.status : err?.response?.status
+        if (status && status >= 400 && status < 500) {
           setData(null)
         } else {
           setError('Erro ao carregar')

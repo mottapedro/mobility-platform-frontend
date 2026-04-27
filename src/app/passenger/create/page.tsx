@@ -1,12 +1,14 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createRide } from '../../../services/api'
+import { createRide } from '../../../services/rides'
+import { ApiError } from '../../../services/api'
 import { usePassenger } from '../../../hooks/usePassenger'
 import { ProtectedRoute } from '../../../components/AuthGuard'
 import { useAuth } from '../../../contexts/AuthContext'
-import type { RideContext } from '../../../types'
+import { AppHeader } from '../../../components/AppHeader'
+import type { DriverSummary } from '../../../services/drivers'
 
 interface ContextCheckboxProps {
   label: string
@@ -36,7 +38,7 @@ function ContextCheckbox({ label, emoji, checked, onChange }: ContextCheckboxPro
 export default function PassengerCreatePage() {
   const router = useRouter()
   const { user } = useAuth()
-  const passengerId = user!.id
+  const passengerId = user?.passengerId ?? ''
 
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
@@ -50,6 +52,20 @@ export default function PassengerCreatePage() {
   const [isLuggage, setIsLuggage] = useState(false)
 
   const { data, loading, error } = usePassenger(passengerId)
+
+  const [localDriver, setLocalDriver] = useState<DriverSummary | null>(null)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('aliado:referredDriver')
+      if (stored) setLocalDriver(JSON.parse(stored))
+    } catch { /* ignore */ }
+  }, [])
+
+  const referredDriver = data?.referredByDriver
+    ? { name: data.referredByDriver.user.name, phone: data.referredByDriver.user.phone }
+    : localDriver
+      ? { name: localDriver.name, phone: localDriver.phone }
+      : null
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,29 +81,36 @@ export default function PassengerCreatePage() {
       return
     }
 
-    const hasContext = isVip || isAirport || isPet || isLuggage
-    const context: RideContext | undefined = hasContext
-      ? { isVip, isAirport, isPet, isLuggage }
-      : undefined
+    const payload = {
+      passengerId,
+      origin: origin.trim(),
+      destination: destination.trim(),
+      scheduledAt: new Date(scheduledAt).toISOString(),
+      context: { isVip, isAirport, isPet, isLuggage },
+    }
 
     setSubmitting(true)
     try {
-      const { ride } = await createRide({
-        passengerId,
-        origin: origin.trim(),
-        destination: destination.trim(),
-        scheduledAt: new Date(scheduledAt).toISOString(),
-        ...(context ? { context } : {}),
-      })
+      const { ride } = await createRide(payload)
       const stored = localStorage.getItem('passengerRideIds')
       const ids: string[] = stored ? JSON.parse(stored) : []
       ids.unshift(ride.id)
       localStorage.setItem('passengerRideIds', JSON.stringify(ids))
+      // reset
+      setOrigin('')
+      setDestination('')
+      setScheduledAt('')
+      setIsVip(false)
+      setIsAirport(false)
+      setIsPet(false)
+      setIsLuggage(false)
       router.push('/passenger/rides')
     } catch (err: unknown) {
+      console.error('[createRide]', err)
       const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error
-        ?? 'Erro ao criar corrida. Verifique se o backend esta rodando.'
+        err instanceof ApiError
+          ? err.message
+          : (err as Error)?.message ?? 'Erro ao criar corrida.'
       setSubmitError(msg)
     } finally {
       setSubmitting(false)
@@ -96,7 +119,8 @@ export default function PassengerCreatePage() {
 
   return (
     <ProtectedRoute requiredRole="passenger">
-      <main className="min-h-screen bg-[#0a0500] px-4 py-10">
+      <AppHeader />
+      <main className="min-h-screen bg-[#0a0500] px-4 pt-24 pb-10">
       <div className="mx-auto max-w-lg">
         <div className="mb-8">
           <button
@@ -122,28 +146,33 @@ export default function PassengerCreatePage() {
             <p className="text-sm text-red-400">Erro ao carregar motorista</p>
           )}
 
-          {data?.referredByDriver && (
+          {referredDriver && (
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
-                {data.referredByDriver.user.name.charAt(0).toUpperCase()}
+                {referredDriver.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-white">
-                  {data.referredByDriver.user.name}
-                </p>
-                {data.referredByDriver.user.phone && (
-                  <p className="text-xs text-zinc-400">
-                    {data.referredByDriver.user.phone}
-                  </p>
+                <p className="font-semibold text-white">{referredDriver.name}</p>
+                {referredDriver.phone && (
+                  <p className="text-xs text-zinc-400">{referredDriver.phone}</p>
                 )}
               </div>
             </div>
           )}
 
-          {!loading && !error && !data?.referredByDriver && (
-            <p className="text-sm text-zinc-400">
-              Nenhum motorista aliado vinculado.
-            </p>
+          {!loading && !referredDriver && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-zinc-400">
+                💡 Vincule um motorista para prioridade nas corridas
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push('/register')}
+                className="w-fit rounded-lg border border-orange-500/40 px-4 py-2 text-xs font-semibold text-orange-400 transition-colors hover:border-orange-500 hover:bg-orange-500/10"
+              >
+                Vincular agora
+              </button>
+            </div>
           )}
         </div>
 

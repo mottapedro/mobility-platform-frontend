@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getRide } from '../../../services/api'
+import { getRide } from '../../../services/rides'
 import { ProtectedRoute } from '../../../components/AuthGuard'
+import { AppHeader } from '../../../components/AppHeader'
 import type { Ride, RideStatus } from '../../../types'
 
 function rideStatusLabel(status: RideStatus): string {
@@ -76,7 +77,8 @@ export default function PassengerRidesPage() {
 
   return (
     <ProtectedRoute requiredRole="passenger">
-      <main className="min-h-screen bg-[#0a0500] px-4 py-10">
+      <AppHeader />
+      <main className="min-h-screen bg-[#0a0500] px-4 pt-24 pb-10">
         <div className="mx-auto max-w-lg">
           <div className="mb-8">
             <button

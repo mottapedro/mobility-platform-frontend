@@ -1,58 +1,53 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getRide } from '../services/api'
-import type { Offer, Ride } from '../types'
+import { getDriverOffers } from '../services/drivers'
+import type { DriverOffer } from '../types'
 
 interface UseOffersResult {
-  ride: Ride | null
-  offers: Offer[]
+  offers: DriverOffer[]
   loading: boolean
   error: string | null
   refresh: () => void
 }
 
-export function useOffers(rideId: string | null): UseOffersResult {
-  const [ride, setRide] = useState<Ride | null>(null)
+export function useOffers(driverId: string | null): UseOffersResult {
+  const [offers, setOffers] = useState<DriverOffer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const fetchRide = useCallback(async () => {
-    if (!rideId) return
+  const fetchOffers = useCallback(async () => {
+    if (!driverId) return
     try {
-      const data = await getRide(rideId)
-      setRide(data)
+      const data = await getDriverOffers(driverId)
+      console.log('[useOffers] driverId:', driverId)
+      console.log('[useOffers] response:', data)
+      data.forEach((o) =>
+        console.log(`  offer ${o.id} | status: ${o.status} | expiresAt: ${o.expiresAt}`),
+      )
+      setOffers(data)
       setError(null)
-    } catch {
-      setError('Erro ao carregar offers. Verifique se o backend está rodando.')
+    } catch (err) {
+      console.error('[useOffers] fetch error:', err)
+      setError('Erro ao carregar ofertas. Verifique se o backend está rodando.')
     } finally {
       setLoading(false)
     }
-  }, [rideId])
+  }, [driverId])
 
   useEffect(() => {
-    if (!rideId) return
+    if (!driverId) return
 
     setLoading(true)
-    fetchRide()
+    fetchOffers()
 
-    intervalRef.current = setInterval(() => {
-      fetchRide()
-    }, 2000)
+    intervalRef.current = setInterval(fetchOffers, 2000)
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [rideId, fetchRide])
+  }, [driverId, fetchOffers])
 
-  return {
-    ride,
-    offers: ride?.offers ?? [],
-    loading,
-    error,
-    refresh: fetchRide,
-  }
+  return { offers, loading, error, refresh: fetchOffers }
 }

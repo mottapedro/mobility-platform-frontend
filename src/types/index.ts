@@ -32,6 +32,14 @@ export interface Offer {
   status: OfferStatus
   expiresAt: string
   driver: Driver
+  ride?: {
+    id: string
+    origin: string
+    destination: string
+    passengerId: string
+    scheduledAt: string
+    passenger?: { user: { name: string; phone?: string } }
+  }
 }
 
 export type RideStatus =
@@ -76,10 +84,43 @@ export interface CreateRidePayload {
   context?: RideContext
 }
 
+// ─── Driver Offer (retornado por GET /drivers/:id/offers) ──────────────────
+export interface DriverOffer {
+  id: string
+  status: OfferStatus
+  expiresAt: string
+  createdAt: string
+  rideRequest: {
+    id: string
+    origin: string
+    destination: string
+    scheduledAt: string
+    status: string
+    context?: RideContext | null
+    passenger: {
+      user: { name: string; phone?: string }
+    }
+  }
+}
+// ─── Driver Ride (retornado por GET /drivers/:id/rides) ───────────────────────
+export interface DriverRide {
+  id: string
+  origin: string
+  destination: string
+  scheduledAt: string
+  status: string
+  context?: RideContext | null
+  passenger: {
+    user: { name: string; phone?: string }
+  }
+}
 // ─── Auth ───────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string
   name: string
   email: string
   role: 'driver' | 'passenger'
+  passengerId?: string
+  driverId?: string
+  referredByDriverId?: string | null
 }

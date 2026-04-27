@@ -1,8 +1,9 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { getDrivers, type DriverSummary } from '../../services/drivers'
 import type { AuthUser } from '../../types'
 
 export default function RegisterPage() {
@@ -11,10 +12,22 @@ export default function RegisterPage() {
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<AuthUser['role']>('passenger')
+  const [referrerDriverId, setReferrerDriverId] = useState('')
+  const [drivers, setDrivers] = useState<DriverSummary[]>([])
+  const [loadingDrivers, setLoadingDrivers] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLoadingDrivers(true)
+    getDrivers()
+      .then(setDrivers)
+      .catch(() => setDrivers([]))
+      .finally(() => setLoadingDrivers(false))
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -27,9 +40,29 @@ export default function RegisterPage() {
 
     setLoading(true)
     try {
-      await register(name, email, password, role)
+      const payload = {
+        name,
+        email,
+        password,
+        role,
+        phone,
+        ...(role === 'passenger' && referrerDriverId ? { referredByDriverId: referrerDriverId } : {}),
+      }
+      console.log('role enviado:', role)
+      console.log('[register] payload:', payload)
+      await register(payload)
+
+      // Persist selected driver label for display on /passenger/create
+      if (role === 'passenger' && referrerDriverId) {
+        const selected = drivers.find((d) => d.id === referrerDriverId)
+        if (selected) localStorage.setItem('aliado:referredDriver', JSON.stringify(selected))
+      } else {
+        localStorage.removeItem('aliado:referredDriver')
+      }
+
       router.push(role === 'driver' ? '/driver/offers' : '/passenger/create')
     } catch (err) {
+      console.error('[register] error:', err)
       setError(err instanceof Error ? err.message : 'Erro ao cadastrar')
     } finally {
       setLoading(false)
@@ -75,6 +108,23 @@ export default function RegisterPage() {
             />
           </div>
 
+          {role === 'passenger' && (
+            <div className="space-y-1">
+              <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                Telefone
+              </label>
+              <input
+                type="tel"
+                required
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Ex: 11999990001"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
+              />
+            </div>
+          )}
+
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
               Senha
@@ -112,6 +162,32 @@ export default function RegisterPage() {
               ))}
             </div>
           </div>
+
+          {/* Referred driver — only for passengers */}
+          {role === 'passenger' && (
+            <div className="space-y-1">
+              <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                Motorista aliado indicado
+              </label>
+              <select
+                value={referrerDriverId}
+                onChange={(e) => setReferrerDriverId(e.target.value)}
+                disabled={loadingDrivers}
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 disabled:opacity-50 [color-scheme:dark]"
+              >
+                <option value="">
+                  {loadingDrivers
+                    ? 'Carregando motoristas...'
+                    : 'Selecione seu motorista aliado (opcional)'}
+                </option>
+                {(drivers ?? []).map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}{d.phone ? ` · ${d.phone}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {error && (
             <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">

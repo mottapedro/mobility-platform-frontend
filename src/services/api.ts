@@ -1,55 +1,35 @@
-import axios from 'axios'
-import type { CreateRidePayload, Passenger, Ride } from '../types'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-export async function getPassenger(passengerId: string): Promise<Passenger> {
-  const { data } = await api.get<Passenger>(`/passengers/${passengerId}`)
-  return data
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
 }
 
-export async function createRide(
-  payload: CreateRidePayload
-): Promise<{ message: string; ride: Ride }> {
-  const { data } = await api.post<{ message: string; ride: Ride }>(
-    '/rides',
-    payload
-  )
-  return data
+async function request<T>(
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText)
+    throw new ApiError(res.status, text)
+  }
+
+  const text = await res.text()
+  return text ? (JSON.parse(text) as T) : (undefined as T)
 }
 
-export async function getRide(rideId: string): Promise<Ride> {
-  const { data } = await api.get<Ride>(`/rides/${rideId}`)
-  return data
+export const api = {
+  get: <T>(path: string) => request<T>('GET', path),
+  post: <T>(path: string, body: unknown) => request<T>('POST', path, body),
+  patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, body),
+  delete: <T>(path: string) => request<T>('DELETE', path),
 }
-
-export async function getPendingRides(): Promise<Ride[]> {
-  const { data } = await api.get<Ride[]>('/rides?status=pending')
-  return data
-}
-
-export async function updateRideStatus(
-  rideId: string,
-  status: 'accepted' | 'rejected'
-): Promise<void> {
-  await api.patch(`/rides/${rideId}`, { status })
-}
-
-export async function getRidesByPassenger(passengerId: string): Promise<Ride[]> {
-  const { data } = await api.get<Ride[]>(`/rides?passengerId=${passengerId}`)
-  return data
-}
-
-export async function respondOffer(
-  offerId: string,
-  accept: boolean
-): Promise<void> {
-  await api.patch(`/offers/${offerId}/respond`, { accept })
-}
-
-export default api
