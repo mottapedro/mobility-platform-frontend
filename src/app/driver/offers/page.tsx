@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useOffers } from '../../../hooks/useOffers'
 import { respondOffer } from '../../../services/rides'
+import { Countdown } from '../../../components/driver/Countdown'
 import { ProtectedRoute } from '../../../components/AuthGuard'
 import { AppHeader } from '../../../components/AppHeader'
-import type { DriverOffer } from '../../../types'
+import type { DriverOffer, RideContext } from '../../../types'
 
 export default function DriverOffersPage() {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function DriverOffersPage() {
   const [driverId, setDriverId] = useState<string | null>(null)
   const [responding, setResponding] = useState<string | null>(null)
   const [respondError, setRespondError] = useState<string | null>(null)
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const id =
@@ -32,6 +34,8 @@ export default function DriverOffersPage() {
     setRespondError(null)
     try {
       await respondOffer(offerId, accept)
+      // Optimistic: remove card immediately after response
+      setDismissed((prev) => new Set(prev).add(offerId))
     } catch {
       setRespondError('Erro ao responder oferta. Tente novamente.')
     } finally {
@@ -41,65 +45,81 @@ export default function DriverOffersPage() {
 
   const now = new Date()
   const pendingOffers = offers.filter(
-    (o) => o.status === 'PENDING' && new Date(o.expiresAt) > now,
+    (o) =>
+      o.status === 'PENDING' &&
+      new Date(o.expiresAt) > now &&
+      !dismissed.has(o.id),
   )
 
   return (
     <ProtectedRoute requiredRole="driver">
       <AppHeader />
-      <main className="min-h-screen bg-[#0a0a0a] px-4 pt-24 pb-10">
+      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
         <div className="mx-auto max-w-lg">
+          {/* Header */}
           <div className="mb-8">
             <button
               onClick={() => router.push('/')}
-              className="mb-4 text-sm text-zinc-500 hover:text-orange-400 transition-colors"
+              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
             >
               ← Voltar
             </button>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-white">Ofertas</h1>
-                <p className="mt-1 text-sm text-zinc-400">
+                <h1 className="text-2xl font-bold text-[#E6D2B3]">Ofertas</h1>
+                <p className="mt-1 text-sm text-[#E6D2B3]/50">
                   Painel do motorista · atualizando a cada 2s
                 </p>
               </div>
-              <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+              <div className="flex items-center gap-2">
+                {pendingOffers.length > 0 && (
+                  <span className="rounded-full bg-[#F28C28] px-2.5 py-0.5 text-xs font-bold text-[#1E140F]">
+                    {pendingOffers.length}
+                  </span>
+                )}
+                <div className="h-2 w-2 rounded-full bg-[#3FAE5A] animate-pulse" />
+              </div>
             </div>
           </div>
 
+          {/* Error */}
           {(error || respondError) && (
-            <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
               {error ?? respondError}
             </div>
           )}
 
+          {/* No driver */}
           {!driverId && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
-              <p className="mb-4 text-zinc-400">
+            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+              <p className="mb-4 text-[#E6D2B3]/60">
                 Perfil de motorista não encontrado. Faça login novamente.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
+                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity"
               >
                 Ir para login
               </button>
             </div>
           )}
 
+          {/* Loading */}
           {driverId && loading && offers.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-16 text-zinc-500">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-orange-500" />
+            <div className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
               <p className="text-sm">Aguardando ofertas...</p>
             </div>
           )}
 
+          {/* Offer list */}
           {pendingOffers.length > 0 && (
             <div className="flex flex-col gap-4">
               {pendingOffers.map((offer) => (
                 <OfferCard
                   key={offer.id}
                   offer={offer}
+                  driverId={driverId!}
                   responding={responding === offer.id}
                   onAccept={() => handleRespond(offer.id, true)}
                   onReject={() => handleRespond(offer.id, false)}
@@ -108,9 +128,10 @@ export default function DriverOffersPage() {
             </div>
           )}
 
+          {/* Empty state */}
           {driverId && pendingOffers.length === 0 && !loading && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-center">
-              <p className="text-sm text-zinc-400">Nenhuma oferta pendente no momento.</p>
+            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+              <p className="text-sm text-[#E6D2B3]/50">Nenhuma oferta pendente no momento.</p>
             </div>
           )}
         </div>
@@ -121,55 +142,99 @@ export default function DriverOffersPage() {
 
 interface OfferCardProps {
   offer: DriverOffer
+  driverId: string
   responding: boolean
   onAccept: () => void
   onReject: () => void
 }
 
-function OfferCard({ offer, responding, onAccept, onReject }: OfferCardProps) {
+function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCardProps) {
   const ride = offer.rideRequest
-  const minutesLeft = Math.max(
-    0,
-    Math.floor((new Date(offer.expiresAt).getTime() - Date.now()) / 60000),
-  )
+  const passenger = ride.passenger
+  const isReferral = passenger.referredByDriverId === driverId
+  const context = ride.context as RideContext | null
+
+  const contextBadges: { label: string; emoji: string }[] = []
+  if (context?.isVip) contextBadges.push({ label: 'VIP', emoji: '⭐' })
+  if (context?.isAirport) contextBadges.push({ label: 'Aeroporto', emoji: '✈️' })
+  if (context?.isPet) contextBadges.push({ label: 'Pet', emoji: '🐶' })
+  if (context?.isLuggage) contextBadges.push({ label: 'Bagagem', emoji: '🧳' })
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 flex flex-col gap-4">
-      {/* Ride info */}
-      <div className="flex flex-col gap-1.5">
-        {ride?.passenger?.user?.name && (
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-            Passageiro:{' '}
-            <span className="text-zinc-300 normal-case">{ride.passenger.user.name}</span>
-          </p>
-        )}
-        {ride?.origin && (
-          <div className="flex flex-col gap-0.5 text-sm">
-            <span className="text-zinc-400">
-              <span className="text-orange-400 font-semibold">De:</span> {ride.origin}
-            </span>
-            <span className="text-zinc-400">
-              <span className="text-orange-400 font-semibold">Para:</span> {ride.destination}
-            </span>
-          </div>
-        )}
-        {ride?.scheduledAt && (
-          <p className="text-xs text-zinc-500">
-            {new Date(ride.scheduledAt).toLocaleString('pt-BR', {
-              dateStyle: 'short',
-              timeStyle: 'short',
-            })}
-          </p>
-        )}
-        <p className="text-xs text-zinc-600">Expira em {minutesLeft} min</p>
+    <div
+      className={`rounded-2xl border p-5 flex flex-col gap-4 transition-all ${
+        isReferral
+          ? 'border-[#F28C28]/60 bg-[#2B1E15] shadow-[0_0_24px_0_rgba(242,140,40,0.10)]'
+          : 'border-[#E6D2B3]/10 bg-[#2B1E15]'
+      }`}
+    >
+      {/* Priority badge */}
+      <div className="flex items-center justify-between">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+            isReferral
+              ? 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/40'
+              : 'bg-[#E6D2B3]/8 text-[#E6D2B3]/50 border border-[#E6D2B3]/15'
+          }`}
+        >
+          {isReferral ? '★ Seu cliente' : '◎ Disponível na rede'}
+        </span>
+        <Countdown expiresAt={offer.expiresAt} />
       </div>
+
+      {/* Passenger */}
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+            isReferral ? 'bg-[#F28C28] text-[#1E140F]' : 'bg-[#3B2A1F] text-[#E6D2B3]'
+          }`}
+        >
+          {passenger.user.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <p className="font-semibold text-[#E6D2B3]">{passenger.user.name}</p>
+          {passenger.user.phone && (
+            <p className="text-xs text-[#E6D2B3]/40">{passenger.user.phone}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Route */}
+      <div className="rounded-xl border border-[#E6D2B3]/8 bg-[#1E140F]/60 px-4 py-3 flex flex-col gap-1.5 text-sm">
+        <p className="text-[#E6D2B3]/70">
+          <span className="font-semibold text-[#F28C28]">De:</span> {ride.origin}
+        </p>
+        <p className="text-[#E6D2B3]/70">
+          <span className="font-semibold text-[#F28C28]">Para:</span> {ride.destination}
+        </p>
+        <p className="text-xs text-[#E6D2B3]/40">
+          {new Date(ride.scheduledAt).toLocaleString('pt-BR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+          })}
+        </p>
+      </div>
+
+      {/* Context badges */}
+      {contextBadges.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {contextBadges.map((b) => (
+            <span
+              key={b.label}
+              className="inline-flex items-center gap-1 rounded-full border border-[#F28C28]/25 bg-[#F28C28]/8 px-2.5 py-0.5 text-xs font-medium text-[#F28C28]"
+            >
+              {b.emoji} {b.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3">
         <button
           onClick={onAccept}
           disabled={responding}
-          className="flex-1 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-xl bg-[#3FAE5A] px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {responding ? (
             <span className="flex items-center justify-center gap-2">
@@ -183,7 +248,7 @@ function OfferCard({ offer, responding, onAccept, onReject }: OfferCardProps) {
         <button
           onClick={onReject}
           disabled={responding}
-          className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-red-700/50 hover:bg-red-900/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-xl border border-[#E6D2B3]/15 bg-transparent px-4 py-2.5 text-sm font-semibold text-[#E6D2B3]/60 transition-colors hover:border-[#D64545]/50 hover:text-[#D64545] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {responding ? '...' : 'Rejeitar'}
         </button>

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { AuthProvider } from "../contexts/AuthContext";
 import "./globals.css";
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-montserrat",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -19,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} h-full`}>
-      <body className="min-h-full bg-[#0a0a0a] text-white antialiased">
+    <html lang="pt-BR" className={`${montserrat.variable} h-full`}>
+      <body className={`${montserrat.variable} min-h-full bg-[#1E140F] font-[family-name:var(--font-montserrat)] text-[#E6D2B3] antialiased`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

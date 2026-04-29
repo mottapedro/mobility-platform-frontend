@@ -46,6 +46,7 @@ export type RideStatus =
   | 'PENDING'
   | 'MATCHING'
   | 'WAITING_DRIVER'
+  | 'WAITING_REFERRAL'
   | 'ACCEPTED'
   | 'REJECTED'
   | 'EXPIRED'
@@ -98,6 +99,7 @@ export interface DriverOffer {
     status: string
     context?: RideContext | null
     passenger: {
+      referredByDriverId?: string | null
       user: { name: string; phone?: string }
     }
   }

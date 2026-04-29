@@ -26,43 +26,43 @@ export default function DriverRidesPage() {
   return (
     <ProtectedRoute requiredRole="driver">
       <AppHeader />
-      <main className="min-h-screen bg-[#0a0a0a] px-4 pt-24 pb-10">
+      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
         <div className="mx-auto max-w-lg">
           <div className="mb-8">
             <button
               onClick={() => router.push('/')}
-              className="mb-4 text-sm text-zinc-500 hover:text-orange-400 transition-colors"
+              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
             >
               ← Voltar
             </button>
-            <h1 className="text-2xl font-bold text-white">Minhas Corridas</h1>
-            <p className="mt-1 text-sm text-zinc-400">Corridas confirmadas</p>
+            <h1 className="text-2xl font-bold text-[#E6D2B3]">Agenda</h1>
+            <p className="mt-1 text-sm text-[#E6D2B3]/50">Corridas confirmadas</p>
           </div>
 
           {error && (
-            <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
               {error}
             </div>
           )}
 
           {!driverId && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
-              <p className="text-sm text-zinc-400">
+            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+              <p className="text-sm text-[#E6D2B3]/50">
                 Motorista não identificado. Faça login novamente.
               </p>
             </div>
           )}
 
           {driverId && loading && rides.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-16 text-zinc-500">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-orange-500" />
-              <p className="text-sm">Carregando corridas...</p>
+            <div className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+              <p className="text-sm">Carregando agenda...</p>
             </div>
           )}
 
           {driverId && !loading && rides.length === 0 && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
-              <p className="text-sm text-zinc-400">Nenhuma corrida confirmada.</p>
+            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+              <p className="text-sm text-[#E6D2B3]/50">Nenhuma corrida confirmada.</p>
             </div>
           )}
 
@@ -91,39 +91,39 @@ function RideCard({ ride }: { ride: DriverRide }) {
   })
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 flex flex-col gap-3">
+    <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#1E140F]">
             {passenger.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#E6D2B3]/40">
               Passageiro
             </p>
-            <p className="font-semibold text-white">{passenger.name}</p>
+            <p className="font-semibold text-[#E6D2B3]">{passenger.name}</p>
             {passenger.phone && (
-              <p className="text-xs text-zinc-500">{passenger.phone}</p>
+              <p className="text-xs text-[#E6D2B3]/40">{passenger.phone}</p>
             )}
           </div>
         </div>
-        <span className="flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">
-          ✅ Confirmada
+        <span className="flex items-center gap-1.5 rounded-full border border-[#3FAE5A]/30 bg-[#3FAE5A]/10 px-3 py-1 text-xs font-semibold text-[#3FAE5A]">
+          ✓ Confirmada
         </span>
       </div>
 
-      <div className="flex flex-col gap-1 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm">
-        <p className="text-zinc-400">
-          <span className="font-semibold text-orange-400">De:</span>{' '}
-          <span className="text-white">{ride.origin}</span>
+      <div className="flex flex-col gap-1.5 rounded-xl border border-[#E6D2B3]/8 bg-[#1E140F]/60 px-4 py-3 text-sm">
+        <p className="text-[#E6D2B3]/70">
+          <span className="font-semibold text-[#F28C28]">De:</span>{' '}
+          <span className="text-[#E6D2B3]">{ride.origin}</span>
         </p>
-        <p className="text-zinc-400">
-          <span className="font-semibold text-orange-400">Para:</span>{' '}
-          <span className="text-white">{ride.destination}</span>
+        <p className="text-[#E6D2B3]/70">
+          <span className="font-semibold text-[#F28C28]">Para:</span>{' '}
+          <span className="text-[#E6D2B3]">{ride.destination}</span>
         </p>
-        <p className="text-zinc-400">
-          <span className="font-semibold text-orange-400">Horário:</span>{' '}
-          <span className="text-white">{scheduledDate}</span>
+        <p className="text-[#E6D2B3]/70">
+          <span className="font-semibold text-[#F28C28]">Horário:</span>{' '}
+          <span className="text-[#E6D2B3]">{scheduledDate}</span>
         </p>
       </div>
 
@@ -141,7 +141,7 @@ function RideCard({ ride }: { ride: DriverRide }) {
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-1 text-xs font-semibold text-orange-400">
+    <span className="rounded-full border border-[#F28C28]/30 bg-[#F28C28]/10 px-2.5 py-1 text-xs font-semibold text-[#F28C28]">
       {children}
     </span>
   )

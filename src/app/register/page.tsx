@@ -21,6 +21,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Driver-specific fields
+  const [experienceLevel, setExperienceLevel] = useState('INICIANTE')
+  const [vehicleModel, setVehicleModel] = useState('')
+  const [vehicleBrand, setVehicleBrand] = useState('')
+  const [vehiclePlate, setVehiclePlate] = useState('')
+  const [vehicleCategory, setVehicleCategory] = useState('CONFORTO')
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+
   useEffect(() => {
     setLoadingDrivers(true)
     getDrivers()
@@ -38,6 +46,17 @@ export default function RegisterPage() {
       return
     }
 
+    if (role === 'driver') {
+      if (!vehicleModel.trim() || !vehicleBrand.trim() || !vehiclePlate.trim()) {
+        setError('Preencha os dados do veículo')
+        return
+      }
+      if (selectedRegions.length === 0) {
+        setError('Selecione pelo menos uma região de atuação')
+        return
+      }
+    }
+
     setLoading(true)
     try {
       const payload = {
@@ -46,6 +65,13 @@ export default function RegisterPage() {
         password,
         role,
         phone,
+        ...(role === 'driver'
+          ? {
+              experienceLevel,
+              vehicle: { model: vehicleModel, brand: vehicleBrand, plate: vehiclePlate, category: vehicleCategory },
+              region: selectedRegions,
+            }
+          : {}),
         ...(role === 'passenger' && referrerDriverId ? { referredByDriverId: referrerDriverId } : {}),
       }
       console.log('role enviado:', role)
@@ -162,6 +188,96 @@ export default function RegisterPage() {
               ))}
             </div>
           </div>
+
+          {/* Driver-specific fields */}
+          {role === 'driver' && (
+            <>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                  Nível de experiência
+                </label>
+                <select
+                  value={experienceLevel}
+                  onChange={(e) => setExperienceLevel(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 [color-scheme:dark]"
+                >
+                  {[['INICIANTE', 'Iniciante'], ['INTERMEDIARIO', 'Intermediário'], ['PROFISSIONAL', 'Profissional'], ['ELITE', 'Elite']].map(([v, l]) => (
+                    <option key={v} value={v}>{l}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                  Regiões de atuação
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[['ZN', 'Zona Norte'], ['ZS', 'Zona Sul'], ['ZO', 'Zona Oeste'], ['BAIXADA', 'Baixada'], ['INTER', 'Interior']].map(([v, l]) => (
+                    <label
+                      key={v}
+                      className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                        selectedRegions.includes(v)
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={selectedRegions.includes(v)}
+                        onChange={() =>
+                          setSelectedRegions((prev) =>
+                            prev.includes(v) ? prev.filter((r) => r !== v) : [...prev, v]
+                          )
+                        }
+                      />
+                      {l}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                  Veículo
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Marca (ex: Toyota)"
+                    value={vehicleBrand}
+                    onChange={(e) => setVehicleBrand(e.target.value)}
+                    className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
+                  />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Modelo (ex: Corolla)"
+                    value={vehicleModel}
+                    onChange={(e) => setVehicleModel(e.target.value)}
+                    className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
+                  />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Placa (ex: ABC-1234)"
+                    value={vehiclePlate}
+                    onChange={(e) => setVehiclePlate(e.target.value.toUpperCase())}
+                    className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
+                  />
+                  <select
+                    value={vehicleCategory}
+                    onChange={(e) => setVehicleCategory(e.target.value)}
+                    className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 [color-scheme:dark]"
+                  >
+                    <option value="CONFORTO">Conforto</option>
+                    <option value="EXECUTIVO">Executivo</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Referred driver — only for passengers */}
           {role === 'passenger' && (
