@@ -97,6 +97,8 @@ export interface DriverOffer {
     destination: string
     scheduledAt: string
     status: string
+    distanceKm?: number | null
+    durationMin?: number | null
     context?: RideContext | null
     passenger: {
       referredByDriverId?: string | null

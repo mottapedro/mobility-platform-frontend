@@ -207,6 +207,9 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
         <p className="text-[#E6D2B3]/70">
           <span className="font-semibold text-[#F28C28]">Para:</span> {ride.destination}
         </p>
+        <p className="text-xs text-[#E6D2B3]/70 mt-1">
+          🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min
+        </p>
         <p className="text-xs text-[#E6D2B3]/40">
           {new Date(ride.scheduledAt).toLocaleString('pt-BR', {
             dateStyle: 'short',

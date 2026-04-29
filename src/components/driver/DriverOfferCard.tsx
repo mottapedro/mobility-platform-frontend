@@ -9,6 +9,8 @@ interface DriverOfferCardProps {
   passengerName?: string
   origin?: string
   destination?: string
+  distanceKm?: number | null
+  durationMin?: number | null
   onAccept: () => void
   onReject: () => void
   responding: boolean
@@ -19,6 +21,8 @@ export function DriverOfferCard({
   passengerName,
   origin,
   destination,
+  distanceKm,
+  durationMin,
   onAccept,
   onReject,
   responding,
@@ -71,6 +75,11 @@ export function DriverOfferCard({
             <p className="text-xs text-zinc-500">
               Para:{' '}
               <span className="font-medium text-zinc-300">{destination}</span>
+            </p>
+          )}
+          {(distanceKm != null || durationMin != null) && (
+            <p className="mt-1 text-xs text-[#E6D2B3]/70">
+              🚗 {distanceKm ?? '--'} km • ⏱ {durationMin ?? '--'} min
             </p>
           )}
         </div>
