@@ -1,4 +1,4 @@
-import { api } from './api'
+import { apiRequest } from './api'
 import type { CreateRidePayload, Offer, Passenger, Ride } from '../types'
 
 export interface CreatePassengerPayload {
@@ -9,45 +9,45 @@ export interface CreatePassengerPayload {
 }
 
 export async function createPassenger(payload: CreatePassengerPayload): Promise<Passenger> {
-  return api.post('/passengers', payload)
+  return apiRequest('/passengers', { method: 'POST', body: payload })
 }
 
 export async function createRide(
   payload: CreateRidePayload,
 ): Promise<{ message: string; ride: Ride }> {
-  return api.post('/rides', payload)
+  return apiRequest('/rides', { method: 'POST', body: payload })
 }
 
 export async function getRide(rideId: string): Promise<Ride> {
-  return api.get(`/rides/${rideId}`)
+  return apiRequest(`/rides/${rideId}`)
 }
 
 export async function getPendingRides(): Promise<Ride[]> {
-  return api.get('/rides?status=pending')
+  return apiRequest('/rides?status=pending')
 }
 
 export async function updateRide(
   rideId: string,
   body: Record<string, unknown>,
 ): Promise<void> {
-  return api.patch(`/rides/${rideId}`, body)
+  return apiRequest(`/rides/${rideId}`, { method: 'PATCH', body })
 }
 
 export async function getRidesByPassenger(passengerId: string): Promise<Ride[]> {
-  return api.get(`/rides?passengerId=${passengerId}`)
+  return apiRequest(`/rides?passengerId=${passengerId}`)
 }
 
 export async function respondOffer(
   offerId: string,
   accept: boolean,
 ): Promise<void> {
-  return api.patch(`/offers/${offerId}/respond`, { accept })
+  return apiRequest(`/offers/${offerId}/respond`, { method: 'PATCH', body: { accept } })
 }
 
 export async function getPassenger(passengerId: string): Promise<Passenger> {
-  return api.get(`/passengers/${passengerId}`)
+  return apiRequest(`/passengers/${passengerId}`)
 }
 
 export async function getDriverOffers(driverId: string): Promise<Offer[]> {
-  return api.get(`/drivers/${driverId}/offers`)
+  return apiRequest(`/drivers/${driverId}/offers`)
 }

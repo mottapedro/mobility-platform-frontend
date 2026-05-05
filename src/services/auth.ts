@@ -1,6 +1,4 @@
-// Auth service — ready to connect when a real endpoint is available.
-// AuthContext currently uses mock auth; swap the calls below when the backend is ready.
-import { api } from './api'
+import { apiRequest } from './api'
 
 export interface LoginPayload {
   email: string
@@ -25,9 +23,9 @@ export interface AuthResponse {
 }
 
 export async function loginApi(payload: LoginPayload): Promise<AuthResponse> {
-  return api.post('/auth/login', payload)
+  return apiRequest('/auth/login', { method: 'POST', body: payload })
 }
 
 export async function registerApi(payload: RegisterPayload): Promise<AuthResponse> {
-  return api.post('/auth/register', payload)
+  return apiRequest('/auth/register', { method: 'POST', body: payload })
 }

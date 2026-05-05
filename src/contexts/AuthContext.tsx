@@ -8,10 +8,9 @@ import {
   useState,
 } from 'react'
 import { useRouter } from 'next/navigation'
+import { API_URL } from '../config/api'
 import type { AuthUser } from '../types'
-
 const STORAGE_KEY = 'aliado:auth'
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 
 interface RegisterPayload {
   name: string
@@ -53,8 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    console.log('[LOGIN FRONTEND]', { email, api: `${BASE}/auth/login` })
-    const res = await fetch(`${BASE}/auth/login`, {
+    console.log('[LOGIN FRONTEND]', { email, api: `${API_URL}/auth/login` })
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -81,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const register = useCallback(async (payload: RegisterPayload) => {
-    const res = await fetch(`${BASE}/auth/register`, {
+    const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

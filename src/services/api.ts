@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
+import { API_URL } from '../config/api'
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -7,32 +7,52 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(
-  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
-  path: string,
-  body?: unknown,
+type RequestOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  body?: unknown
+  token?: string
+}
+
+export async function apiRequest<T>(
+  endpoint: string,
+  options: RequestOptions = {},
 ): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const { method = 'GET', body, token } = options
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       'ngrok-skip-browser-warning': 'true',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText)
-    throw new ApiError(res.status, text)
+  const text = await response.text()
+  let data: T | undefined
+  if (text) {
+    try {
+      data = JSON.parse(text) as T
+    } catch {
+      data = text as unknown as T
+    }
   }
 
-  const text = await res.text()
-  return text ? (JSON.parse(text) as T) : (undefined as T)
+  if (!response.ok) {
+    const message =
+      (data as Record<string, string>)?.message ??
+      (data as Record<string, string>)?.error ??
+      (typeof data === 'string' ? data : response.statusText)
+    throw new ApiError(response.status, message)
+  }
+
+  return data as T
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>('GET', path),
-  post: <T>(path: string, body: unknown) => request<T>('POST', path, body),
-  patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, body),
-  delete: <T>(path: string) => request<T>('DELETE', path),
+  get: <T>(path: string, token?: string) => apiRequest<T>(path, { token }),
+  post: <T>(path: string, body: unknown, token?: string) => apiRequest<T>(path, { method: 'POST', body, token }),
+  patch: <T>(path: string, body: unknown, token?: string) => apiRequest<T>(path, { method: 'PATCH', body, token }),
+  delete: <T>(path: string, token?: string) => apiRequest<T>(path, { method: 'DELETE', token }),
 }
