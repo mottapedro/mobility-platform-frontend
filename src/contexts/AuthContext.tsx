@@ -52,7 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      try { setUser(JSON.parse(stored)) } catch { localStorage.removeItem(STORAGE_KEY) }
+      try {
+        const parsed = JSON.parse(stored)
+        // normalise legacy uppercase roles from old deployments
+        if (parsed?.role) parsed.role = parsed.role.toLowerCase()
+        setUser(parsed)
+      } catch { localStorage.removeItem(STORAGE_KEY) }
     }
     setLoading(false)
   }, [])
