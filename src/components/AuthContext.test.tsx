@@ -57,7 +57,7 @@ describe('AuthContext', () => {
     }
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(apiResponse),
+      text: () => Promise.resolve(JSON.stringify(apiResponse)),
     } as unknown as Response)
 
     render(<AuthProvider><TestConsumer /></AuthProvider>)
@@ -74,7 +74,7 @@ describe('AuthContext', () => {
   it('throws when login API returns non-ok', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ error: 'Credenciais inválidas' }),
+      text: () => Promise.resolve(JSON.stringify({ error: 'Credenciais inválidas' })),
     } as unknown as Response)
 
     render(<AuthProvider><TestConsumer /></AuthProvider>)
