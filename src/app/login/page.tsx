@@ -1,11 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function LoginPage() {
-  const router = useRouter()
   const { login } = useAuth()
 
   const [email, setEmail] = useState('')
@@ -20,12 +18,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-      // Redirect is handled by layout — but we can push based on role here
-      const stored = localStorage.getItem('aliado:auth')
-      if (stored) {
-        const user = JSON.parse(stored)
-        router.push(user.role === 'driver' ? '/driver/offers' : '/passenger/create')
-      }
+      // redirect is handled inside AuthContext.login()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar')
     } finally {

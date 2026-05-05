@@ -50,14 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) setUser(JSON.parse(stored))
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
-    } finally {
-      setLoading(false)
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      try { setUser(JSON.parse(stored)) } catch { localStorage.removeItem(STORAGE_KEY) }
     }
+    setLoading(false)
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
@@ -92,7 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)
-  }, [])
+
+    // smart redirect based on role
+    router.replace(authUser.role === 'driver' ? '/driver/offers' : '/passenger/create')
+  }, [router])
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const res = await fetch(`${API_URL}/auth/register`, {
