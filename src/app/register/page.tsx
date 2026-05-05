@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { redirectByRole } from '../../utils/redirectByRole'
 import { getDrivers, type DriverSummary } from '../../services/drivers'
 import type { AuthUser } from '../../types'
 
@@ -86,7 +87,7 @@ export default function RegisterPage() {
         localStorage.removeItem('aliado:referredDriver')
       }
 
-      router.push(role === 'driver' ? '/driver/offers' : '/passenger/create')
+      router.push(redirectByRole(role))
     } catch (err) {
       console.error('[register] error:', err)
       setError(err instanceof Error ? err.message : 'Erro ao cadastrar')
