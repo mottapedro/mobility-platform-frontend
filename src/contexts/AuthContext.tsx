@@ -52,8 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    console.log('[LOGIN FRONTEND]', { email, api: `${API_URL}/auth/login` })
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const url = `${API_URL}/auth/login`
+    console.log('[LOGIN] →', url)
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,8 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       body: JSON.stringify({ email, password }),
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? 'Email ou senha incorretos')
+    console.log('[LOGIN] status', res.status, res.ok)
+    const text = await res.text()
+    let data: Record<string, unknown> = {}
+    try { data = JSON.parse(text) } catch { /* non-JSON body */ }
+    console.log('[LOGIN] data', data)
+    if (!res.ok) throw new Error((data.error as string) ?? (data.message as string) ?? 'Email ou senha incorretos')
 
     const authUser: AuthUser = {
       id: data.user.id,
@@ -88,8 +93,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       body: JSON.stringify(payload),
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? 'Erro ao cadastrar')
+    const text = await res.text()
+    let data: Record<string, unknown> = {}
+    try { data = JSON.parse(text) } catch { /* non-JSON body */ }
+    if (!res.ok) throw new Error((data.error as string) ?? (data.message as string) ?? 'Erro ao cadastrar')
 
     const authUser: AuthUser = {
       id: data.user.id,
