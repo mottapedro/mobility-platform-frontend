@@ -12,6 +12,15 @@ import { API_URL } from '../config/api'
 import type { AuthUser } from '../types'
 const STORAGE_KEY = 'aliado:auth'
 
+interface ApiAuthResponse {
+  user: { id: string; name: string; email: string; role: string }
+  driverId?: string
+  passengerId?: string
+  referredByDriverId?: string | null
+  error?: string
+  message?: string
+}
+
 interface RegisterPayload {
   name: string
   email: string
@@ -64,10 +73,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
     console.log('[LOGIN] status', res.status, res.ok)
     const text = await res.text()
-    let data: Record<string, unknown> = {}
-    try { data = JSON.parse(text) } catch { /* non-JSON body */ }
+    let data = {} as ApiAuthResponse
+    try { data = JSON.parse(text) as ApiAuthResponse } catch { /* non-JSON body */ }
     console.log('[LOGIN] data', data)
-    if (!res.ok) throw new Error((data.error as string) ?? (data.message as string) ?? 'Email ou senha incorretos')
+    if (!res.ok) throw new Error(data.error ?? data.message ?? 'Email ou senha incorretos')
+    if (!data.user) throw new Error('Resposta inválida do servidor')
 
     const authUser: AuthUser = {
       id: data.user.id,
@@ -76,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: data.user.role as AuthUser['role'],
       ...(data.passengerId ? { passengerId: data.passengerId } : {}),
       ...(data.driverId ? { driverId: data.driverId } : {}),
-      ...(data.referredByDriverId !== undefined ? { referredByDriverId: data.referredByDriverId } : {}),
+      ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
@@ -94,9 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify(payload),
     })
     const text = await res.text()
-    let data: Record<string, unknown> = {}
-    try { data = JSON.parse(text) } catch { /* non-JSON body */ }
-    if (!res.ok) throw new Error((data.error as string) ?? (data.message as string) ?? 'Erro ao cadastrar')
+    let data = {} as ApiAuthResponse
+    try { data = JSON.parse(text) as ApiAuthResponse } catch { /* non-JSON body */ }
+    if (!res.ok) throw new Error(data.error ?? data.message ?? 'Erro ao cadastrar')
+    if (!data.user) throw new Error('Resposta inválida do servidor')
 
     const authUser: AuthUser = {
       id: data.user.id,
@@ -105,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: data.user.role as AuthUser['role'],
       ...(data.passengerId ? { passengerId: data.passengerId } : {}),
       ...(data.driverId ? { driverId: data.driverId } : {}),
-      ...(data.referredByDriverId !== undefined ? { referredByDriverId: data.referredByDriverId } : {}),
+      ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
