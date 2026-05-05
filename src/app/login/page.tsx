@@ -87,13 +87,6 @@ export default function LoginPage() {
             Cadastre-se
           </a>
         </p>
-
-        {/* Demo hint */}
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs text-zinc-500">
-          <p className="font-semibold text-zinc-400">Contas demo</p>
-          <p className="mt-1">Motorista: motorista@aliado.com / 123456</p>
-          <p>Passageiro: passageiro@aliado.com / 123456</p>
-        </div>
       </div>
     </main>
   )
