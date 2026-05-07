@@ -1,5 +1,7 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL as string
+const isTestEnv = process.env.NODE_ENV === 'test'
 
-if (!API_URL) {
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? (isTestEnv ? 'http://localhost:3000' : '')) as string
+
+if (!API_URL && !isTestEnv) {
   throw new Error('NEXT_PUBLIC_API_URL não definida')
 }
