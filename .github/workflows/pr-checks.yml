@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   pr-info:
     name: PR Information
@@ -27,6 +32,7 @@ jobs:
           echo "lines_removed=$LINES_REMOVED" >> $GITHUB_OUTPUT
 
       - name: Comment PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |
@@ -46,7 +52,7 @@ jobs:
             🤖 Automated checks are running...
             `;
 
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
