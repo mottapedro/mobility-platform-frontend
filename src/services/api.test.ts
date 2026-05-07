@@ -20,9 +20,16 @@ describe('ApiError', () => {
 
 describe('api.get — request()', () => {
   const originalFetch = global.fetch
+  const originalEnv = process.env.NEXT_PUBLIC_API_URL
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000'
+    jest.resetModules()
+  })
 
   afterEach(() => {
     global.fetch = originalFetch
+    process.env.NEXT_PUBLIC_API_URL = originalEnv
   })
 
   it('returns parsed JSON on success', async () => {
