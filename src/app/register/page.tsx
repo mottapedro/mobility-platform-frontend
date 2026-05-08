@@ -7,6 +7,21 @@ import { redirectByRole } from '../../utils/redirectByRole'
 import { getDrivers, type DriverSummary } from '../../services/drivers'
 import type { AuthUser } from '../../types'
 
+/** Formats a raw numeric string into Brazilian phone mask: (XX) XXXXX-XXXX or (XX) XXXX-XXXX */
+function formatBrazilianPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 2) return digits.length ? `(${digits}` : ''
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  if (digits.length <= 10)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
+/** Extracts only digits from a formatted phone string */
+function phoneDigits(value: string): string {
+  return value.replace(/\D/g, '')
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const { register } = useAuth()
@@ -42,6 +57,12 @@ export default function RegisterPage() {
     e.preventDefault()
     setError(null)
 
+    const rawPhone = phoneDigits(phone)
+    if (rawPhone.length < 10 || rawPhone.length > 11) {
+      setError('Informe um telefone válido com DDD (10 ou 11 dígitos)')
+      return
+    }
+
     if (password.length < 6) {
       setError('A senha precisa ter pelo menos 6 caracteres')
       return
@@ -65,7 +86,7 @@ export default function RegisterPage() {
         email,
         password,
         role,
-        phone,
+        phone: rawPhone,
         ...(role === 'driver'
           ? {
               experienceLevel,
@@ -135,22 +156,20 @@ export default function RegisterPage() {
             />
           </div>
 
-          {role === 'passenger' && (
-            <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                Telefone
-              </label>
-              <input
-                type="tel"
-                required
-                autoComplete="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Ex: 11999990001"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
-              />
-            </div>
-          )}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              Telefone
+            </label>
+            <input
+              type="tel"
+              required
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(formatBrazilianPhone(e.target.value))}
+              placeholder="(11) 99999-9999"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
+            />
+          </div>
 
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
