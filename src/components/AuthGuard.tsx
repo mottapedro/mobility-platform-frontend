@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { redirectByRole } from '../utils/redirectByRole'
 import type { AuthUser } from '../types'
 
 interface Props {
@@ -34,7 +35,7 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
     }
 
     if (requiredRole && user.role !== requiredRole) {
-      const fallback = user.role === 'driver' ? '/driver/offers' : '/passenger/create'
+      const fallback = redirectByRole(user.role)
       router.replace(fallback)
     }
   }, [loading, user, requiredRole, router, pathname])

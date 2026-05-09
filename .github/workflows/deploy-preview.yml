@@ -1,0 +1,50 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: read
+  deployments: read
+
+jobs:
+  preview-comment:
+    name: Post Preview URL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for Vercel deployment
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.3
+        id: vercel-preview
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const previewUrl = '${{ steps.vercel-preview.outputs.url }}';
+
+            const body = `
+            ## 🚀 Preview Deployment Ready!
+
+            Your preview deployment is ready for review:
+
+            🔗 **Preview URL**: ${previewUrl}
+
+            ---
+
+            This preview will be automatically updated when you push new commits.
+            `;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { API_URL } from '../config/api'
+import { redirectByRole } from '../utils/redirectByRole'
 import type { AuthUser } from '../types'
 const STORAGE_KEY = 'aliado:auth'
 
@@ -69,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
       },
       body: JSON.stringify({ email, password }),
     })
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(authUser)
 
     // smart redirect based on role
-    router.replace(authUser.role === 'driver' ? '/driver/offers' : '/passenger/create')
+    router.replace(redirectByRole(authUser.role))
   }, [router])
 
   const register = useCallback(async (payload: RegisterPayload) => {
@@ -104,7 +104,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
       },
       body: JSON.stringify(payload),
     })
