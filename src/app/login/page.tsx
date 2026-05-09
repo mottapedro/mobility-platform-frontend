@@ -1,5 +1,6 @@
 'use client'
 
+import PasswordInput from '../../components/PasswordInput'
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -55,8 +56,7 @@ export default function LoginPage() {
             <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
               Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               autoComplete="current-password"
               value={password}

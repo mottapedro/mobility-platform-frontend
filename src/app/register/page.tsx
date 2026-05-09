@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import PasswordInput from '../../components/PasswordInput'
 import { useAuth } from '../../contexts/AuthContext'
 import { redirectByRole } from '../../utils/redirectByRole'
 import { getDrivers, type DriverSummary } from '../../services/drivers'
@@ -175,8 +176,7 @@ export default function RegisterPage() {
             <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
               Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               autoComplete="new-password"
               value={password}
