@@ -28,7 +28,7 @@ interface RegisterPayload {
   password: string
   role: AuthUser['role']
   phone: string
-  referredByDriverId?: string
+  referralCode?: string
   // driver-specific
   experienceLevel?: string
   vehicle?: { model: string; brand: string; plate: string; category: string }

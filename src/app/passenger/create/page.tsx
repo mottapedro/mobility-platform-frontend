@@ -67,6 +67,8 @@ export default function PassengerCreatePage() {
       ? { name: localDriver.name, phone: localDriver.phone }
       : null
 
+  const showDriverLoadError = Boolean(error && !referredDriver)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitError(null)
@@ -147,7 +149,7 @@ export default function PassengerCreatePage() {
               <p className="text-sm text-[#E6D2B3]/40">Carregando motorista aliado...</p>
             )}
 
-            {error && (
+            {showDriverLoadError && (
               <p className="text-sm text-[#D64545]">Erro ao carregar motorista</p>
             )}
 
