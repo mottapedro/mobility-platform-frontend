@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(API_URL.includes('ngrok') ? { 'ngrok-skip-browser-warning': 'true' } : {}),
+        ...(API_URL?.includes('ngrok') ? { 'ngrok-skip-browser-warning': 'true' } : {}),
       },
       body: JSON.stringify({ email, password }),
     })
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(API_URL.includes('ngrok') ? { 'ngrok-skip-browser-warning': 'true' } : {}),
+        ...(API_URL?.includes('ngrok') ? { 'ngrok-skip-browser-warning': 'true' } : {}),
       },
       body: JSON.stringify(payload),
     })
