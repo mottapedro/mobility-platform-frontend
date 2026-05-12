@@ -19,5 +19,5 @@ export function clearStoredReferralCode(storage: Pick<Storage, 'removeItem'>) {
 }
 
 export function isInvalidReferralErrorMessage(message: string): boolean {
-  return /referral|referencia|referência|motorista aliado|convite inválido|invalid referral/i.test(message)
+  return /referral|referencia|referência|motorista aliado|motorista indicado|convite inválido|invalid referral/i.test(message)
 }

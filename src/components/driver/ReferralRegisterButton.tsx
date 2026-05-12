@@ -15,8 +15,9 @@ export function ReferralRegisterButton({ driver, slug }: ReferralRegisterButtonP
   function handleClick() {
     localStorage.setItem('aliado:referredDriver', JSON.stringify(driver))
     localStorage.setItem('aliado:referredSlug', slug)
-    setStoredReferralCode(localStorage, slug)
-    router.push(`/register?ref=${encodeURIComponent(slug)}`)
+    const codeToStore = driver.referralCode ?? slug
+    setStoredReferralCode(localStorage, codeToStore)
+    router.push(`/register?ref=${encodeURIComponent(codeToStore)}`)
   }
 
   return (
