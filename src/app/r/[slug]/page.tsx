@@ -6,7 +6,13 @@ import { getDriverByReferralSlug } from '../../../services/drivers'
 
 export const dynamic = 'force-dynamic'
 
-export default async function DriverReferralLandingPage(props: PageProps<'/r/[slug]'>) {
+type DriverReferralLandingPageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function DriverReferralLandingPage(props: DriverReferralLandingPageProps) {
   const { slug } = await props.params
   const driver = await getDriverByReferralSlug(slug)
 
