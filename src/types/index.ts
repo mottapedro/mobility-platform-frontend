@@ -118,6 +118,21 @@ export interface DriverRide {
     user: { name: string; phone?: string }
   }
 }
+// ─── Driver Network (retornado por GET /drivers/:id/network) ────────────────
+export interface DriverNetworkPassenger {
+  id: string
+  name: string
+  ridesCount: number
+  lastRideAt: string | null
+}
+
+export interface DriverNetwork {
+  totalPassengers: number
+  ridesCompleted: number
+  estimatedRevenue: number
+  recentPassengers: DriverNetworkPassenger[]
+}
+
 // ─── Auth ───────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string

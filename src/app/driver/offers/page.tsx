@@ -58,12 +58,20 @@ export default function DriverOffersPage() {
         <div className="mx-auto max-w-lg">
           {/* Header */}
           <div className="mb-8">
-            <button
-              onClick={() => router.push('/')}
-              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-            >
-              ← Voltar
-            </button>
+            <div className="mb-4 flex items-center gap-3">
+              <button
+                onClick={() => router.push('/')}
+                className="text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
+              >
+                ← Voltar
+              </button>
+              <button
+                onClick={() => router.push('/driver/network')}
+                className="ml-auto rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+              >
+                Minha Rede →
+              </button>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-[#E6D2B3]">Ofertas</h1>
