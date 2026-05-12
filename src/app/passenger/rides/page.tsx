@@ -3,9 +3,61 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getRide } from '../../../services/rides'
+import { usePassenger } from '../../../hooks/usePassenger'
 import { ProtectedRoute } from '../../../components/AuthGuard'
 import { AppHeader } from '../../../components/AppHeader'
-import type { Ride, RideStatus } from '../../../types'
+import { useAuth } from '../../../contexts/AuthContext'
+import { formatDriverPhone, type DriverReferralProfile } from '../../../services/drivers'
+import type { Driver, Ride, RideStatus } from '../../../types'
+
+type StoredReferralDriver = {
+  id: string
+  name: string
+  phone: string
+  avatarLabel?: string
+  regionLabel?: string
+  vehicleLabel?: string
+  ratingLabel?: string
+  headline?: string
+  phoneLabel?: string
+} & Partial<DriverReferralProfile>
+
+type AlliedDriverCardData = {
+  avatarLabel: string
+  name: string
+  phoneLabel: string
+  regionLabel: string
+  vehicleLabel: string
+  ratingLabel: string
+  headline: string
+}
+
+function buildAvatarLabel(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  return words.slice(0, 2).map((word) => word.charAt(0).toUpperCase()).join('') || 'AL'
+}
+
+function toAlliedDriverCardData(driver: Driver | null, storedDriver: StoredReferralDriver | null): AlliedDriverCardData | null {
+  const name = driver?.user.name ?? storedDriver?.name
+  if (!name) return null
+
+  const backendVehicle = driver?.vehicles[0]
+  const vehicleLabel = backendVehicle
+    ? [backendVehicle.brand, backendVehicle.model].filter(Boolean).join(' ')
+    : storedDriver?.vehicleLabel || 'Veículo sob consulta'
+
+  const phone = driver?.user.phone ?? storedDriver?.phone ?? ''
+
+  return {
+    avatarLabel: storedDriver?.avatarLabel || buildAvatarLabel(name),
+    name,
+    phoneLabel: storedDriver?.phoneLabel || (phone ? formatDriverPhone(phone) : 'Contato sob consulta'),
+    regionLabel: storedDriver?.regionLabel || 'Atendimento sob consulta',
+    vehicleLabel,
+    ratingLabel: storedDriver?.ratingLabel || 'Em breve',
+    headline: storedDriver?.headline || 'Seu parceiro de confiança para corridas com prioridade e atendimento mais pessoal.',
+  }
+}
 
 function rideStatusLabel(status: RideStatus): string {
   switch (status) {
@@ -54,9 +106,25 @@ function formatDate(iso: string): string {
 
 export default function PassengerRidesPage() {
   const router = useRouter()
+  const { user } = useAuth()
+  const passengerId = user?.passengerId ?? ''
   const [rides, setRides] = useState<Ride[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { data: passenger, loading: loadingPassenger, error: passengerError } = usePassenger(passengerId)
+  const [storedDriver, setStoredDriver] = useState<StoredReferralDriver | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('aliado:referredDriver')
+      if (stored) setStoredDriver(JSON.parse(stored))
+    } catch {
+      setStoredDriver(null)
+    }
+  }, [])
+
+  const alliedDriver = toAlliedDriverCardData(passenger?.referredByDriver ?? null, storedDriver)
+  const showAlliedDriverError = Boolean(passengerError && !alliedDriver)
 
   const fetchRides = useCallback(async () => {
     const stored = localStorage.getItem('passengerRideIds')
@@ -105,10 +173,96 @@ export default function PassengerRidesPage() {
                 onClick={() => router.push('/passenger/create')}
                 className="rounded-xl bg-[#F28C28] px-4 py-2 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity active:scale-95"
               >
-                + Nova
+                Solicitar corrida
               </button>
             </div>
           </div>
+
+          <section className="mb-6 rounded-[1.75rem] border border-[#F28C28]/20 bg-[linear-gradient(180deg,rgba(242,140,40,0.12),rgba(43,30,21,0.96))] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#F28C28]/75">
+                  Meu motorista aliado
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-[#E6D2B3]">Seu motorista pessoal no app</h2>
+                <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/65">
+                  Relação persistente para gerar confiança, prioridade e uma experiência mais próxima a cada solicitação.
+                </p>
+              </div>
+              {alliedDriver && (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[#F28C28]/30 bg-[#F28C28]/15 text-lg font-bold text-[#FAD2A4]">
+                  {alliedDriver.avatarLabel}
+                </div>
+              )}
+            </div>
+
+            {loadingPassenger && !alliedDriver && (
+              <div className="mt-5 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15]/80 p-4 text-sm text-[#E6D2B3]/40">
+                Carregando seu motorista aliado...
+              </div>
+            )}
+
+            {showAlliedDriverError && (
+              <div className="mt-5 rounded-2xl border border-[#D64545]/25 bg-[#D64545]/10 p-4 text-sm text-[#D64545]">
+                Não foi possível carregar seu motorista aliado agora.
+              </div>
+            )}
+
+            {alliedDriver && (
+              <div className="mt-5 rounded-[1.5rem] border border-[#F28C28]/20 bg-[#2B1E15]/92 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#1E140F]">
+                    {alliedDriver.avatarLabel}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-semibold text-[#E6D2B3]">{alliedDriver.name}</p>
+                    <p className="truncate text-xs text-[#E6D2B3]/45">{alliedDriver.headline}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">Veículo</p>
+                    <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.vehicleLabel}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">Região</p>
+                    <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.regionLabel}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">Nota</p>
+                    <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.ratingLabel}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">Contato</p>
+                    <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.phoneLabel}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => router.push('/passenger/create')}
+                  className="mt-4 w-full rounded-2xl bg-[#F28C28] px-4 py-3 text-sm font-bold text-[#1E140F] transition-opacity hover:opacity-90 active:scale-[0.99]"
+                >
+                  Solicitar corrida
+                </button>
+              </div>
+            )}
+
+            {!loadingPassenger && !alliedDriver && !showAlliedDriverError && (
+              <div className="mt-5 rounded-[1.5rem] border border-[#E6D2B3]/10 bg-[#2B1E15]/92 p-4">
+                <p className="text-base font-semibold text-[#E6D2B3]">Nenhum motorista aliado vinculado</p>
+                <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/55">
+                  Quando você se cadastra por indicação, esse relacionamento fica salvo aqui para reforçar confiança e prioridade nas próximas corridas.
+                </p>
+                <button
+                  onClick={() => router.push('/passenger/create')}
+                  className="mt-4 w-full rounded-2xl border border-[#F28C28]/30 px-4 py-3 text-sm font-semibold text-[#F28C28] transition-colors hover:border-[#F28C28] hover:bg-[#F28C28]/10"
+                >
+                  Solicitar corrida
+                </button>
+              </div>
+            )}
+          </section>
 
           {loading && (
             <div className="flex flex-col gap-3">
