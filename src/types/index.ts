@@ -59,6 +59,13 @@ export interface RideContext {
   isVip?: boolean
 }
 
+// ─── V1.4 — Contexto regional (matching) ───────────────────────────────────
+export interface RegionalContext {
+  region?: string
+  cluster?: string
+  isRegionalPriority?: boolean
+}
+
 export interface Ride {
   id: string
   passengerId: string
@@ -100,6 +107,7 @@ export interface DriverOffer {
     distanceKm?: number | null
     durationMin?: number | null
     context?: RideContext | null
+    regionalContext?: RegionalContext | null
     passenger: {
       referredByDriverId?: string | null
       user: { name: string; phone?: string }
