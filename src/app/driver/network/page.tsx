@@ -7,6 +7,7 @@ import { useDriverNetwork, useDriverNetworkHierarchy } from '../../../hooks/useD
 import { ProtectedRoute } from '../../../components/AuthGuard'
 import { AppHeader } from '../../../components/AppHeader'
 import { DriverNetworkTree } from '../../../components/driver/DriverNetworkTree'
+import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
 import type { DriverNetworkPassenger } from '../../../types'
 
 function formatCurrency(value: number): string {
@@ -147,6 +148,12 @@ export default function DriverNetworkPage() {
             >
               ← Ofertas
             </button>
+
+            {/* Referral card */}
+            <div className="mb-6">
+              <DriverReferralCard />
+            </div>
+
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-[#E6D2B3]">Minha Rede</h1>
