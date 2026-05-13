@@ -12,8 +12,10 @@ import { API_URL } from '../config/api'
 import { redirectByRole } from '../utils/redirectByRole'
 import type { AuthUser } from '../types'
 const STORAGE_KEY = 'aliado:auth'
+const TOKEN_KEY = 'aliado:token'
 
 interface ApiAuthResponse {
+  token?: string
   user: { id: string; name: string; email: string; role: string }
   driverId?: string
   passengerId?: string
@@ -92,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
+    if (data.token) localStorage.setItem(TOKEN_KEY, data.token)
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)
@@ -125,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
+    if (data.token) localStorage.setItem(TOKEN_KEY, data.token)
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)
@@ -132,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('passengerId')
     localStorage.removeItem('driverId')
     setUser(null)

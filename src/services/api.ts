@@ -17,7 +17,10 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = 'GET', body, token } = options
+  const { method = 'GET', body } = options
+  const token =
+    options.token ??
+    (typeof window !== 'undefined' ? (localStorage.getItem('aliado:token') ?? undefined) : undefined)
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     method,
