@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import DriverNetworkPage from './page'
-import { useDriverNetwork } from '../../../hooks/useDriverNetwork'
+import { useDriverNetwork, useDriverNetworkHierarchy } from '../../../hooks/useDriverNetwork'
 import { useAuth } from '../../../contexts/AuthContext'
 
 jest.mock('../../../hooks/useDriverNetwork')
@@ -17,6 +17,7 @@ jest.mock('next/navigation', () => ({
 }))
 
 const mockUseDriverNetwork = useDriverNetwork as jest.MockedFunction<typeof useDriverNetwork>
+const mockUseDriverNetworkHierarchy = useDriverNetworkHierarchy as jest.MockedFunction<typeof useDriverNetworkHierarchy>
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>
 
 const baseAuth = {
@@ -30,6 +31,12 @@ const baseAuth = {
 describe('DriverNetworkPage', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue(baseAuth)
+    mockUseDriverNetworkHierarchy.mockReturnValue({
+      data: null,
+      loading: false,
+      error: null,
+      refresh: jest.fn(),
+    })
   })
 
   it('renders stat cards when network data is loaded', () => {
