@@ -1,6 +1,6 @@
 import { API_URL } from '../config/api'
 import { apiRequest } from './api'
-import type { DriverNetwork, DriverOffer, DriverRide } from '../types'
+import type { DriverNetwork, DriverNetworkHierarchy, DriverOffer, DriverRide } from '../types'
 
 export interface DriverSummary {
   id: string
@@ -134,4 +134,8 @@ export async function getDriverRides(driverId: string): Promise<DriverRide[]> {
 
 export async function getDriverNetwork(driverId: string): Promise<DriverNetwork> {
   return apiRequest<DriverNetwork>(`/drivers/${driverId}/network`)
+}
+
+export async function getDriverNetworkHierarchy(driverId: string): Promise<DriverNetworkHierarchy> {
+  return apiRequest<DriverNetworkHierarchy>(`/drivers/${driverId}/network/hierarchy`)
 }

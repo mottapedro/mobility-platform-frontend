@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
-import { useDriverNetwork } from '../../../hooks/useDriverNetwork'
+import { useDriverNetwork, useDriverNetworkHierarchy } from '../../../hooks/useDriverNetwork'
 import { ProtectedRoute } from '../../../components/AuthGuard'
 import { AppHeader } from '../../../components/AppHeader'
+import { DriverNetworkTree } from '../../../components/driver/DriverNetworkTree'
 import type { DriverNetworkPassenger } from '../../../types'
 
 function formatCurrency(value: number): string {
@@ -116,6 +117,7 @@ export default function DriverNetworkPage() {
   const { user } = useAuth()
   const [driverId, setDriverId] = useState<string | null>(null)
   const [errorDismissed, setErrorDismissed] = useState(false)
+  const [activeTab, setActiveTab] = useState<'passengers' | 'drivers'>('passengers')
 
   useEffect(() => {
     const id =
@@ -126,8 +128,10 @@ export default function DriverNetworkPage() {
   }, [user])
 
   const { data, loading, error, refresh } = useDriverNetwork(driverId)
+  const { data: hierarchy, loading: hierarchyLoading, error: hierarchyError, refresh: refreshHierarchy } = useDriverNetworkHierarchy(driverId)
 
-  const showError = !!error && !errorDismissed
+  const showError = !!error && !errorDismissed && activeTab === 'passengers'
+  const showHierarchyError = !!hierarchyError && activeTab === 'drivers'
 
   return (
     <ProtectedRoute requiredRole="driver">
@@ -146,9 +150,9 @@ export default function DriverNetworkPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-[#E6D2B3]">Minha Rede</h1>
-                <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiros vinculados a você</p>
+                <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiros e motoristas</p>
               </div>
-              {!loading && data && (
+              {activeTab === 'passengers' && !loading && data && (
                 <button
                   onClick={refresh}
                   className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
@@ -156,6 +160,38 @@ export default function DriverNetworkPage() {
                   Atualizar
                 </button>
               )}
+              {activeTab === 'drivers' && !hierarchyLoading && hierarchy && (
+                <button
+                  onClick={refreshHierarchy}
+                  className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+                >
+                  Atualizar
+                </button>
+              )}
+            </div>
+
+            {/* Tab switcher */}
+            <div className="mt-4 flex rounded-xl border border-[#E6D2B3]/10 bg-[#2B1E15]/60 p-1">
+              <button
+                onClick={() => setActiveTab('passengers')}
+                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+                  activeTab === 'passengers'
+                    ? 'bg-[#F28C28] text-[#1E140F] shadow'
+                    : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+                }`}
+              >
+                Passageiros
+              </button>
+              <button
+                onClick={() => setActiveTab('drivers')}
+                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+                  activeTab === 'drivers'
+                    ? 'bg-[#F28C28] text-[#1E140F] shadow'
+                    : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+                }`}
+              >
+                Motoristas
+              </button>
             </div>
           </div>
 
@@ -187,8 +223,8 @@ export default function DriverNetworkPage() {
             </div>
           )}
 
-          {/* Loading */}
-          {driverId && loading && (
+          {/* Loading — Passengers tab */}
+          {activeTab === 'passengers' && driverId && loading && (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-3 gap-3">
                 <SkeletonCard />
@@ -201,8 +237,8 @@ export default function DriverNetworkPage() {
             </div>
           )}
 
-          {/* Loaded */}
-          {driverId && !loading && data && (
+          {/* Loaded — Passengers tab */}
+          {activeTab === 'passengers' && driverId && !loading && data && (
             <div className="flex flex-col gap-6">
 
               {/* Stat cards */}
@@ -271,8 +307,8 @@ export default function DriverNetworkPage() {
             </div>
           )}
 
-          {/* Empty state — no data and no error */}
-          {driverId && !loading && !data && !error && (
+          {/* Empty state — Passengers tab */}
+          {activeTab === 'passengers' && driverId && !loading && !data && !error && (
             <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
               <p className="mb-2 text-3xl">🤝</p>
               <p className="mb-1 font-semibold text-[#E6D2B3]">Sua rede está vazia</p>
@@ -285,6 +321,37 @@ export default function DriverNetworkPage() {
               >
                 Ver ofertas
               </button>
+            </div>
+          )}
+
+          {/* Loading — Drivers tab */}
+          {activeTab === 'drivers' && driverId && hierarchyLoading && (
+            <div className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+              <p className="text-sm">Carregando rede de motoristas...</p>
+            </div>
+          )}
+
+          {/* Error — Drivers tab */}
+          {showHierarchyError && (
+            <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+              {hierarchyError}
+            </div>
+          )}
+
+          {/* Loaded — Drivers tab */}
+          {activeTab === 'drivers' && driverId && !hierarchyLoading && hierarchy && (
+            <DriverNetworkTree hierarchy={hierarchy} />
+          )}
+
+          {/* Empty state — Drivers tab */}
+          {activeTab === 'drivers' && driverId && !hierarchyLoading && !hierarchy && !hierarchyError && (
+            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+              <p className="mb-2 text-3xl">🤝</p>
+              <p className="mb-1 font-semibold text-[#E6D2B3]">Rede de motoristas vazia</p>
+              <p className="text-sm text-[#E6D2B3]/50">
+                Quando motoristas se cadastrarem pelo seu link, a hierarquia aparece aqui.
+              </p>
             </div>
           )}
 

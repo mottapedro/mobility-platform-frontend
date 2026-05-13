@@ -141,6 +141,24 @@ export interface DriverNetwork {
   recentPassengers: DriverNetworkPassenger[]
 }
 
+// ─── V1.5 — Driver Network Hierarchy (GET /drivers/:id/network/hierarchy) ──
+export interface DriverNetworkNode {
+  id: string
+  name: string
+  region?: string
+  depth: number
+  referrals: DriverNetworkNode[]
+  // Future: ridesCount?: number; revenue?: number; acceptanceRate?: number; liquidityScore?: number
+}
+
+export interface DriverNetworkHierarchy {
+  me: DriverNetworkNode
+  referredBy: DriverNetworkNode | null
+  referrals: DriverNetworkNode[]
+  totalDrivers: number
+  maxDepth: number
+}
+
 // ─── Auth ───────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string
