@@ -21,12 +21,15 @@ export async function apiRequest<T>(
   const token =
     options.token ??
     (typeof window !== 'undefined' ? (localStorage.getItem('aliado:token') ?? undefined) : undefined)
+  const driverId =
+    typeof window !== 'undefined' ? (localStorage.getItem('driverId') ?? undefined) : undefined
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(driverId ? { 'x-driver-id': driverId } : {}),
       ...(API_URL?.includes('ngrok') ? { 'ngrok-skip-browser-warning': 'true' } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
