@@ -29,12 +29,20 @@ export default function DriverRidesPage() {
       <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
         <div className="mx-auto max-w-lg">
           <div className="mb-8">
-            <button
-              onClick={() => router.push('/')}
-              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-            >
-              ← Voltar
-            </button>
+            <div className="mb-4 flex items-center gap-3">
+              <button
+                onClick={() => router.push('/')}
+                className="text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
+              >
+                ← Voltar
+              </button>
+              <button
+                onClick={() => router.push('/driver/network')}
+                className="ml-auto rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+              >
+                Minha Rede →
+              </button>
+            </div>
             <h1 className="text-2xl font-bold text-[#E6D2B3]">Agenda</h1>
             <p className="mt-1 text-sm text-[#E6D2B3]/50">Corridas confirmadas</p>
           </div>

@@ -59,6 +59,13 @@ export interface RideContext {
   isVip?: boolean
 }
 
+// ─── V1.4 — Contexto regional (matching) ───────────────────────────────────
+export interface RegionalContext {
+  region?: string
+  cluster?: string
+  isRegionalPriority?: boolean
+}
+
 export interface Ride {
   id: string
   passengerId: string
@@ -100,6 +107,7 @@ export interface DriverOffer {
     distanceKm?: number | null
     durationMin?: number | null
     context?: RideContext | null
+    regionalContext?: RegionalContext | null
     passenger: {
       referredByDriverId?: string | null
       user: { name: string; phone?: string }
@@ -118,6 +126,39 @@ export interface DriverRide {
     user: { name: string; phone?: string }
   }
 }
+// ─── Driver Network (retornado por GET /drivers/:id/network) ────────────────
+export interface DriverNetworkPassenger {
+  id: string
+  name: string
+  ridesCount: number
+  lastRideAt: string | null
+}
+
+export interface DriverNetwork {
+  totalPassengers: number
+  ridesCompleted: number
+  estimatedRevenue: number
+  recentPassengers: DriverNetworkPassenger[]
+}
+
+// ─── V1.5 — Driver Network Hierarchy (GET /drivers/:id/network/hierarchy) ──
+export interface DriverNetworkNode {
+  id: string
+  name: string
+  region?: string
+  depth: number
+  referrals: DriverNetworkNode[]
+  // Future: ridesCount?: number; revenue?: number; acceptanceRate?: number; liquidityScore?: number
+}
+
+export interface DriverNetworkHierarchy {
+  me: DriverNetworkNode
+  referredBy: DriverNetworkNode | null
+  referrals: DriverNetworkNode[]
+  totalDrivers: number
+  maxDepth: number
+}
+
 // ─── Auth ───────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string

@@ -17,7 +17,7 @@ interface Props {
  * Rules:
  *  - Not authenticated → redirect /login
  *  - requiredRole="driver"    → only users with role "driver" may access;
- *    passengers are redirected to /passenger/create
+ *    passengers are redirected to /passenger/rides
  *  - requiredRole="passenger" → only users with role "passenger" may access;
  *    drivers are redirected to /driver/offers
  */

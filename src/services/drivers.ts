@@ -1,11 +1,12 @@
 import { API_URL } from '../config/api'
 import { apiRequest } from './api'
-import type { DriverOffer, DriverRide } from '../types'
+import type { DriverNetwork, DriverNetworkHierarchy, DriverOffer, DriverRide } from '../types'
 
 export interface DriverSummary {
   id: string
   name: string
   phone: string
+  referralCode?: string
 }
 
 export interface DriverReferralProfile extends DriverSummary {
@@ -129,4 +130,12 @@ export async function getDriverOffers(driverId: string): Promise<DriverOffer[]> 
 
 export async function getDriverRides(driverId: string): Promise<DriverRide[]> {
   return apiRequest<DriverRide[]>(`/drivers/${driverId}/rides`)
+}
+
+export async function getDriverNetwork(driverId: string): Promise<DriverNetwork> {
+  return apiRequest<DriverNetwork>(`/drivers/${driverId}/network`)
+}
+
+export async function getDriverNetworkHierarchy(driverId: string): Promise<DriverNetworkHierarchy> {
+  return apiRequest<DriverNetworkHierarchy>(`/drivers/${driverId}/network/hierarchy`)
 }

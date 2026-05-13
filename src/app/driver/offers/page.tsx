@@ -8,7 +8,7 @@ import { respondOffer } from '../../../services/rides'
 import { Countdown } from '../../../components/driver/Countdown'
 import { ProtectedRoute } from '../../../components/AuthGuard'
 import { AppHeader } from '../../../components/AppHeader'
-import type { DriverOffer, RideContext } from '../../../types'
+import type { DriverOffer, RideContext, RegionalContext } from '../../../types'
 
 export default function DriverOffersPage() {
   const router = useRouter()
@@ -58,12 +58,20 @@ export default function DriverOffersPage() {
         <div className="mx-auto max-w-lg">
           {/* Header */}
           <div className="mb-8">
-            <button
-              onClick={() => router.push('/')}
-              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-            >
-              ← Voltar
-            </button>
+            <div className="mb-4 flex items-center gap-3">
+              <button
+                onClick={() => router.push('/')}
+                className="text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
+              >
+                ← Voltar
+              </button>
+              <button
+                onClick={() => router.push('/driver/network')}
+                className="ml-auto rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+              >
+                Minha Rede →
+              </button>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-[#E6D2B3]">Ofertas</h1>
@@ -153,6 +161,7 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
   const passenger = ride.passenger
   const isReferral = passenger.referredByDriverId === driverId
   const context = ride.context as RideContext | null
+  const regionalContext = ride.regionalContext as RegionalContext | null
 
   const contextBadges: { label: string; emoji: string }[] = []
   if (context?.isVip) contextBadges.push({ label: 'VIP', emoji: '⭐' })
@@ -168,17 +177,24 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
           : 'border-[#E6D2B3]/10 bg-[#2B1E15]'
       }`}
     >
-      {/* Priority badge */}
+      {/* Priority badge row */}
       <div className="flex items-center justify-between">
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-            isReferral
-              ? 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/40'
-              : 'bg-[#E6D2B3]/8 text-[#E6D2B3]/50 border border-[#E6D2B3]/15'
-          }`}
-        >
-          {isReferral ? '★ Seu cliente' : '◎ Disponível na rede'}
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+              isReferral
+                ? 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/40'
+                : 'bg-[#E6D2B3]/8 text-[#E6D2B3]/50 border border-[#E6D2B3]/15'
+            }`}
+          >
+            {isReferral ? '★ Seu cliente' : '◎ Disponível na rede'}
+          </span>
+          {regionalContext?.isRegionalPriority && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+              📍 Prioridade regional
+            </span>
+          )}
+        </div>
         <Countdown expiresAt={offer.expiresAt} />
       </div>
 
@@ -216,6 +232,14 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
             timeStyle: 'short',
           })}
         </p>
+        {regionalContext?.region && (
+          <p className="text-xs text-emerald-400/80 mt-0.5">
+            📍 Região: {regionalContext.region}
+            {regionalContext.cluster && (
+              <span className="text-emerald-400/40"> · {regionalContext.cluster}</span>
+            )}
+          </p>
+        )}
       </div>
 
       {/* Context badges */}
