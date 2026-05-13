@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { DriverNetworkHierarchy, DriverNetworkNode } from '../../types'
 
 // ─── Region helpers ──────────────────────────────────────────────────────────
@@ -134,32 +135,30 @@ function ReferralTree({ nodes }: ReferralTreeProps) {
   )
 }
 
-// ─── Public component ─────────────────────────────────────────────────────────
+// ─── Stats panel ──────────────────────────────────────────────────────────────
 
-interface DriverNetworkTreeProps {
-  hierarchy: DriverNetworkHierarchy
+function StatsPanel({ hierarchy }: { hierarchy: DriverNetworkHierarchy }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-col gap-1 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/70">Motoristas</p>
+        <p className="text-2xl font-bold text-[#E6D2B3]">{hierarchy.totalDrivers}</p>
+        <p className="text-xs text-[#E6D2B3]/40">na sua rede</p>
+      </div>
+      <div className="flex flex-col gap-1 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/70">Profundidade</p>
+        <p className="text-2xl font-bold text-[#E6D2B3]">{hierarchy.maxDepth}</p>
+        <p className="text-xs text-[#E6D2B3]/40">níveis</p>
+      </div>
+    </div>
+  )
 }
 
-export function DriverNetworkTree({ hierarchy }: DriverNetworkTreeProps) {
+// ─── Hierarchy panel ──────────────────────────────────────────────────────────
+
+function HierarchyPanel({ hierarchy }: { hierarchy: DriverNetworkHierarchy }) {
   return (
     <div className="flex flex-col gap-3">
-
-      {/* Summary stats */}
-      {hierarchy.totalDrivers > 0 && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/70">Motoristas</p>
-            <p className="text-2xl font-bold text-[#E6D2B3]">{hierarchy.totalDrivers}</p>
-            <p className="text-xs text-[#E6D2B3]/40">na sua rede</p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/70">Profundidade</p>
-            <p className="text-2xl font-bold text-[#E6D2B3]">{hierarchy.maxDepth}</p>
-            <p className="text-xs text-[#E6D2B3]/40">níveis</p>
-          </div>
-        </div>
-      )}
-
       {/* Who referred me */}
       {hierarchy.referredBy && (
         <div className="flex flex-col gap-1">
@@ -196,6 +195,88 @@ export function DriverNetworkTree({ hierarchy }: DriverNetworkTreeProps) {
           </p>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Public component ─────────────────────────────────────────────────────────
+
+type ActiveTab = 'hierarquia' | 'estatisticas'
+
+interface DriverNetworkTreeProps {
+  hierarchy?: DriverNetworkHierarchy | null
+  loading?: boolean
+  error?: string | null
+  onRetry?: () => void
+}
+
+export function DriverNetworkTree({ hierarchy, loading, error, onRetry }: DriverNetworkTreeProps) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('hierarquia')
+
+  if (loading) {
+    return (
+      <div
+        role="status"
+        aria-label="Carregando rede de motoristas"
+        className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40"
+      >
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+        <p className="text-sm">Carregando rede de motoristas...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#D64545]/30 bg-[#D64545]/10 p-6 text-center">
+        <p className="text-sm text-[#D64545]">{error}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="rounded-xl border border-[#D64545]/40 px-4 py-2 text-sm font-semibold text-[#D64545] transition-colors hover:bg-[#D64545]/15"
+          >
+            Tentar novamente
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  if (!hierarchy) return null
+
+  return (
+    <div className="flex flex-col gap-3">
+
+      {/* Tab switcher */}
+      <div role="tablist" className="flex rounded-xl border border-[#E6D2B3]/10 bg-[#2B1E15]/60 p-1">
+        <button
+          role="tab"
+          aria-selected={activeTab === 'hierarquia'}
+          onClick={() => setActiveTab('hierarquia')}
+          className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+            activeTab === 'hierarquia'
+              ? 'bg-[#F28C28] text-[#1E140F] shadow'
+              : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+          }`}
+        >
+          Hierarquia
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'estatisticas'}
+          onClick={() => setActiveTab('estatisticas')}
+          className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+            activeTab === 'estatisticas'
+              ? 'bg-[#F28C28] text-[#1E140F] shadow'
+              : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+          }`}
+        >
+          Estatísticas
+        </button>
+      </div>
+
+      {activeTab === 'hierarquia' && <HierarchyPanel hierarchy={hierarchy} />}
+      {activeTab === 'estatisticas' && <StatsPanel hierarchy={hierarchy} />}
     </div>
   )
 }
