@@ -7,6 +7,7 @@ export interface DriverSummary {
   name: string
   phone: string
   referralCode?: string
+  publicSlug?: string
 }
 
 export interface DriverReferralProfile extends DriverSummary {
@@ -71,9 +72,16 @@ export function getRegionLabelFromSlug(slug: string): string {
 
 export function findDriverByReferralSlug(drivers: DriverSummary[], slug: string): DriverSummary | null {
   const normalizedSlug = normalizeSlugPart(slug)
+
+  // 1. Match on publicSlug from backend (highest priority — supports custom slugs)
+  const publicSlugMatch = drivers.find((driver) => driver.publicSlug === normalizedSlug)
+  if (publicSlugMatch) return publicSlugMatch
+
+  // 2. Match on name-derived slug (exact)
   const exactMatch = drivers.find((driver) => buildDriverSlug(driver.name) === normalizedSlug)
   if (exactMatch) return exactMatch
 
+  // 3. Match by prefix (name slug is a prefix of the full slug)
   const prefixMatches = drivers.filter((driver) => normalizedSlug.startsWith(`${buildDriverSlug(driver.name)}-`))
   if (prefixMatches.length === 1) return prefixMatches[0]
 
