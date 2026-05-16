@@ -103,4 +103,40 @@ describe('AuthContext', () => {
     expect(localStorage.getItem('aliado:auth')).toBeNull()
     expect(mockReplace).toHaveBeenCalledWith('/login')
   })
+
+  it('stores JWT token in localStorage after successful login', async () => {
+    const apiResponse = {
+      token: 'jwt-driver-token-xyz',
+      user: { id: '3', name: 'Pedro', email: 'pedro@test.com', role: 'driver' },
+      driverId: 'driver-42',
+    }
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify(apiResponse)),
+    } as unknown as Response)
+
+    render(<AuthProvider><TestConsumer /></AuthProvider>)
+    await waitFor(() => expect(screen.getByText('fazer login')).toBeInTheDocument())
+
+    await act(async () => {
+      await userEvent.click(screen.getByText('fazer login'))
+    })
+
+    await waitFor(() => expect(screen.getByTestId('name')).toBeInTheDocument())
+    expect(localStorage.getItem('aliado:token')).toBe('jwt-driver-token-xyz')
+  })
+
+  it('removes JWT token from localStorage on logout', async () => {
+    localStorage.setItem('aliado:auth', JSON.stringify({ id: '1', name: 'Ana', email: 'a@b.com', role: 'passenger' as const }))
+    localStorage.setItem('aliado:token', 'old-token')
+
+    render(<AuthProvider><TestConsumer /></AuthProvider>)
+    await waitFor(() => expect(screen.getByText('sair')).toBeInTheDocument())
+
+    await act(async () => {
+      await userEvent.click(screen.getByText('sair'))
+    })
+
+    expect(localStorage.getItem('aliado:token')).toBeNull()
+  })
 })
