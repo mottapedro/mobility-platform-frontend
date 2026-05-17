@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -44,7 +44,7 @@ function toAlliedDriverCardData(driver: Driver | null, storedDriver: StoredRefer
   const backendVehicle = driver?.vehicles[0]
   const vehicleLabel = backendVehicle
     ? [backendVehicle.brand, backendVehicle.model].filter(Boolean).join(' ')
-    : storedDriver?.vehicleLabel || 'Veículo sob consulta'
+    : storedDriver?.vehicleLabel || 'VeÃ­culo sob consulta'
 
   const phone = driver?.user.phone ?? storedDriver?.phone ?? ''
 
@@ -55,7 +55,7 @@ function toAlliedDriverCardData(driver: Driver | null, storedDriver: StoredRefer
     regionLabel: storedDriver?.regionLabel || 'Atendimento sob consulta',
     vehicleLabel,
     ratingLabel: storedDriver?.ratingLabel || 'Em breve',
-    headline: storedDriver?.headline || 'Seu parceiro de confiança para corridas com prioridade e atendimento mais pessoal.',
+    headline: storedDriver?.headline || 'Seu parceiro de confianÃ§a para corridas com prioridade e atendimento mais pessoal.',
   }
 }
 
@@ -162,22 +162,30 @@ export default function PassengerRidesPage() {
               onClick={() => router.push('/')}
               className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
             >
-              ← Voltar
+              â† Voltar
             </button>
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-[#E6D2B3]">Minhas corridas</h1>
                 <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiro</p>
                 <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
-                  📍 Motoristas da sua região
+                  ðŸ“ Motoristas da sua regiÃ£o
                 </span>
               </div>
-              <button
-                onClick={() => router.push('/passenger/create')}
-                className="rounded-xl bg-[#F28C28] px-4 py-2 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity active:scale-95"
-              >
-                Solicitar corrida
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => router.push('/passenger/network')}
+                  className="rounded-xl border border-[#E6D2B3]/15 px-4 py-2 text-sm font-bold text-[#E6D2B3]/60 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+                >
+                  Minha Rede
+                </button>
+                <button
+                  onClick={() => router.push('/passenger/create')}
+                  className="rounded-xl bg-[#F28C28] px-4 py-2 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity active:scale-95"
+                >
+                  Solicitar corrida
+                </button>
+              </div>
             </div>
           </div>
 
@@ -189,7 +197,7 @@ export default function PassengerRidesPage() {
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-[#E6D2B3]">Seu motorista pessoal no app</h2>
                 <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/65">
-                  Relação persistente para gerar confiança, prioridade e uma experiência mais próxima a cada solicitação.
+                  RelaÃ§Ã£o persistente para gerar confianÃ§a, prioridade e uma experiÃªncia mais prÃ³xima a cada solicitaÃ§Ã£o.
                 </p>
               </div>
               {alliedDriver && (
@@ -207,7 +215,7 @@ export default function PassengerRidesPage() {
 
             {showAlliedDriverError && (
               <div className="mt-5 rounded-2xl border border-[#D64545]/25 bg-[#D64545]/10 p-4 text-sm text-[#D64545]">
-                Não foi possível carregar seu motorista aliado agora.
+                NÃ£o foi possÃ­vel carregar seu motorista aliado agora.
               </div>
             )}
 
@@ -225,11 +233,11 @@ export default function PassengerRidesPage() {
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">Veículo</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">VeÃ­culo</p>
                     <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.vehicleLabel}</p>
                   </div>
                   <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">Região</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">RegiÃ£o</p>
                     <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.regionLabel}</p>
                   </div>
                   <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
@@ -255,7 +263,7 @@ export default function PassengerRidesPage() {
               <div className="mt-5 rounded-[1.5rem] border border-[#E6D2B3]/10 bg-[#2B1E15]/92 p-4">
                 <p className="text-base font-semibold text-[#E6D2B3]">Nenhum motorista aliado vinculado</p>
                 <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/55">
-                  Quando você se cadastra por indicação, esse relacionamento fica salvo aqui para reforçar confiança e prioridade nas próximas corridas.
+                  Quando vocÃª se cadastra por indicaÃ§Ã£o, esse relacionamento fica salvo aqui para reforÃ§ar confianÃ§a e prioridade nas prÃ³ximas corridas.
                 </p>
                 <button
                   onClick={() => router.push('/passenger/create')}
@@ -286,8 +294,8 @@ export default function PassengerRidesPage() {
 
           {!loading && !error && rides.length === 0 && (
             <div className="flex flex-col items-center gap-4 py-20 text-center">
-              <span className="text-5xl">🚗</span>
-              <p className="text-[#E6D2B3]/50">Você ainda não criou nenhuma corrida.</p>
+              <span className="text-5xl">ðŸš—</span>
+              <p className="text-[#E6D2B3]/50">VocÃª ainda nÃ£o criou nenhuma corrida.</p>
               <button
                 onClick={() => router.push('/passenger/create')}
                 className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity active:scale-95"
@@ -310,11 +318,11 @@ export default function PassengerRidesPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-col gap-1 min-w-0">
                         <div className="flex items-center gap-2 text-sm text-[#E6D2B3]/70">
-                          <span className="text-[#F28C28]">●</span>
+                          <span className="text-[#F28C28]">â—</span>
                           <span className="truncate">{ride.origin}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-[#E6D2B3]/50">
-                          <span className="text-[#E6D2B3]/20">●</span>
+                          <span className="text-[#E6D2B3]/20">â—</span>
                           <span className="truncate">{ride.destination}</span>
                         </div>
                       </div>
@@ -350,3 +358,4 @@ export default function PassengerRidesPage() {
     </ProtectedRoute>
   )
 }
+

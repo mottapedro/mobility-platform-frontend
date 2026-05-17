@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -8,8 +8,11 @@ import { useAuth } from '../../contexts/AuthContext'
 import type { AuthUser } from '../../types'
 import { redirectByRole } from '../../utils/redirectByRole'
 import {
+  clearStoredOriginPassengerId,
   clearStoredReferralCode,
+  clearStoredReferralInvite,
   getStoredReferralCode,
+  getStoredReferralInvite,
   isInvalidReferralErrorMessage,
   normalizeReferralCode,
   setStoredReferralCode,
@@ -34,6 +37,26 @@ type RegisterPageClientProps = {
   referralSlug: string
 }
 
+function getStoredDriverInviteLabel(): string {
+  try {
+    const storedDriver = localStorage.getItem('aliado:referredDriver')
+    if (!storedDriver) return ''
+    const parsed = JSON.parse(storedDriver) as { name?: string }
+    return parsed.name ? `Você foi convidado por ${parsed.name}` : ''
+  } catch {
+    return ''
+  }
+}
+
+function resolveInviteLabel(): string {
+  const driverLabel = getStoredDriverInviteLabel()
+  if (driverLabel) return driverLabel
+  const invite = getStoredReferralInvite(localStorage)
+  if (invite?.name) return `Você foi convidado por ${invite.name}`
+  if (invite?.type === 'passenger') return 'Você foi convidado por um passageiro Aliado'
+  return 'Você chegou por um convite Aliado'
+}
+
 export default function RegisterPageClient({ referralSlug }: RegisterPageClientProps) {
   const router = useRouter()
   const { register } = useAuth()
@@ -45,6 +68,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<AuthUser['role']>('passenger')
   const [activeReferralCode, setActiveReferralCode] = useState('')
+  const [inviteLabel, setInviteLabel] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -64,6 +88,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
     }
 
     setActiveReferralCode(nextReferralCode)
+    setInviteLabel(nextReferralCode ? resolveInviteLabel() : '')
   }, [normalizedReferralSlug])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -116,6 +141,8 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
         localStorage.removeItem('aliado:referredSlug')
       }
       clearStoredReferralCode(localStorage)
+      clearStoredReferralInvite(localStorage)
+      clearStoredOriginPassengerId(localStorage)
 
       router.push(redirectByRole(role))
     } catch (err) {
@@ -123,9 +150,12 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
 
       if (activeReferralCode && isInvalidReferralErrorMessage(message)) {
         clearStoredReferralCode(localStorage)
+        clearStoredReferralInvite(localStorage)
+        clearStoredOriginPassengerId(localStorage)
         localStorage.removeItem('aliado:referredDriver')
         localStorage.removeItem('aliado:referredSlug')
         setActiveReferralCode('')
+        setInviteLabel('')
       }
 
       setError(message)
@@ -143,6 +173,20 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {activeReferralCode && (
+            <div className="rounded-2xl border border-[#F28C28]/25 bg-[#F28C28]/10 px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/75">
+                Convite ativo
+              </p>
+              <p className="mt-1 text-sm font-semibold text-orange-100">
+                {inviteLabel || 'Você chegou por um convite Aliado'}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-zinc-400">
+                O referral será aplicado automaticamente no cadastro de passageiro.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
               Nome completo
@@ -338,3 +382,4 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
     </main>
   )
 }
+

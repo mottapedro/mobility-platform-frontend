@@ -230,7 +230,7 @@ export default function PassengerCreatePage() {
               <div className="grid grid-cols-2 gap-2">
                 <ContextCheckbox emoji="⭐" label="VIP" checked={isVip} onChange={setIsVip} />
                 <ContextCheckbox emoji="✈️" label="Aeroporto" checked={isAirport} onChange={setIsAirport} />
-                <ContextCheckbox emoji="🐶" label="Pet" checked={isPet} onChange={setIsPet} />
+                <ContextCheckbox emoji="A+" label="Assistido" checked={isPet} onChange={setIsPet} />
                 <ContextCheckbox emoji="🧳" label="Bagagem" checked={isLuggage} onChange={setIsLuggage} />
               </div>
             </div>
@@ -254,3 +254,4 @@ export default function PassengerCreatePage() {
     </ProtectedRoute>
   )
 }
+
