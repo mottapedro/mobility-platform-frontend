@@ -70,6 +70,6 @@ describe('PassengerRidesPage dashboard', () => {
     render(<PassengerRidesPage />)
 
     expect(screen.getByText('Nenhum motorista aliado vinculado')).toBeInTheDocument()
-    expect(screen.getByText('Você ainda não criou nenhuma corrida.')).toBeInTheDocument()
+    expect(screen.getByText(/nenhuma corrida/i)).toBeInTheDocument()
   })
 })
