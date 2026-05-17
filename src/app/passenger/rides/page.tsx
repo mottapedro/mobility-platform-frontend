@@ -263,7 +263,7 @@ export default function PassengerRidesPage() {
               <div className="mt-5 rounded-[1.5rem] border border-[#E6D2B3]/10 bg-[#2B1E15]/92 p-4">
                 <p className="text-base font-semibold text-[#E6D2B3]">Nenhum motorista aliado vinculado</p>
                 <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/55">
-                  Quando vocÃª se cadastra por indicaÃ§Ã£o, esse relacionamento fica salvo aqui para reforÃ§ar confianÃ§a e prioridade nas prÃ³ximas corridas.
+                  Quando você se cadastra por indicação, esse relacionamento fica salvo aqui para reforçar confiança e prioridade nas próximas corridas.
                 </p>
                 <button
                   onClick={() => router.push('/passenger/create')}
@@ -294,8 +294,8 @@ export default function PassengerRidesPage() {
 
           {!loading && !error && rides.length === 0 && (
             <div className="flex flex-col items-center gap-4 py-20 text-center">
-              <span className="text-5xl">ðŸš—</span>
-              <p className="text-[#E6D2B3]/50">VocÃª ainda nÃ£o criou nenhuma corrida.</p>
+              <span className="text-5xl">🚗</span>
+              <p className="text-[#E6D2B3]/50">Você ainda não criou nenhuma corrida.</p>
               <button
                 onClick={() => router.push('/passenger/create')}
                 className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity active:scale-95"
