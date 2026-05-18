@@ -110,7 +110,7 @@ describe('RegisterPageClient invalid referral flow', () => {
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/passenger/create')
+      expect(mockPush).toHaveBeenCalledWith('/passenger/rides')
     })
   })
 })
