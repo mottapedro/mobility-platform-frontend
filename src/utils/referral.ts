@@ -70,3 +70,8 @@ export function clearStoredReferralInvite(storage: Pick<Storage, 'removeItem'>) 
 export function isInvalidReferralErrorMessage(message: string): boolean {
   return /referral|referencia|referencia|motorista aliado|motorista indicado|convite invalido|invalid referral/i.test(message.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
 }
+  export function isInvalidReferralErrorMessage(message: string): boolean {
+    return /referral|referencia|motorista aliado|motorista indicado|convite invalido|invalid referral|invalido|expirado/i.test(
+      message.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    );
+  }
