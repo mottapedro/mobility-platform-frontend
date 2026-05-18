@@ -283,7 +283,7 @@ export default function DriverNetworkPage() {
               )}
 
               {/* Recurrence tip */}
-              {data.recentPassengers.some((p) => p.ridesCount >= 3) && (
+              {(data.recentPassengers ?? []).some((p) => p.ridesCount >= 3) && (
                 <div className="flex items-center gap-3 rounded-2xl border border-[#F28C28]/25 bg-[#F28C28]/8 px-4 py-3">
                   <span className="text-xl">⭐</span>
                   <p className="text-xs text-[#E6D2B3]/70">
@@ -293,12 +293,12 @@ export default function DriverNetworkPage() {
               )}
 
               {/* Recent passengers */}
-              {data.recentPassengers.length > 0 ? (
+              {(data.recentPassengers ?? []).length > 0 ? (
                 <div className="flex flex-col gap-3">
                   <p className="text-xs font-semibold uppercase tracking-widest text-[#E6D2B3]/40">
                     Passageiros recentes
                   </p>
-                  {data.recentPassengers.map((passenger) => (
+                  {(data.recentPassengers ?? []).map((passenger) => (
                     <PassengerRow key={passenger.id} passenger={passenger} />
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 import { API_URL } from '../config/api'
 import { apiRequest } from './api'
-import type { DriverNetwork, DriverNetworkHierarchy, DriverOffer, DriverRide } from '../types'
+import type { DriverNetwork, DriverNetworkHierarchy, DriverNetworkPassenger, DriverOffer, DriverRide } from '../types'
 
 export interface DriverSummary {
   id: string
@@ -140,8 +140,45 @@ export async function getDriverRides(driverId: string): Promise<DriverRide[]> {
   return apiRequest<DriverRide[]>(`/drivers/${driverId}/rides`)
 }
 
+/**
+ * Normalises the raw backend response into the DriverNetwork shape.
+ * Handles multiple known backend formats:
+ *   - { totalPassengers, ridesCompleted, estimatedRevenue, recentPassengers }  (expected)
+ *   - { totalPassengers, ridesCompleted, estimatedRevenue, passengers }         (alt key)
+ *   - { data: { ... } }                                                         (wrapped)
+ *   - { referrals, ... }                                                         (wrong context)
+ */
+function normalizeDriverNetwork(raw: unknown): DriverNetwork {
+  if (!raw || typeof raw !== 'object') {
+    return { totalPassengers: 0, ridesCompleted: 0, estimatedRevenue: 0, recentPassengers: [] }
+  }
+
+  // Unwrap { data: { ... } } envelope
+  const body = (raw as Record<string, unknown>).data && typeof (raw as Record<string, unknown>).data === 'object'
+    ? (raw as Record<string, unknown>).data as Record<string, unknown>
+    : raw as Record<string, unknown>
+
+  const recentPassengers = Array.isArray(body.recentPassengers)
+    ? body.recentPassengers
+    : Array.isArray(body.passengers)
+      ? body.passengers
+      : []
+
+  return {
+    totalPassengers: typeof body.totalPassengers === 'number' ? body.totalPassengers : (recentPassengers as unknown[]).length,
+    ridesCompleted: typeof body.ridesCompleted === 'number' ? body.ridesCompleted : 0,
+    estimatedRevenue: typeof body.estimatedRevenue === 'number' ? body.estimatedRevenue : 0,
+    recentPassengers: recentPassengers as DriverNetworkPassenger[],
+  }
+}
+
 export async function getDriverNetwork(driverId: string): Promise<DriverNetwork> {
-  return apiRequest<DriverNetwork>(`/drivers/${driverId}/network`)
+  const raw = await apiRequest<unknown>(`/drivers/${driverId}/network`)
+  const normalized = normalizeDriverNetwork(raw)
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('[getDriverNetwork] raw:', raw, '→ normalized:', normalized)
+  }
+  return normalized
 }
 
 export async function getDriverNetworkHierarchy(driverId: string): Promise<DriverNetworkHierarchy> {

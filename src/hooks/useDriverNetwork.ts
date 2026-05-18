@@ -36,9 +36,12 @@ export function useDriverNetwork(driverId: string | null): UseDriverNetworkResul
     setLoading(true)
     setError(null)
     try {
+      console.debug('[useDriverNetwork] fetching network for driverId:', driverId)
       const result = await getDriverNetwork(driverId)
+      console.debug('[useDriverNetwork] network result:', result)
       setData(result)
     } catch (err) {
+      console.debug('[useDriverNetwork] fetch error:', err)
       if (err instanceof ApiError && err.status === 404) {
         clearStaleDriverId()
         setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
@@ -74,13 +77,16 @@ export function useDriverNetworkHierarchy(driverId: string | null): UseDriverNet
     setLoading(true)
     setError(null)
     try {
+      console.debug('[useDriverNetworkHierarchy] fetching hierarchy for driverId:', driverId)
       const result = await getDriverNetworkHierarchy(driverId)
+      console.debug('[useDriverNetworkHierarchy] hierarchy result:', result)
       const sanitized: DriverNetworkHierarchy = {
         ...result,
-        referrals: result.referrals.map((node) => sanitizeNetworkTree(node)),
+        referrals: (result.referrals ?? []).map((node) => sanitizeNetworkTree(node)),
       }
       setData(sanitized)
     } catch (err) {
+      console.debug('[useDriverNetworkHierarchy] fetch error:', err)
       if (err instanceof ApiError && err.status === 404) {
         clearStaleDriverId()
         setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
