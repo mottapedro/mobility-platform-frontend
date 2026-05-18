@@ -1,7 +1,8 @@
 ﻿'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { NetworkTree, type NetworkHierarchy, type NetworkNode, type NetworkStatCard } from '../network/NetworkTree'
+import { buildPassengerReferralSlug } from '../../services/passengers'
 import type { PassengerNetwork, PassengerNetworkHierarchy, PassengerNetworkReferral } from '../../types'
 
 interface PassengerNetworkTreeProps {
@@ -89,6 +90,62 @@ function mapFallbackHierarchy({
   }
 }
 
+function buildReferralUrl(passengerId: string | null, passengerName: string): string {
+  if (typeof window === 'undefined') return ''
+  const code = buildPassengerReferralSlug(passengerName)
+  if (!code) return ''
+  const query = passengerId ? `?originPassengerId=${encodeURIComponent(passengerId)}` : ''
+  return `${window.location.origin}/r/${code}${query}`
+}
+
+function PassengerEmptyState({
+  passengerId,
+  passengerName,
+}: {
+  passengerId: string | null
+  passengerName: string
+}) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    const url = buildReferralUrl(passengerId, passengerName)
+    if (!url) return
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(() => { /* ignore clipboard errors */ })
+  }
+
+  return (
+    <div
+      data-testid="passenger-empty-state"
+      className="flex flex-col items-center gap-5 rounded-2xl border border-[#F28C28]/20 bg-[#2B1E15] p-8 text-center shadow-[0_0_40px_0_rgba(242,140,40,0.06)]"
+    >
+      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#F28C28]/20 bg-[#F28C28]/8 shadow-[0_0_20px_0_rgba(242,140,40,0.12)]">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="none"/>
+          <path d="M17 12c0 2.76-2.24 5-5 5s-5-2.24-5-5 2.24-5 5-5 5 2.24 5 5zm-5-3c-.55 0-1 .45-1 1v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1z" fill="currentColor" className="text-[#F28C28]/40"/>
+          <circle cx="12" cy="12" r="3" fill="currentColor" className="text-[#F28C28]/60"/>
+        </svg>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="font-semibold text-[#E6D2B3]">Sua rede ainda está começando</p>
+        <p className="text-sm text-[#E6D2B3]/50">
+          Compartilhe seu link para convidar passageiros para o Aliado.
+        </p>
+      </div>
+
+      <button
+        onClick={handleCopy}
+        className="inline-flex items-center gap-2 rounded-xl bg-[#F28C28] px-6 py-2.5 text-sm font-bold text-[#1E140F] transition-all hover:bg-[#F28C28]/90 active:scale-95"
+      >
+        {copied ? '✓ Copiado!' : 'Copiar link'}
+      </button>
+    </div>
+  )
+}
+
 export function PassengerNetworkTree({
   passengerId,
   passengerName,
@@ -137,12 +194,18 @@ export function PassengerNetworkTree({
       ]
     : undefined
 
+  const hasReferrals = (mappedHierarchy?.referrals.length ?? 0) > 0
+  const emptyStateSlot = !hasReferrals ? (
+    <PassengerEmptyState passengerId={passengerId} passengerName={passengerName} />
+  ) : undefined
+
   return (
     <NetworkTree
       hierarchy={mappedHierarchy}
       loading={loading}
       error={error}
       onRetry={onRetry}
+      emptyStateSlot={emptyStateSlot}
       labels={{
         loadingAriaLabel: 'Carregando rede de passageiros',
         loadingText: 'Carregando rede de passageiros...',

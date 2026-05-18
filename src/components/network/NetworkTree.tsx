@@ -197,7 +197,7 @@ function StatsPanel({ hierarchy, labels, stats }: { hierarchy: NetworkHierarchy;
   )
 }
 
-function HierarchyPanel({ hierarchy, labels }: { hierarchy: NetworkHierarchy; labels: NetworkTreeLabels }) {
+function HierarchyPanel({ hierarchy, labels, emptyStateSlot }: { hierarchy: NetworkHierarchy; labels: NetworkTreeLabels; emptyStateSlot?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-3">
       {hierarchy.referredBy && (
@@ -226,10 +226,12 @@ function HierarchyPanel({ hierarchy, labels }: { hierarchy: NetworkHierarchy; la
           <ReferralTree nodes={hierarchy.referrals} labels={labels} />
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#E6D2B3]/8 bg-[#2B1E15]/60 p-5 text-center">
-          <p className="text-sm text-[#E6D2B3]/40">{labels.emptyTitle}</p>
-          <p className="mt-1 text-xs text-[#E6D2B3]/25">{labels.emptyHint}</p>
-        </div>
+        emptyStateSlot ?? (
+          <div className="rounded-2xl border border-[#E6D2B3]/8 bg-[#2B1E15]/60 p-5 text-center">
+            <p className="text-sm text-[#E6D2B3]/40">{labels.emptyTitle}</p>
+            <p className="mt-1 text-xs text-[#E6D2B3]/25">{labels.emptyHint}</p>
+          </div>
+        )
       )}
     </div>
   )
@@ -244,9 +246,10 @@ interface NetworkTreeProps {
   onRetry?: () => void
   labels?: Partial<NetworkTreeLabels>
   stats?: NetworkStatCard[]
+  emptyStateSlot?: React.ReactNode
 }
 
-export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelOverrides, stats }: NetworkTreeProps) {
+export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelOverrides, stats, emptyStateSlot }: NetworkTreeProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('hierarchy')
   const labels = { ...DEFAULT_LABELS, ...labelOverrides }
 
@@ -310,7 +313,7 @@ export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelO
         </button>
       </div>
 
-      {activeTab === 'hierarchy' && <HierarchyPanel hierarchy={hierarchy} labels={labels} />}
+      {activeTab === 'hierarchy' && <HierarchyPanel hierarchy={hierarchy} labels={labels} emptyStateSlot={emptyStateSlot} />}
       {activeTab === 'stats' && <StatsPanel hierarchy={hierarchy} labels={labels} stats={stats} />}
     </div>
   )

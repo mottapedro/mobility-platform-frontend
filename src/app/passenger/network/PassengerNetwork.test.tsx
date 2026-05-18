@@ -89,7 +89,8 @@ describe('PassengerNetworkPage', () => {
 
     render(<PassengerNetworkPage />)
 
-    expect(screen.getByText('Nenhum passageiro indicado ainda.')).toBeInTheDocument()
+    expect(screen.getByTestId('passenger-empty-state')).toBeInTheDocument()
+    expect(screen.getByText('Sua rede ainda está começando')).toBeInTheDocument()
     expect(screen.getByText('/r/maria-lucia-7x2a')).toBeInTheDocument()
   })
 
