@@ -294,7 +294,7 @@ export default function PassengerRidesPage() {
 
           {!loading && !error && rides.length === 0 && (
             <div className="flex flex-col items-center gap-4 py-20 text-center">
-              <img src="/logo-aliado.jpeg" alt="Logo Aliado" className="mx-auto mb-2 h-24 w-auto" />
+              <img src="/logo-alidado.jpeg" alt="Logo Aliado" className="mx-auto mb-2 h-24 w-auto" />
               <p className="text-[#E6D2B3]/50">Você ainda não criou nenhuma corrida.</p>
               <button
                 onClick={() => router.push('/passenger/create')}
