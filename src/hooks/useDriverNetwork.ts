@@ -2,8 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { getDriverNetwork, getDriverNetworkHierarchy } from '../services/drivers'
+import { ApiError } from '../services/api'
 import { sanitizeNetworkTree } from '../utils/networkTree'
 import type { DriverNetwork, DriverNetworkHierarchy } from '../types'
+
+function clearStaleDriverId() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('driverId')
+  const stored = localStorage.getItem('aliado:auth')
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored)
+      delete parsed.driverId
+      localStorage.setItem('aliado:auth', JSON.stringify(parsed))
+    } catch { /* ignore */ }
+  }
+}
 
 interface UseDriverNetworkResult {
   data: DriverNetwork | null
@@ -24,8 +38,13 @@ export function useDriverNetwork(driverId: string | null): UseDriverNetworkResul
     try {
       const result = await getDriverNetwork(driverId)
       setData(result)
-    } catch {
-      setError('Não foi possível carregar sua rede agora.')
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        clearStaleDriverId()
+        setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
+      } else {
+        setError('Não foi possível carregar sua rede agora.')
+      }
     } finally {
       setLoading(false)
     }
@@ -61,8 +80,13 @@ export function useDriverNetworkHierarchy(driverId: string | null): UseDriverNet
         referrals: result.referrals.map((node) => sanitizeNetworkTree(node)),
       }
       setData(sanitized)
-    } catch {
-      setError('Não foi possível carregar a hierarquia da rede.')
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        clearStaleDriverId()
+        setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
+      } else {
+        setError('Não foi possível carregar a hierarquia da rede.')
+      }
     } finally {
       setLoading(false)
     }
