@@ -55,7 +55,7 @@ function toAlliedDriverCardData(driver: Driver | null, storedDriver: StoredRefer
     regionLabel: storedDriver?.regionLabel || 'Atendimento sob consulta',
     vehicleLabel,
     ratingLabel: storedDriver?.ratingLabel || 'Em breve',
-    headline: storedDriver?.headline || 'Seu parceiro de confianÃ§a para corridas com prioridade e atendimento mais pessoal.',
+    headline: storedDriver?.headline || 'Seu parceiro de confiança para corridas com prioridade e atendimento mais pessoal.',
   }
 }
 
@@ -197,7 +197,7 @@ export default function PassengerRidesPage() {
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-[#E6D2B3]">Seu motorista pessoal no app</h2>
                 <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/65">
-                  RelaÃ§Ã£o persistente para gerar confianÃ§a, prioridade e uma experiÃªncia mais prÃ³xima a cada solicitaÃ§Ã£o.
+                  Relação persistente para gerar confiança, prioridade e uma experiência mais próxima a cada solicitação.
                 </p>
               </div>
               {alliedDriver && (
