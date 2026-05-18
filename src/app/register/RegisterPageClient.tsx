@@ -34,6 +34,11 @@ type RegisterPageClientProps = {
   referralSlug: string
 }
 
+type StoredReferralDriver = {
+  name: string
+  phone?: string
+}
+
 export default function RegisterPageClient({ referralSlug }: RegisterPageClientProps) {
   const router = useRouter()
   const { register } = useAuth()
@@ -45,6 +50,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<AuthUser['role']>('passenger')
   const [activeReferralCode, setActiveReferralCode] = useState('')
+  const [referredDriver, setReferredDriver] = useState<StoredReferralDriver | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,6 +67,13 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
 
     if (nextReferralCode) {
       setStoredReferralCode(localStorage, nextReferralCode)
+    }
+
+    try {
+      const storedReferredDriver = localStorage.getItem('aliado:referredDriver')
+      setReferredDriver(storedReferredDriver ? JSON.parse(storedReferredDriver) as StoredReferralDriver : null)
+    } catch {
+      setReferredDriver(null)
     }
 
     setActiveReferralCode(nextReferralCode)
@@ -126,6 +139,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
         localStorage.removeItem('aliado:referredDriver')
         localStorage.removeItem('aliado:referredSlug')
         setActiveReferralCode('')
+        setReferredDriver(null)
       }
 
       setError(message)
@@ -141,6 +155,24 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
           <h1 className="text-3xl font-bold tracking-tight text-white">Aliado</h1>
           <p className="mt-1 text-sm text-zinc-400">Criar conta</p>
         </div>
+
+        {role === 'passenger' && activeReferralCode && (
+          <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm text-orange-100">
+            <p className="text-xs font-semibold uppercase tracking-widest text-orange-300">
+              Convite ativo
+            </p>
+            {referredDriver ? (
+              <div className="mt-2 space-y-1">
+                <p>Você foi convidado por {referredDriver.name}</p>
+                {referredDriver.phone && (
+                  <p className="text-xs text-orange-200/80">{referredDriver.phone}</p>
+                )}
+              </div>
+            ) : (
+              <p className="mt-2">Seu cadastro usará o código {activeReferralCode}.</p>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
