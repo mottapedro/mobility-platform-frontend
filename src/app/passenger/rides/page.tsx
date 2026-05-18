@@ -233,11 +233,11 @@ export default function PassengerRidesPage() {
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">VeÃ­culo</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">VEÍCULO</p>
                     <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.vehicleLabel}</p>
                   </div>
                   <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">RegiÃ£o</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">REGIÃO</p>
                     <p className="mt-2 text-sm font-medium text-[#E6D2B3]">{alliedDriver.regionLabel}</p>
                   </div>
                   <div className="rounded-2xl border border-[#E6D2B3]/10 bg-black/10 p-3">
