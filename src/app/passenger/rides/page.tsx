@@ -169,7 +169,7 @@ export default function PassengerRidesPage() {
                 <h1 className="text-2xl font-bold text-[#E6D2B3]">Minhas corridas</h1>
                 <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiro</p>
                 <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
-                  ðŸ“ Motoristas da sua regiÃ£o
+                  📍 Motoristas da sua região
                 </span>
               </div>
               <div className="flex flex-col gap-2">
