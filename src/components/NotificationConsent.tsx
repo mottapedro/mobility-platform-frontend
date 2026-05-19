@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Bell, X } from 'lucide-react'
@@ -28,7 +28,7 @@ export function NotificationConsent() {
 
   return (
     <div
-      className="fixed bottom-24 left-4 right-4 z-50 mx-auto max-w-md animate-[slideUp_0.3s_ease-out] rounded-2xl border border-[#F28C28]/30 bg-[#2B1E15] p-4 shadow-2xl"
+      className="fixed bottom-24 left-4 right-4 z-50 mx-auto max-w-md animate-[slideUp_0.3s_ease-out] rounded-2xl border border-[#F28C28]/30 bg-[#1A0E04] p-4 shadow-2xl"
       role="dialog"
       aria-label="Ativar notificações"
     >
@@ -37,20 +37,20 @@ export function NotificationConsent() {
           <Bell size={18} className="text-[#F28C28]" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-[#E6D2B3]">Ativar notificações</p>
-          <p className="mt-0.5 text-xs text-[#E6D2B3]/60">
+          <p className="text-sm font-semibold text-[#F5ECD8]">Ativar notificações</p>
+          <p className="mt-0.5 text-xs text-[#9A7D5A]">
             Receba alertas de corridas e atualizações em tempo real.
           </p>
           <div className="mt-3 flex gap-2">
             <button
               onClick={handleAllow}
-              className="rounded-lg bg-[#F28C28] px-4 py-1.5 text-xs font-bold text-[#1E140F] transition-opacity hover:opacity-90"
+              className="rounded-lg bg-[#F28C28] px-4 py-1.5 text-xs font-bold text-[#0D0700] transition-opacity hover:opacity-90"
             >
               Ativar
             </button>
             <button
               onClick={() => setVisible(false)}
-              className="rounded-lg border border-[#E6D2B3]/15 px-4 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:text-[#E6D2B3]"
+              className="rounded-lg border border-[#2E1A08] px-4 py-1.5 text-xs font-semibold text-[#9A7D5A] transition-colors hover:text-[#F5ECD8]"
             >
               Agora não
             </button>
@@ -59,7 +59,7 @@ export function NotificationConsent() {
         <button
           onClick={() => setVisible(false)}
           aria-label="Fechar"
-          className="mt-0.5 text-[#E6D2B3]/30 transition-colors hover:text-[#E6D2B3]"
+          className="mt-0.5 text-[#5A3F22] transition-colors hover:text-[#F5ECD8]"
         >
           <X size={16} />
         </button>

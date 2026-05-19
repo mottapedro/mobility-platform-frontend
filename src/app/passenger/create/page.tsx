@@ -23,7 +23,7 @@ function ContextCheckbox({ label, emoji, checked, onChange }: ContextCheckboxPro
       className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
         checked
           ? 'border-[#F28C28]/60 bg-[#F28C28]/10 text-[#F28C28]'
-          : 'border-[#E6D2B3]/10 bg-[#2B1E15] text-[#E6D2B3]/50 hover:border-[#E6D2B3]/20'
+          : 'border-[#2E1A08] bg-[#1A0E04] text-[#9A7D5A] hover:border-[#5A3F22]'
       }`}
     >
       <span>{emoji}</span>
@@ -123,42 +123,42 @@ export default function PassengerCreatePage() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#E6D2B3]">Solicitar corrida</h1>
-        <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiro ALIADO</p>
+        <h1 className="text-2xl font-bold text-[#F5ECD8]">Solicitar corrida</h1>
+        <p className="mt-1 text-sm text-[#9A7D5A]">Passageiro ALIADO</p>
       </div>
 
       {/* Motorista aliado */}
       <div className={`mb-6 rounded-2xl border p-4 ${
             referredDriver
-              ? 'border-[#F28C28]/40 bg-[#2B1E15]'
-              : 'border-[#E6D2B3]/10 bg-[#2B1E15]'
+              ? 'border-[#F28C28]/40 bg-[#1A0E04]'
+              : 'border-[#2E1A08] bg-[#1A0E04]'
           }`}>
         <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#F28C28]/70">
           Motorista aliado indicado
         </p>
 
         {loading && (
-          <p className="text-sm text-[#E6D2B3]/40">Carregando motorista aliado...</p>
+          <p className="text-sm text-[#9A7D5A]">Carregando motorista aliado...</p>
         )}
 
         {showDriverLoadError && (
-          <p className="text-sm text-[#D64545]">Erro ao carregar motorista</p>
+          <p className="text-sm text-[#E05050]">Erro ao carregar motorista</p>
         )}
 
         {referredDriver && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#1E140F]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#0D0700]">
                 {referredDriver.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-[#E6D2B3]">{referredDriver.name}</p>
+                <p className="font-semibold text-[#F5ECD8]">{referredDriver.name}</p>
                 {referredDriver.phone && (
-                  <p className="text-xs text-[#E6D2B3]/40">{referredDriver.phone}</p>
+                  <p className="text-xs text-[#9A7D5A]">{referredDriver.phone}</p>
                 )}
               </div>
             </div>
-            <p className="mt-1 rounded-lg border border-[#3FAE5A]/30 bg-[#3FAE5A]/8 px-3 py-2 text-xs font-medium text-[#3FAE5A]">
+            <p className="mt-1 rounded-lg border border-[#3DB87A]/30 bg-[#3DB87A]/8 px-3 py-2 text-xs font-medium text-[#3DB87A]">
               ✓ Seu motorista receberá a corrida primeiro
             </p>
           </div>
@@ -166,7 +166,7 @@ export default function PassengerCreatePage() {
 
         {!loading && !referredDriver && (
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-[#E6D2B3]/50">
+            <p className="text-sm text-[#9A7D5A]">
               💡 Vincule um motorista para prioridade nas corridas
             </p>
             <button
@@ -182,39 +182,39 @@ export default function PassengerCreatePage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#E6D2B3]/70">Origem</label>
+          <label className="text-sm font-medium text-[#F5ECD8]/70">Origem</label>
           <input
             type="text"
             placeholder="Ex: Barra da Tijuca, Rio de Janeiro"
             value={origin}
             onChange={(e) => setOrigin(e.target.value)}
-            className="rounded-xl border border-[#E6D2B3]/15 bg-[#2B1E15] px-4 py-3 text-sm text-[#E6D2B3] placeholder-[#E6D2B3]/25 outline-none focus:border-[#F28C28]/60 transition-colors"
+            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#E6D2B3]/70">Destino</label>
+          <label className="text-sm font-medium text-[#F5ECD8]/70">Destino</label>
           <input
             type="text"
             placeholder="Ex: Aeroporto Galeão, Rio de Janeiro"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="rounded-xl border border-[#E6D2B3]/15 bg-[#2B1E15] px-4 py-3 text-sm text-[#E6D2B3] placeholder-[#E6D2B3]/25 outline-none focus:border-[#F28C28]/60 transition-colors"
+            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#E6D2B3]/70">Horário da corrida</label>
+          <label className="text-sm font-medium text-[#F5ECD8]/70">Horário da corrida</label>
           <input
             type="datetime-local"
             value={scheduledAt}
             onChange={(e) => setScheduledAt(e.target.value)}
-            className="rounded-xl border border-[#E6D2B3]/15 bg-[#2B1E15] px-4 py-3 text-sm text-[#E6D2B3] outline-none focus:border-[#F28C28]/60 transition-colors [color-scheme:dark]"
+            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] outline-none focus:border-[#F28C28]/60 transition-colors [color-scheme:dark]"
           />
         </div>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#E6D2B3]/40">
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
             Informações adicionais
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -226,18 +226,18 @@ export default function PassengerCreatePage() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#E6D2B3]/70">Observações</label>
+          <label className="text-sm font-medium text-[#F5ECD8]/70">Observações</label>
           <textarea
             rows={3}
             placeholder="Ex: Preciso de espaço para cadeira de rodas, embarque no portão 2..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="resize-none rounded-xl border border-[#E6D2B3]/15 bg-[#2B1E15] px-4 py-3 text-sm text-[#E6D2B3] placeholder-[#E6D2B3]/25 outline-none focus:border-[#F28C28]/60 transition-colors"
+            className="resize-none rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
           />
         </div>
 
         {submitError && (
-          <p className="rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+          <p className="rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
             {submitError}
           </p>
         )}
@@ -245,7 +245,7 @@ export default function PassengerCreatePage() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 rounded-xl bg-[#F28C28] px-6 py-4 font-bold text-[#1E140F] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+          className="mt-2 rounded-xl bg-[#F28C28] px-6 py-4 font-bold text-[#0D0700] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
         >
           {submitting ? 'Criando corrida...' : 'Criar corrida'}
         </button>

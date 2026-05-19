@@ -4,6 +4,7 @@ export * from './tokens/radius';
 export * from './tokens/spacing';
 export * from './tokens/typography';
 export * from './tokens/shadows';
+export * from './tokens/glow';
 
 export * from './components/Button';
 export * from './components/Card';

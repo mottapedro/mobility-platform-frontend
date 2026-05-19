@@ -1,21 +1,20 @@
-import { FC, ReactNode } from "react";
-import { colors } from "../tokens/colors";
-import { radius } from "../tokens/radius";
+import { FC, ReactNode } from 'react';
 
 export interface BadgeProps {
   children: ReactNode;
-  color?: "orange" | "brown" | "gray";
+  variant?: 'orange' | 'success' | 'danger' | 'muted';
   className?: string;
 }
 
-export const Badge: FC<BadgeProps> = ({ children, color = "orange", className = "" }) => {
-  const colorMap = {
-    orange: `bg-[${colors.orange}] text-[${colors.white}]`,
-    brown: `bg-[${colors.brown}] text-[${colors.orange}]`,
-    gray: `bg-[${colors.gray[500]}] text-[${colors.white}]`,
+export const Badge: FC<BadgeProps> = ({ children, variant = 'orange', className = '' }) => {
+  const variants = {
+    orange:  'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/30',
+    success: 'bg-[#3DB87A]/12 text-[#3DB87A] border border-[#3DB87A]/30',
+    danger:  'bg-[#E05050]/12 text-[#E05050] border border-[#E05050]/30',
+    muted:   'bg-[#2E1A08] text-[#9A7D5A] border border-[#2E1A08]',
   };
   return (
-    <span className={`inline-block px-3 py-1 rounded-[${radius.full}] text-xs font-semibold ${colorMap[color]} ${className}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${variants[variant]} ${className}`}>
       {children}
     </span>
   );

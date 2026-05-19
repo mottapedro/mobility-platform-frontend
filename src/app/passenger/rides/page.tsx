@@ -31,16 +31,16 @@ function rideStatusLabel(status: RideStatus): string {
 function rideStatusStyle(status: RideStatus): string {
   switch (status) {
     case 'ACCEPTED':
-      return 'bg-[#3FAE5A]/15 text-[#3FAE5A] border border-[#3FAE5A]/30'
+      return 'bg-[#3DB87A]/15 text-[#3DB87A] border border-[#3DB87A]/30'
     case 'REJECTED':
     case 'EXPIRED':
-      return 'bg-[#D64545]/15 text-[#D64545] border border-[#D64545]/30'
+      return 'bg-[#E05050]/15 text-[#E05050] border border-[#E05050]/30'
     case 'WAITING_REFERRAL':
       return 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/30'
     case 'MATCHING':
       return 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30'
     default:
-      return 'bg-[#E6D2B3]/8 text-[#E6D2B3]/50 border border-[#E6D2B3]/15'
+      return 'bg-[#2E1A08] text-[#9A7D5A] border border-[#2E1A08]'
   }
 }
 
@@ -97,8 +97,8 @@ export default function PassengerRidesPage() {
       )}
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#E6D2B3]">Minhas corridas</h1>
-        <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiro ALIADO</p>
+        <h1 className="text-2xl font-bold text-[#F5ECD8]">Minhas corridas</h1>
+        <p className="mt-1 text-sm text-[#9A7D5A]">Passageiro ALIADO</p>
       </div>
 
       <section className="mb-6">
@@ -113,23 +113,23 @@ export default function PassengerRidesPage() {
       {loading && (
         <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl border border-[#E6D2B3]/8 bg-[#2B1E15]/50" />
+            <div key={i} className="h-28 animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04]/50" />
           ))}
         </div>
       )}
 
       {error && (
-        <p className="rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+        <p className="rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
           {error}
         </p>
       )}
 
       {!loading && !error && rides.length === 0 && (
         <div className="flex flex-col items-center gap-4 py-20 text-center">
-          <p className="text-[#E6D2B3]/50">Você ainda não criou nenhuma corrida.</p>
+          <p className="text-[#9A7D5A]">Você ainda não criou nenhuma corrida.</p>
           <button
             onClick={() => router.push('/passenger/create')}
-            className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity active:scale-95"
+            className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#0D0700] hover:opacity-90 transition-opacity active:scale-95"
           >
             Criar primeira corrida
           </button>
@@ -142,15 +142,15 @@ export default function PassengerRidesPage() {
             .slice()
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .map((ride) => (
-              <div key={ride.id} className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4 flex flex-col gap-3">
+              <div key={ride.id} className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4 flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col gap-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm text-[#E6D2B3]/70">
+                    <div className="flex items-center gap-2 text-sm text-[#F5ECD8]/70">
                       <span className="text-[#F28C28]">◉</span>
                       <span className="truncate">{ride.origin}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[#E6D2B3]/50">
-                      <span className="text-[#E6D2B3]/20">◉</span>
+                    <div className="flex items-center gap-2 text-sm text-[#9A7D5A]">
+                      <span className="text-[#5A3F22]">◉</span>
                       <span className="truncate">{ride.destination}</span>
                     </div>
                   </div>
@@ -158,14 +158,14 @@ export default function PassengerRidesPage() {
                     {rideStatusLabel(ride.status)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between border-t border-[#E6D2B3]/8 pt-2">
-                  <p className="text-xs text-[#E6D2B3]/40">{formatDate(ride.scheduledAt)}</p>
-                  <p className="text-xs text-[#E6D2B3]/20">#{ride.id.slice(0, 8)}</p>
+                <div className="flex items-center justify-between border-t border-[#2E1A08] pt-2">
+                  <p className="text-xs text-[#9A7D5A]">{formatDate(ride.scheduledAt)}</p>
+                  <p className="text-xs text-[#5A3F22]">#{ride.id.slice(0, 8)}</p>
                 </div>
                 {ride.status === 'ACCEPTED' && (
                   <button
                     onClick={() => setPixRideId(ride.id)}
-                    className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-[#3FAE5A]/30 bg-[#3FAE5A]/10 px-4 py-2.5 text-sm font-semibold text-[#3FAE5A] transition-colors hover:border-[#3FAE5A]/60 hover:bg-[#3FAE5A]/15"
+                    className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-4 py-2.5 text-sm font-semibold text-[#3DB87A] transition-colors hover:border-[#3DB87A]/60 hover:bg-[#3DB87A]/15"
                   >
                     <span>💳</span> Pagar via PIX
                   </button>
@@ -178,7 +178,7 @@ export default function PassengerRidesPage() {
       {!loading && rides.length > 0 && (
         <button
           onClick={fetchRides}
-          className="mt-6 w-full rounded-xl border border-[#E6D2B3]/10 py-3 text-sm text-[#E6D2B3]/40 hover:border-[#F28C28]/40 hover:text-[#F28C28] transition-colors"
+          className="mt-6 w-full rounded-xl border border-[#2E1A08] py-3 text-sm text-[#9A7D5A] hover:border-[#F28C28]/40 hover:text-[#F28C28] transition-colors"
         >
           Atualizar lista
         </button>

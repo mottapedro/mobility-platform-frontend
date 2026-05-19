@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -35,34 +35,34 @@ export default function DriverRidesPage() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#E6D2B3]">Agenda</h1>
-        <p className="mt-1 text-sm text-[#E6D2B3]/50">Corridas confirmadas</p>
+        <h1 className="text-2xl font-bold text-[#F5ECD8]">Agenda</h1>
+        <p className="mt-1 text-sm text-[#9A7D5A]">Corridas confirmadas</p>
       </div>
 
           {error && (
-            <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+            <div className="mb-4 rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
               {error}
             </div>
           )}
 
           {!driverId && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
-              <p className="text-sm text-[#E6D2B3]/50">
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
+              <p className="text-sm text-[#9A7D5A]">
                 Motorista não identificado. Faça login novamente.
               </p>
             </div>
           )}
 
           {driverId && loading && rides.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+            <div className="flex flex-col items-center gap-3 py-16 text-[#9A7D5A]">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#5A3F22] border-t-[#F28C28]" />
               <p className="text-sm">Carregando agenda...</p>
             </div>
           )}
 
           {driverId && !loading && rides.length === 0 && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
-              <p className="text-sm text-[#E6D2B3]/50">Nenhuma corrida confirmada.</p>
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
+              <p className="text-sm text-[#9A7D5A]">Nenhuma corrida confirmada.</p>
             </div>
           )}
 
@@ -102,39 +102,39 @@ function RideCard({
   })
 
   return (
-    <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-5 flex flex-col gap-3">
+    <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#1E140F]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#0D0700]">
             {passenger.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#E6D2B3]/40">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
               Passageiro
             </p>
-            <p className="font-semibold text-[#E6D2B3]">{passenger.name}</p>
+            <p className="font-semibold text-[#F5ECD8]">{passenger.name}</p>
             {passenger.phone && (
-              <p className="text-xs text-[#E6D2B3]/40">{passenger.phone}</p>
+              <p className="text-xs text-[#9A7D5A]">{passenger.phone}</p>
             )}
           </div>
         </div>
-        <span className="flex items-center gap-1.5 rounded-full border border-[#3FAE5A]/30 bg-[#3FAE5A]/10 px-3 py-1 text-xs font-semibold text-[#3FAE5A]">
+        <span className="flex items-center gap-1.5 rounded-full border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-3 py-1 text-xs font-semibold text-[#3DB87A]">
           {ride.status === 'IN_PROGRESS' ? '🚗 A caminho' : '✓ Confirmada'}
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5 rounded-xl border border-[#E6D2B3]/8 bg-[#1E140F]/60 px-4 py-3 text-sm">
-        <p className="text-[#E6D2B3]/70">
+      <div className="flex flex-col gap-1.5 rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-3 text-sm">
+        <p className="text-[#F5ECD8]/70">
           <span className="font-semibold text-[#F28C28]">De:</span>{' '}
-          <span className="text-[#E6D2B3]">{ride.origin}</span>
+          <span className="text-[#F5ECD8]">{ride.origin}</span>
         </p>
-        <p className="text-[#E6D2B3]/70">
+        <p className="text-[#F5ECD8]/70">
           <span className="font-semibold text-[#F28C28]">Para:</span>{' '}
-          <span className="text-[#E6D2B3]">{ride.destination}</span>
+          <span className="text-[#F5ECD8]">{ride.destination}</span>
         </p>
-        <p className="text-[#E6D2B3]/70">
+        <p className="text-[#F5ECD8]/70">
           <span className="font-semibold text-[#F28C28]">Horário:</span>{' '}
-          <span className="text-[#E6D2B3]">{scheduledDate}</span>
+          <span className="text-[#F5ECD8]">{scheduledDate}</span>
         </p>
       </div>
 
@@ -151,11 +151,11 @@ function RideCard({
         <button
           onClick={onStartRide}
           disabled={updating}
-          className="w-full rounded-xl bg-[#F28C28] py-2.5 text-sm font-bold text-[#1E140F] transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-xl bg-[#F28C28] py-2.5 text-sm font-bold text-[#0D0700] transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {updating ? (
             <span className="flex items-center justify-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E140F]/30 border-t-[#1E140F]" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0D0700]/30 border-t-[#0D0700]" />
               Atualizando...
             </span>
           ) : (

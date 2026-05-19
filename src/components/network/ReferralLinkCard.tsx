@@ -50,22 +50,22 @@ export function ReferralLinkCard({
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#F28C28]/75">
             {eyebrow}
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-[#E6D2B3]">{title}</h2>
-          <p className="mt-1 text-sm leading-6 text-[#E6D2B3]/55">{description}</p>
+          <h2 className="mt-2 text-xl font-semibold text-[#F5ECD8]">{title}</h2>
+          <p className="mt-1 text-sm leading-6 text-[#F5ECD8]/55">{description}</p>
         </div>
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#F28C28]/30 bg-[#F28C28]/15 text-sm font-bold text-[#FAD2A4]">
           {avatarLabel}
         </div>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 rounded-xl border border-[#E6D2B3]/10 bg-[#1E140F]/60 px-3 py-2.5">
-        <p className="min-w-0 flex-1 truncate font-mono text-sm text-[#E6D2B3]/80">{displayUrl}</p>
+      <div className="mt-4 flex items-center gap-2 rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-3 py-2.5">
+        <p className="min-w-0 flex-1 truncate font-mono text-sm text-[#2E1A08]0">{displayUrl}</p>
         <button
           type="button"
           onClick={handleCopy}
           disabled={disabled}
           title="Copiar link"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#E6D2B3]/10 bg-[#E6D2B3]/5 text-[#E6D2B3]/60 transition-all hover:border-[#F28C28]/40 hover:text-[#F28C28] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#2E1A08] bg-[#F5ECD8]/5 text-[#9A7D5A] transition-all hover:border-[#F28C28]/40 hover:text-[#F28C28] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Copy size={16} />
         </button>
@@ -76,7 +76,7 @@ export function ReferralLinkCard({
           type="button"
           onClick={handleCopy}
           disabled={disabled}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C28] px-4 py-3 text-sm font-bold text-[#1E140F] transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C28] px-4 py-3 text-sm font-bold text-[#0D0700] transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Copy size={16} />
           {copied ? 'Copiado' : 'Copiar'}
@@ -85,7 +85,7 @@ export function ReferralLinkCard({
           type="button"
           onClick={handleWhatsApp}
           disabled={disabled}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#3FAE5A]/40 bg-[#3FAE5A]/10 px-4 py-3 text-sm font-bold text-[#3FAE5A] transition-all hover:bg-[#3FAE5A]/15 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#3DB87A]/40 bg-[#3DB87A]/10 px-4 py-3 text-sm font-bold text-[#3DB87A] transition-all hover:bg-[#3DB87A]/15 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <MessageCircle size={16} />
           WhatsApp

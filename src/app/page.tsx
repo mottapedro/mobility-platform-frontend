@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -44,7 +44,7 @@ export default function WelcomePage() {
           </svg>
         </div>
         <div className="text-center">
-          <h1 className="text-4xl font-black tracking-[0.35em] text-[#E6D2B3]">ALIADO</h1>
+          <h1 className="text-4xl font-black tracking-[0.35em] text-[#F5ECD8]">ALIADO</h1>
           <p className="mt-1 text-[10px] font-semibold tracking-[0.32em] uppercase text-[#F28C28]/70">
             SEU ALIADO EM CADA VIAGEM
           </p>
@@ -53,12 +53,12 @@ export default function WelcomePage() {
 
       {/* Middle: pitch */}
       <div className="flex flex-col items-center gap-6 max-w-xs text-center">
-        <h2 className="text-2xl font-bold leading-snug text-[#E6D2B3]">
+        <h2 className="text-2xl font-bold leading-snug text-[#F5ECD8]">
           Aliado{' '}
           <span className="text-[#F28C28]">do seu lado</span>
           {'\n'}em cada viagem
         </h2>
-        <p className="text-sm leading-6 text-[#E6D2B3]/55">
+        <p className="text-sm leading-6 text-[#F5ECD8]/55">
           Conectamos passageiros e motoristas de confiança para viagens melhores todos os dias.
         </p>
         <ul className="w-full flex flex-col gap-2 text-left">
@@ -68,7 +68,7 @@ export default function WelcomePage() {
             'Viagens com preferência',
             'Rede de indicações',
           ].map((item) => (
-            <li key={item} className="flex items-center gap-3 text-sm text-[#E6D2B3]/75">
+            <li key={item} className="flex items-center gap-3 text-sm text-[#F5ECD8]/75">
               <span className="text-[#F28C28] text-base">✦</span>
               {item}
             </li>
@@ -80,13 +80,13 @@ export default function WelcomePage() {
       <div className="flex flex-col gap-3 w-full max-w-xs pb-4">
         <button
           onClick={() => router.push('/register')}
-          className="w-full rounded-2xl bg-[#F28C28] px-8 py-4 text-base font-bold text-[#1E140F] transition-all hover:opacity-90 active:scale-[0.98]"
+          className="w-full rounded-2xl bg-[#F28C28] px-8 py-4 text-base font-bold text-[#0D0700] transition-all hover:opacity-90 active:scale-[0.98]"
         >
           Criar conta
         </button>
         <button
           onClick={() => router.push('/login')}
-          className="w-full rounded-2xl border border-[#E6D2B3]/15 bg-transparent px-8 py-4 text-base font-semibold text-[#E6D2B3] transition-all hover:border-[#E6D2B3]/30 active:scale-[0.98]"
+          className="w-full rounded-2xl border border-[#2E1A08] bg-transparent px-8 py-4 text-base font-semibold text-[#F5ECD8] transition-all hover:border-[#5A3F22] active:scale-[0.98]"
         >
           Entrar
         </button>

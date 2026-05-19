@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import type { Offer } from '../../types'
 import { RideContextBadges } from './RideContextBadges'
@@ -78,7 +78,7 @@ export function DriverOfferCard({
             </p>
           )}
           {(distanceKm != null || durationMin != null) && (
-            <p className="mt-1 text-xs text-[#E6D2B3]/70">
+            <p className="mt-1 text-xs text-[#F5ECD8]/70">
               🚗 {distanceKm ?? '--'} km • ⏱ {durationMin ?? '--'} min
             </p>
           )}

@@ -1,7 +1,4 @@
-import { FC, ReactNode } from "react";
-import { colors } from "../tokens/colors";
-import { radius } from "../tokens/radius";
-import { shadows } from "../tokens/shadows";
+import { FC, ReactNode } from 'react';
 
 export interface EmptyStateProps {
   icon?: ReactNode;
@@ -11,11 +8,19 @@ export interface EmptyStateProps {
   className?: string;
 }
 
-export const EmptyState: FC<EmptyStateProps> = ({ icon, title, description, action, className = "" }) => (
-  <div className={`flex flex-col items-center justify-center text-center p-8 rounded-[${radius.lg}] bg-[${colors.brown}] shadow-[${shadows.card}] ${className}`}>
-    {icon && <div className="mb-4">{icon}</div>}
-    <h3 className={`text-[${colors.orange}] text-lg font-bold mb-2`}>{title}</h3>
-    {description && <p className="text-[${colors.gray[200]}] mb-4 text-sm">{description}</p>}
+export const EmptyState: FC<EmptyStateProps> = ({
+  icon,
+  title,
+  description,
+  action,
+  className = '',
+}) => (
+  <div className={`flex flex-col items-center justify-center rounded-[20px] border border-[#2E1A08] bg-[#1A0E04] p-8 text-center ${className}`}>
+    {icon && <div className="mb-4 text-3xl">{icon}</div>}
+    <h3 className="text-base font-bold text-[#F5ECD8] mb-2">{title}</h3>
+    {description && (
+      <p className="text-sm text-[#9A7D5A] mb-4">{description}</p>
+    )}
     {action}
   </div>
 );

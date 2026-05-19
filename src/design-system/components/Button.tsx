@@ -1,48 +1,62 @@
-import { FC, ButtonHTMLAttributes } from "react";
-import { colors } from "../tokens/colors";
-import { radius } from "../tokens/radius";
-import { shadows } from "../tokens/shadows";
-import { typography } from "../tokens/typography";
+import { FC, ButtonHTMLAttributes } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "md" | "lg";
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
 }
 
 export const Button: FC<ButtonProps> = ({
   children,
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   fullWidth = false,
-  className = "",
+  className = '',
+  disabled,
   ...props
 }) => {
-  const base = `
-    font-semibold
-    rounded-[${radius.md}]
-    px-6 py-3
-    focus:outline-none
-    focus:ring-2
-    focus:ring-offset-2
-    transition
-    duration-150
-    ease-in-out
-    shadow-[${shadows.glow}]
-    text-base
-    ${fullWidth ? "w-full" : "w-auto"}
-  `;
+  const base = [
+    'inline-flex items-center justify-center',
+    'font-bold tracking-[0.03em]',
+    'rounded-[14px]',
+    'transition-all duration-150',
+    'focus:outline-none',
+    'active:scale-[0.97]',
+    fullWidth ? 'w-full' : '',
+    disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer',
+  ].filter(Boolean).join(' ');
+
   const variants = {
-    primary: `bg-[${colors.orange}] text-[${colors.white}] hover:bg-orange-500 focus:ring-[${colors.orange}]`,
-    secondary: `bg-[${colors.brown}] text-[${colors.orange}] border border-[${colors.orange}] hover:bg-orange-950`,
-    ghost: `bg-transparent text-[${colors.orange}] hover:bg-orange-900`,
+    primary: [
+      'bg-gradient-to-br from-[#F28C28] to-[#C96E10]',
+      'text-white',
+      'shadow-[0_4px_24px_rgba(242,140,40,0.28)]',
+      'hover:shadow-[0_6px_32px_rgba(242,140,40,0.36)]',
+      'hover:opacity-90',
+    ].join(' '),
+    secondary: [
+      'bg-transparent',
+      'border border-[#F28C28]/50',
+      'text-[#F28C28]',
+      'hover:bg-[#F28C28]/10',
+      'hover:border-[#F28C28]/80',
+    ].join(' '),
+    ghost: [
+      'bg-transparent',
+      'text-[#F28C28]',
+      'hover:bg-[#F28C28]/10',
+    ].join(' '),
   };
+
   const sizes = {
-    md: "text-base py-3 px-6",
-    lg: "text-lg py-4 px-8",
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 py-3.5 text-[15px]',
+    lg: 'px-8 py-4 text-base',
   };
+
   return (
     <button
+      disabled={disabled}
       className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >

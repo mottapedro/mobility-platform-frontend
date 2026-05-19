@@ -1,12 +1,19 @@
-import { FC, ReactNode } from "react";
-import { colors } from "../tokens/colors";
-import { typography } from "../tokens/typography";
+import { FC, ReactNode } from 'react';
 
 export interface SectionTitleProps {
   children: ReactNode;
   className?: string;
+  accent?: boolean;
 }
 
-export const SectionTitle: FC<SectionTitleProps> = ({ children, className = "" }) => (
-  <h2 className={`text-[${colors.orange}] text-xl font-bold mb-4 ${className}`}>{children}</h2>
+export const SectionTitle: FC<SectionTitleProps> = ({ children, className = '', accent = false }) => (
+  <h2
+    className={[
+      'text-xl font-black tracking-[0.04em]',
+      accent ? 'text-[#F28C28]' : 'text-[#F5ECD8]',
+      className,
+    ].filter(Boolean).join(' ')}
+  >
+    {children}
+  </h2>
 );

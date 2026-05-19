@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0D0700] px-4">
       <div className="w-full max-w-sm space-y-6">
         <button
           onClick={() => router.push('/')}

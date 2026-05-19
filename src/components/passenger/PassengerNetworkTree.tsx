@@ -28,12 +28,12 @@ function ReferralMeta({ referral }: { referral: PassengerNetworkReferral }) {
   const active = referral.status === 'active' || ridesCount > 0
 
   return (
-    <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#E6D2B3]/40">
+    <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#9A7D5A]">
       <span
         className={`rounded-full border px-2 py-0.5 font-semibold ${
           active
-            ? 'border-[#3FAE5A]/30 bg-[#3FAE5A]/10 text-[#3FAE5A]'
-            : 'border-[#E6D2B3]/15 bg-[#E6D2B3]/8 text-[#E6D2B3]/50'
+            ? 'border-[#3DB87A]/30 bg-[#3DB87A]/10 text-[#3DB87A]'
+            : 'border-[#2E1A08] bg-[#2E1A08] text-[#9A7D5A]'
         }`}
       >
         {active ? 'Ativo' : 'Novo'}
@@ -119,7 +119,7 @@ function PassengerEmptyState({
   return (
     <div
       data-testid="passenger-empty-state"
-      className="flex flex-col items-center gap-5 rounded-2xl border border-[#F28C28]/20 bg-[#2B1E15] p-8 text-center shadow-[0_0_40px_0_rgba(242,140,40,0.06)]"
+      className="flex flex-col items-center gap-5 rounded-2xl border border-[#F28C28]/20 bg-[#1A0E04] p-8 text-center shadow-[0_0_40px_0_rgba(242,140,40,0.06)]"
     >
       <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#F28C28]/20 bg-[#F28C28]/8 shadow-[0_0_20px_0_rgba(242,140,40,0.12)]">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -130,15 +130,15 @@ function PassengerEmptyState({
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="font-semibold text-[#E6D2B3]">Sua rede ainda está começando</p>
-        <p className="text-sm text-[#E6D2B3]/50">
+        <p className="font-semibold text-[#F5ECD8]">Sua rede ainda está começando</p>
+        <p className="text-sm text-[#9A7D5A]">
           Compartilhe seu link para convidar passageiros para o Aliado.
         </p>
       </div>
 
       <button
         onClick={handleCopy}
-        className="inline-flex items-center gap-2 rounded-xl bg-[#F28C28] px-6 py-2.5 text-sm font-bold text-[#1E140F] transition-all hover:bg-[#F28C28]/90 active:scale-95"
+        className="inline-flex items-center gap-2 rounded-xl bg-[#F28C28] px-6 py-2.5 text-sm font-bold text-[#0D0700] transition-all hover:bg-[#F28C28]/90 active:scale-95"
       >
         {copied ? '✓ Copiado!' : 'Copiar link'}
       </button>

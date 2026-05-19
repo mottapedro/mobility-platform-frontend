@@ -1,21 +1,43 @@
-import { FC, InputHTMLAttributes } from "react";
-import { colors } from "../tokens/colors";
-import { radius } from "../tokens/radius";
-import { shadows } from "../tokens/shadows";
-import { typography } from "../tokens/typography";
+import { FC, InputHTMLAttributes, useId } from 'react';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }
 
-export const Input: FC<InputProps> = ({ label, error, className = "", ...props }) => (
-  <label className="block w-full">
-    {label && <span className="block mb-2 text-sm font-medium text-[${colors.gray[200]}]">{label}</span>}
-    <input
-      className={`w-full bg-[${colors.black}] border border-[${colors.gray[600]}] rounded-[${radius.md}] px-4 py-3 text-[${colors.white}] placeholder-[${colors.gray[400]}] shadow-[${shadows.input}] focus:outline-none focus:ring-2 focus:ring-[${colors.orange}] ${className}`}
-      {...props}
-    />
-    {error && <span className="block mt-1 text-xs text-[${colors.error}]">{error}</span>}
-  </label>
-);
+export const Input: FC<InputProps> = ({ label, error, className = '', id, ...props }) => {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9A7D5A]"
+        >
+          {label}
+        </label>
+      )}
+      <input
+        id={inputId}
+        className={[
+          'w-full',
+          'rounded-[12px]',
+          'border border-[#2E1A08]',
+          'bg-[#150B02]',
+          'px-4 py-3.5',
+          'text-sm text-[#F5ECD8]',
+          'placeholder:text-[#5A3F22]',
+          'transition-colors duration-150',
+          'focus:border-[#F28C28]/60 focus:outline-none focus:ring-1 focus:ring-[#F28C28]/25',
+          className,
+        ].filter(Boolean).join(' ')}
+        {...props}
+      />
+      {error && (
+        <p className="text-xs text-[#E05050]">{error}</p>
+      )}
+    </div>
+  );
+};

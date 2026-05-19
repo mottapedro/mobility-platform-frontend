@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -18,8 +18,8 @@ export default function PassengerDriverPage() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#E6D2B3]">Meu motorista</h1>
-        <p className="mt-1 text-sm text-[#E6D2B3]/50">Seu aliado pessoal de mobilidade</p>
+        <h1 className="text-2xl font-bold text-[#F5ECD8]">Meu motorista</h1>
+        <p className="mt-1 text-sm text-[#9A7D5A]">Seu aliado pessoal de mobilidade</p>
       </div>
 
       <AlliedDriverCard
@@ -41,8 +41,8 @@ export default function PassengerDriverPage() {
         </a>
       )}
 
-      <div className="mt-6 rounded-[1.5rem] border border-[#E6D2B3]/8 bg-[#2B1E15] p-4">
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#E6D2B3]/40">
+      <div className="mt-6 rounded-[1.5rem] border border-[#2E1A08] bg-[#1A0E04] p-4">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#9A7D5A]">
           Como funciona
         </h3>
         <div className="flex flex-col gap-3">
@@ -54,8 +54,8 @@ export default function PassengerDriverPage() {
             <div key={title} className="flex gap-3">
               <span className="shrink-0 text-xl">{icon}</span>
               <div>
-                <p className="text-sm font-semibold text-[#E6D2B3]">{title}</p>
-                <p className="mt-0.5 text-xs leading-5 text-[#E6D2B3]/50">{desc}</p>
+                <p className="text-sm font-semibold text-[#F5ECD8]">{title}</p>
+                <p className="mt-0.5 text-xs leading-5 text-[#9A7D5A]">{desc}</p>
               </div>
             </div>
           ))}

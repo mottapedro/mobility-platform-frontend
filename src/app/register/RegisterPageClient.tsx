@@ -166,7 +166,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-4 py-10">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0D0700] px-4 py-10">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center mb-2">
           <img src="/logo-aliado.jpeg" alt="Logo Aliado" className="h-28 w-auto mb-2" />

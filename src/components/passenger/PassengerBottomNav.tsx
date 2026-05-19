@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -20,13 +20,13 @@ export function PassengerBottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-[#E6D2B3]/10 bg-[#1A120B] px-2 pb-safe pt-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-[#2E1A08] bg-[#0D0700] px-2 pb-safe pt-1">
       {TABS.map((tab) => (
         <button
           key={tab.href}
           onClick={() => router.push(tab.href)}
           className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-semibold transition-colors focus:outline-none ${
-            isActive(tab.href) ? 'text-[#F28C28]' : 'text-[#E6D2B3]/40 hover:text-[#E6D2B3]/70'
+            isActive(tab.href) ? 'text-[#F28C28]' : 'text-[#9A7D5A] hover:text-[#F5ECD8]/70'
           }`}
           aria-current={isActive(tab.href) ? 'page' : undefined}
         >

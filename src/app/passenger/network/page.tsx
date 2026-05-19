@@ -30,14 +30,14 @@ export default function PassengerNetworkPage() {
 
             <div className="mt-6 flex items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-[#E6D2B3]">Minha Rede</h1>
-                <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiros indicados</p>
+                <h1 className="text-2xl font-bold text-[#F5ECD8]">Minha Rede</h1>
+                <p className="mt-1 text-sm text-[#9A7D5A]">Passageiros indicados</p>
               </div>
               {!loading && (
                 <button
                   type="button"
                   onClick={refresh}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E6D2B3]/15 text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E1A08] text-[#9A7D5A] transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
                   title="Atualizar"
                 >
                   <RefreshCw size={16} />
@@ -47,11 +47,11 @@ export default function PassengerNetworkPage() {
           </div>
 
           {!passengerId && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
-              <p className="mb-4 text-[#E6D2B3]/60">Perfil de passageiro não encontrado.</p>
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
+              <p className="mb-4 text-[#9A7D5A]">Perfil de passageiro não encontrado.</p>
               <button
                 onClick={() => router.push('/login')}
-                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F]"
+                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#0D0700]"
               >
                 Ir para login
               </button>

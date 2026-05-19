@@ -1,7 +1,4 @@
-import { FC, ReactNode } from "react";
-import { colors } from "../tokens/colors";
-import { radius } from "../tokens/radius";
-import { shadows } from "../tokens/shadows";
+import { FC, ReactNode } from 'react';
 
 export interface NetworkCardProps {
   avatar?: ReactNode;
@@ -11,13 +8,19 @@ export interface NetworkCardProps {
   className?: string;
 }
 
-export const NetworkCard: FC<NetworkCardProps> = ({ avatar, title, subtitle, action, className = "" }) => (
-  <div className={`flex items-center gap-4 p-4 rounded-[${radius.md}] bg-[${colors.brown}] shadow-[${shadows.card}] ${className}`}>
-    {avatar && <div>{avatar}</div>}
+export const NetworkCard: FC<NetworkCardProps> = ({
+  avatar,
+  title,
+  subtitle,
+  action,
+  className = '',
+}) => (
+  <div className={`flex items-center gap-4 rounded-[16px] border border-[#2E1A08] bg-[#1A0E04] p-4 ${className}`}>
+    {avatar && <div className="shrink-0">{avatar}</div>}
     <div className="flex-1 min-w-0">
-      <div className={`text-[${colors.orange}] font-semibold truncate`}>{title}</div>
-      {subtitle && <div className={`text-[${colors.gray[200]}] text-xs truncate`}>{subtitle}</div>}
+      <div className="font-semibold text-[#F5ECD8] truncate">{title}</div>
+      {subtitle && <div className="text-xs text-[#9A7D5A] truncate">{subtitle}</div>}
     </div>
-    {action && <div>{action}</div>}
+    {action && <div className="shrink-0">{action}</div>}
   </div>
 );

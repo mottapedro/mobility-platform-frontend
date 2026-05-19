@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -33,11 +33,11 @@ function rideStatusLabel(status: string): string {
 
 function rideStatusColor(status: string): string {
   switch (status) {
-    case 'ACCEPTED': return 'text-[#3FAE5A]'
+    case 'ACCEPTED': return 'text-[#3DB87A]'
     case 'REJECTED':
-    case 'EXPIRED': return 'text-[#D64545]'
+    case 'EXPIRED': return 'text-[#E05050]'
     case 'WAITING_REFERRAL': return 'text-[#F28C28]'
-    default: return 'text-[#E6D2B3]/50'
+    default: return 'text-[#9A7D5A]'
   }
 }
 
@@ -74,8 +74,8 @@ export default function PassengerHomePage() {
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#F28C28]/75">
           {getGreeting()},
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-[#E6D2B3]">{firstName(user?.name)} 👋</h1>
-        <p className="mt-2 text-sm leading-6 text-[#E6D2B3]/50">
+        <h1 className="mt-1 text-3xl font-bold text-[#F5ECD8]">{firstName(user?.name)} 👋</h1>
+        <p className="mt-2 text-sm leading-6 text-[#9A7D5A]">
           Bem-vindo ao seu painel concierge ALIADO.
         </p>
       </section>
@@ -101,10 +101,10 @@ export default function PassengerHomePage() {
         </button>
         <button
           onClick={() => router.push('/passenger/rides')}
-          className="flex flex-col items-center gap-2 rounded-[1.5rem] border border-[#E6D2B3]/10 bg-[#2B1E15] p-4 text-left transition-all hover:border-[#E6D2B3]/20 active:scale-[0.98]"
+          className="flex flex-col items-center gap-2 rounded-[1.5rem] border border-[#2E1A08] bg-[#1A0E04] p-4 text-left transition-all hover:border-[#5A3F22] active:scale-[0.98]"
         >
           <span className="text-3xl">📋</span>
-          <span className="text-sm font-semibold text-[#E6D2B3]">Minhas corridas</span>
+          <span className="text-sm font-semibold text-[#F5ECD8]">Minhas corridas</span>
         </button>
       </section>
 
@@ -112,7 +112,7 @@ export default function PassengerHomePage() {
       {recentRides.length > 0 && (
         <section className="animate-[fadeUp_0.7s_ease-out]">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#E6D2B3]/50">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#9A7D5A]">
               Corridas recentes
             </h2>
             <button
@@ -127,9 +127,9 @@ export default function PassengerHomePage() {
               <button
                 key={ride.id}
                 onClick={() => router.push('/passenger/rides')}
-                className="flex items-center justify-between rounded-2xl border border-[#E6D2B3]/8 bg-[#2B1E15] px-4 py-3 text-left transition-colors hover:border-[#E6D2B3]/15"
+                className="flex items-center justify-between rounded-2xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-left transition-colors hover:border-[#2E1A08]"
               >
-                <p className="text-xs text-[#E6D2B3]/50">#{ride.id.slice(0, 8)}</p>
+                <p className="text-xs text-[#9A7D5A]">#{ride.id.slice(0, 8)}</p>
                 <p className={`text-xs font-semibold ${rideStatusColor(ride.status)}`}>
                   {rideStatusLabel(ride.status)}
                 </p>
@@ -140,11 +140,11 @@ export default function PassengerHomePage() {
       )}
 
       {recentRides.length === 0 && !loading && (
-        <section className="animate-[fadeUp_0.7s_ease-out] rounded-[1.5rem] border border-[#E6D2B3]/8 bg-[#2B1E15] p-6 text-center">
-          <p className="mb-3 text-[#E6D2B3]/50">Você ainda não tem corridas.</p>
+        <section className="animate-[fadeUp_0.7s_ease-out] rounded-[1.5rem] border border-[#2E1A08] bg-[#1A0E04] p-6 text-center">
+          <p className="mb-3 text-[#9A7D5A]">Você ainda não tem corridas.</p>
           <button
             onClick={() => router.push('/passenger/create')}
-            className="rounded-2xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] transition-opacity hover:opacity-90"
+            className="rounded-2xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#0D0700] transition-opacity hover:opacity-90"
           >
             Criar primeira corrida
           </button>

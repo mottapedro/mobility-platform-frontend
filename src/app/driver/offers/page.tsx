@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -55,38 +55,38 @@ export default function DriverOffersPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#E6D2B3]">Ofertas</h1>
-            <p className="mt-1 text-sm text-[#E6D2B3]/50">
+            <h1 className="text-2xl font-bold text-[#F5ECD8]">Ofertas</h1>
+            <p className="mt-1 text-sm text-[#9A7D5A]">
               Painel do motorista · atualizando a cada 2s
             </p>
           </div>
           <div className="flex items-center gap-2">
             {pendingOffers.length > 0 && (
-              <span className="rounded-full bg-[#F28C28] px-2.5 py-0.5 text-xs font-bold text-[#1E140F]">
+              <span className="rounded-full bg-[#F28C28] px-2.5 py-0.5 text-xs font-bold text-[#0D0700]">
                 {pendingOffers.length}
               </span>
             )}
-            <div className="h-2 w-2 rounded-full bg-[#3FAE5A] animate-pulse" />
+            <div className="h-2 w-2 rounded-full bg-[#3DB87A] animate-pulse" />
           </div>
         </div>
       </div>
 
           {/* Error */}
           {(error || respondError) && (
-            <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+            <div className="mb-4 rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
               {error ?? respondError}
             </div>
           )}
 
           {/* No driver */}
           {!driverId && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
-              <p className="mb-4 text-[#E6D2B3]/60">
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
+              <p className="mb-4 text-[#9A7D5A]">
                 Perfil de motorista não encontrado. Faça login novamente.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity"
+                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#0D0700] hover:opacity-90 transition-opacity"
               >
                 Ir para login
               </button>
@@ -95,8 +95,8 @@ export default function DriverOffersPage() {
 
           {/* Loading */}
           {driverId && loading && offers.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+            <div className="flex flex-col items-center gap-3 py-16 text-[#9A7D5A]">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#5A3F22] border-t-[#F28C28]" />
               <p className="text-sm">Aguardando ofertas...</p>
             </div>
           )}
@@ -119,8 +119,8 @@ export default function DriverOffersPage() {
 
           {/* Empty state */}
           {driverId && pendingOffers.length === 0 && !loading && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
-              <p className="text-sm text-[#E6D2B3]/50">Nenhuma oferta pendente no momento.</p>
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
+              <p className="text-sm text-[#9A7D5A]">Nenhuma oferta pendente no momento.</p>
             </div>
           )}
     </div>
@@ -152,8 +152,8 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
     <div
       className={`rounded-2xl border p-5 flex flex-col gap-4 transition-all ${
         isReferral
-          ? 'border-[#F28C28]/60 bg-[#2B1E15] shadow-[0_0_24px_0_rgba(242,140,40,0.10)]'
-          : 'border-[#E6D2B3]/10 bg-[#2B1E15]'
+          ? 'border-[#F28C28]/60 bg-[#1A0E04] shadow-[0_0_24px_0_rgba(242,140,40,0.10)]'
+          : 'border-[#2E1A08] bg-[#1A0E04]'
       }`}
     >
       {/* Priority badge row */}
@@ -163,7 +163,7 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
               isReferral
                 ? 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/40'
-                : 'bg-[#E6D2B3]/8 text-[#E6D2B3]/50 border border-[#E6D2B3]/15'
+                : 'bg-[#2E1A08] text-[#9A7D5A] border border-[#2E1A08]'
             }`}
           >
             {isReferral ? '★ Seu cliente' : '◎ Disponível na rede'}
@@ -181,31 +181,31 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
       <div className="flex items-center gap-3">
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-            isReferral ? 'bg-[#F28C28] text-[#1E140F]' : 'bg-[#3B2A1F] text-[#E6D2B3]'
+            isReferral ? 'bg-[#F28C28] text-[#0D0700]' : 'bg-[#1A0E04] text-[#F5ECD8]'
           }`}
         >
           {passenger.user.name.charAt(0).toUpperCase()}
         </div>
         <div>
-          <p className="font-semibold text-[#E6D2B3]">{passenger.user.name}</p>
+          <p className="font-semibold text-[#F5ECD8]">{passenger.user.name}</p>
           {passenger.user.phone && (
-            <p className="text-xs text-[#E6D2B3]/40">{passenger.user.phone}</p>
+            <p className="text-xs text-[#9A7D5A]">{passenger.user.phone}</p>
           )}
         </div>
       </div>
 
       {/* Route */}
-      <div className="rounded-xl border border-[#E6D2B3]/8 bg-[#1E140F]/60 px-4 py-3 flex flex-col gap-1.5 text-sm">
-        <p className="text-[#E6D2B3]/70">
+      <div className="rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-3 flex flex-col gap-1.5 text-sm">
+        <p className="text-[#F5ECD8]/70">
           <span className="font-semibold text-[#F28C28]">De:</span> {ride.origin}
         </p>
-        <p className="text-[#E6D2B3]/70">
+        <p className="text-[#F5ECD8]/70">
           <span className="font-semibold text-[#F28C28]">Para:</span> {ride.destination}
         </p>
-        <p className="text-xs text-[#E6D2B3]/70 mt-1">
+        <p className="text-xs text-[#F5ECD8]/70 mt-1">
           🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min
         </p>
-        <p className="text-xs text-[#E6D2B3]/40">
+        <p className="text-xs text-[#9A7D5A]">
           {new Date(ride.scheduledAt).toLocaleString('pt-BR', {
             dateStyle: 'short',
             timeStyle: 'short',
@@ -240,7 +240,7 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
         <button
           onClick={onAccept}
           disabled={responding}
-          className="flex-1 rounded-xl bg-[#3FAE5A] px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-xl bg-[#3DB87A] px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {responding ? (
             <span className="flex items-center justify-center gap-2">
@@ -254,7 +254,7 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
         <button
           onClick={onReject}
           disabled={responding}
-          className="flex-1 rounded-xl border border-[#E6D2B3]/15 bg-transparent px-4 py-2.5 text-sm font-semibold text-[#E6D2B3]/60 transition-colors hover:border-[#D64545]/50 hover:text-[#D64545] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-xl border border-[#2E1A08] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#9A7D5A] transition-colors hover:border-[#E05050]/50 hover:text-[#E05050] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {responding ? '...' : 'Rejeitar'}
         </button>

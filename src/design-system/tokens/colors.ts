@@ -2,20 +2,45 @@
 // Paleta oficial: preto profundo, marrom premium, laranja Aliado, glow laranja suave
 
 export const colors = {
-  black: '#0A0908', // preto profundo
-  brown: '#1A120B', // marrom premium
-  orange: '#FF9000', // laranja Aliado
-  orangeGlow: 'rgba(255, 144, 0, 0.24)', // glow laranja suave
-  white: '#FFF',
-  gray: {
-    100: '#F3F3F3',
-    200: '#E1DFDD',
-    300: '#B8B8B8',
-    400: '#7A7A7A',
-    500: '#444444',
-    600: '#222',
+  bg: {
+    primary: '#0D0700',
+    secondary: '#140A02',
+    card: '#1A0E04',
+    input: '#150B02',
   },
-  success: '#2ECC40',
-  warning: '#FFB800',
-  error: '#FF3B30',
+
+  brand: {
+    orange: '#F28C28',
+    orangeDark: '#C96E10',
+    orangeSoft: 'rgba(242,140,40,0.12)',
+    orangeGlow: 'rgba(242,140,40,0.18)',
+  },
+
+  text: {
+    primary: '#F5ECD8',
+    secondary: '#9A7D5A',
+    muted: '#5A3F22',
+  },
+
+  border: {
+    primary: '#2E1A08',
+    soft: 'rgba(242,140,40,0.12)',
+  },
+
+  success: {
+    primary: '#3DB87A',
+    background: 'rgba(61,184,122,0.12)',
+  },
+
+  danger: {
+    primary: '#E05050',
+    background: 'rgba(224,80,80,0.12)',
+  },
+
+  // Legacy aliases — kept for backwards compatibility
+  black: '#0D0700',
+  brown: '#1A0E04',
+  orange: '#F28C28',
+  orangeGlow: 'rgba(242,140,40,0.18)',
+  white: '#F5ECD8',
 };

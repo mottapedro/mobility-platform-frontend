@@ -85,7 +85,7 @@ function buildAvatarLabel(name: string): string {
 
 function regionStyle(region?: string) {
   if (!region) return null
-  return REGION_COLORS[region] ?? { bg: 'bg-[#E6D2B3]/8', text: 'text-[#E6D2B3]/50', border: 'border-[#E6D2B3]/15' }
+  return REGION_COLORS[region] ?? { bg: 'bg-[#2E1A08]', text: 'text-[#9A7D5A]', border: 'border-[#2E1A08]' }
 }
 
 function regionLabel(region?: string): string {
@@ -102,19 +102,19 @@ function NodeCard({ node, variant, labels }: { node: NetworkNode; variant: NodeV
     <div
       className={`flex items-center gap-3 rounded-2xl border p-4 transition-all ${
         variant === 'me'
-          ? 'border-[#F28C28]/50 bg-[#2B1E15] shadow-[0_0_20px_0_rgba(242,140,40,0.10)]'
+          ? 'border-[#F28C28]/50 bg-[#1A0E04] shadow-[0_0_20px_0_rgba(242,140,40,0.10)]'
           : variant === 'referredBy'
-            ? 'border-[#E6D2B3]/15 bg-[#2B1E15]/50'
-            : 'border-[#E6D2B3]/10 bg-[#2B1E15]'
+            ? 'border-[#2E1A08] bg-[#1A0E04]/50'
+            : 'border-[#2E1A08] bg-[#1A0E04]'
       }`}
     >
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
           variant === 'me'
-            ? 'bg-[#F28C28] text-[#1E140F]'
+            ? 'bg-[#F28C28] text-[#0D0700]'
             : variant === 'referredBy'
-              ? 'bg-[#3B2A1F] text-[#E6D2B3]/40'
-              : 'bg-[#3B2A1F] text-[#E6D2B3]'
+              ? 'bg-[#1A0E04] text-[#9A7D5A]'
+              : 'bg-[#1A0E04] text-[#F5ECD8]'
         }`}
       >
         {buildAvatarLabel(node.name)}
@@ -125,10 +125,10 @@ function NodeCard({ node, variant, labels }: { node: NetworkNode; variant: NodeV
           <p
             className={`truncate font-semibold ${
               variant === 'me'
-                ? 'text-[#E6D2B3]'
+                ? 'text-[#F5ECD8]'
                 : variant === 'referredBy'
-                  ? 'text-[#E6D2B3]/50'
-                  : 'text-[#E6D2B3]'
+                  ? 'text-[#9A7D5A]'
+                  : 'text-[#F5ECD8]'
             }`}
           >
             {node.name}
@@ -139,7 +139,7 @@ function NodeCard({ node, variant, labels }: { node: NetworkNode; variant: NodeV
             </span>
           )}
           {variant === 'referredBy' && (
-            <span className="rounded-full border border-[#E6D2B3]/15 bg-[#E6D2B3]/8 px-2 py-0.5 text-[10px] font-medium text-[#E6D2B3]/50">
+            <span className="rounded-full border border-[#2E1A08] bg-[#2E1A08] px-2 py-0.5 text-[10px] font-medium text-[#9A7D5A]">
               {labels.referredByBadge}
             </span>
           )}
@@ -155,7 +155,7 @@ function NodeCard({ node, variant, labels }: { node: NetworkNode; variant: NodeV
       </div>
 
       {node.depth > 0 && (
-        <span className="shrink-0 rounded-full border border-[#E6D2B3]/10 bg-[#E6D2B3]/8 px-2 py-0.5 text-[10px] text-[#E6D2B3]/40">
+        <span className="shrink-0 rounded-full border border-[#2E1A08] bg-[#2E1A08] px-2 py-0.5 text-[10px] text-[#9A7D5A]">
           nível {node.depth}
         </span>
       )}
@@ -167,7 +167,7 @@ function ReferralTree({ nodes, labels }: { nodes: NetworkNode[]; labels: Network
   if (nodes.length === 0) return null
 
   return (
-    <div className="ml-5 flex flex-col gap-2 border-l border-[#E6D2B3]/10 pl-4">
+    <div className="ml-5 flex flex-col gap-2 border-l border-[#2E1A08] pl-4">
       {nodes.map((node) => (
         <div key={node.id} className="flex flex-col gap-2">
           <NodeCard node={node} variant="referral" labels={labels} />
@@ -187,10 +187,10 @@ function StatsPanel({ hierarchy, labels, stats }: { hierarchy: NetworkHierarchy;
   return (
     <div className="grid grid-cols-2 gap-3">
       {cards.map((card) => (
-        <div key={card.label} className="flex flex-col gap-1 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
+        <div key={card.label} className="flex flex-col gap-1 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/70">{card.label}</p>
-          <p className="text-2xl font-bold text-[#E6D2B3]">{card.value}</p>
-          {card.sub && <p className="text-xs text-[#E6D2B3]/40">{card.sub}</p>}
+          <p className="text-2xl font-bold text-[#F5ECD8]">{card.value}</p>
+          {card.sub && <p className="text-xs text-[#9A7D5A]">{card.sub}</p>}
         </div>
       ))}
     </div>
@@ -202,7 +202,7 @@ function HierarchyPanel({ hierarchy, labels, emptyStateSlot }: { hierarchy: Netw
     <div className="flex flex-col gap-3">
       {hierarchy.referredBy && (
         <div className="flex flex-col gap-1">
-          <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#E6D2B3]/35">
+          <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F5ECD8]/35">
             {labels.referredByTitle}
           </p>
           <NodeCard node={hierarchy.referredBy} variant="referredBy" labels={labels} />
@@ -220,16 +220,16 @@ function HierarchyPanel({ hierarchy, labels, emptyStateSlot }: { hierarchy: Netw
 
       {hierarchy.referrals.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <p className="mt-1 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#E6D2B3]/35">
+          <p className="mt-1 px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F5ECD8]/35">
             {labels.referralsTitle}
           </p>
           <ReferralTree nodes={hierarchy.referrals} labels={labels} />
         </div>
       ) : (
         emptyStateSlot ?? (
-          <div className="rounded-2xl border border-[#E6D2B3]/8 bg-[#2B1E15]/60 p-5 text-center">
-            <p className="text-sm text-[#E6D2B3]/40">{labels.emptyTitle}</p>
-            <p className="mt-1 text-xs text-[#E6D2B3]/25">{labels.emptyHint}</p>
+          <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04]/60 p-5 text-center">
+            <p className="text-sm text-[#9A7D5A]">{labels.emptyTitle}</p>
+            <p className="mt-1 text-xs text-[#F5ECD8]/25">{labels.emptyHint}</p>
           </div>
         )
       )}
@@ -258,9 +258,9 @@ export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelO
       <div
         role="status"
         aria-label={labels.loadingAriaLabel}
-        className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40"
+        className="flex flex-col items-center gap-3 py-16 text-[#9A7D5A]"
       >
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#5A3F22] border-t-[#F28C28]" />
         <p className="text-sm">{labels.loadingText}</p>
       </div>
     )
@@ -268,12 +268,12 @@ export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelO
 
   if (error) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#D64545]/30 bg-[#D64545]/10 p-6 text-center">
-        <p className="text-sm text-[#D64545]">{error}</p>
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#E05050]/30 bg-[#E05050]/10 p-6 text-center">
+        <p className="text-sm text-[#E05050]">{error}</p>
         {onRetry && (
           <button
             onClick={onRetry}
-            className="rounded-xl border border-[#D64545]/40 px-4 py-2 text-sm font-semibold text-[#D64545] transition-colors hover:bg-[#D64545]/15"
+            className="rounded-xl border border-[#E05050]/40 px-4 py-2 text-sm font-semibold text-[#E05050] transition-colors hover:bg-[#E05050]/15"
           >
             Tentar novamente
           </button>
@@ -286,15 +286,15 @@ export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelO
 
   return (
     <div className="flex flex-col gap-3">
-      <div role="tablist" className="flex rounded-xl border border-[#E6D2B3]/10 bg-[#2B1E15]/60 p-1">
+      <div role="tablist" className="flex rounded-xl border border-[#2E1A08] bg-[#1A0E04]/60 p-1">
         <button
           role="tab"
           aria-selected={activeTab === 'hierarchy'}
           onClick={() => setActiveTab('hierarchy')}
           className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
             activeTab === 'hierarchy'
-              ? 'bg-[#F28C28] text-[#1E140F] shadow'
-              : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+              ? 'bg-[#F28C28] text-[#0D0700] shadow'
+              : 'text-[#9A7D5A] hover:text-[#F5ECD8]'
           }`}
         >
           {labels.primaryTab}
@@ -305,8 +305,8 @@ export function NetworkTree({ hierarchy, loading, error, onRetry, labels: labelO
           onClick={() => setActiveTab('stats')}
           className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
             activeTab === 'stats'
-              ? 'bg-[#F28C28] text-[#1E140F] shadow'
-              : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+              ? 'bg-[#F28C28] text-[#0D0700] shadow'
+              : 'text-[#9A7D5A] hover:text-[#F5ECD8]'
           }`}
         >
           {labels.statsTab}
