@@ -17,9 +17,9 @@ export function AlliedDriverCard({ driver, loading, error, onRequestRide }: Alli
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#F28C28]/75">
             Meu motorista aliado
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-[#E6D2B3]">Seu motorista pessoal</h2>
+          <h2 className="mt-2 text-xl font-semibold text-[#E6D2B3]">Seu motorista pessoal no app</h2>
           <p className="mt-1.5 text-sm leading-6 text-[#E6D2B3]/65">
-            Relação persistente para confiança, prioridade e experiência concierge a cada corrida.
+            Relação persistente para gerar confiança, prioridade e uma experiência mais próxima.
           </p>
         </div>
         {driver && (

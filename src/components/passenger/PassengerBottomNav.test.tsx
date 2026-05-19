@@ -18,6 +18,7 @@ describe('PassengerBottomNav', () => {
     render(<PassengerBottomNav />)
     expect(screen.getByText('Início')).toBeInTheDocument()
     expect(screen.getByText('Viagens')).toBeInTheDocument()
+    expect(screen.getByText('Motorista')).toBeInTheDocument()
     expect(screen.getByText('Rede')).toBeInTheDocument()
     expect(screen.getByText('Perfil')).toBeInTheDocument()
   })
@@ -36,9 +37,10 @@ describe('PassengerBottomNav', () => {
     expect(inicio?.className).toContain('text-[#F28C28]')
   })
 
-  it('renders the center create button', () => {
+  it('marks Motorista tab as active on /passenger/driver', () => {
+    mockPathname.mockReturnValue('/passenger/driver')
     render(<PassengerBottomNav />)
-    const createBtn = screen.getByRole('button', { name: /solicitar corrida/i })
-    expect(createBtn).toBeInTheDocument()
+    const motorista = screen.getByText('Motorista').closest('button')
+    expect(motorista?.className).toContain('text-[#F28C28]')
   })
 })

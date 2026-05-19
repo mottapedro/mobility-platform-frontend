@@ -188,6 +188,22 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
                 </p>
               </div>
             )}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Tipo de conta</label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {(['passenger', 'driver'] as const).map((entryRole) => (
+                  <Button
+                    key={entryRole}
+                    type="button"
+                    variant={role === entryRole ? 'primary' : 'secondary'}
+                    fullWidth
+                    onClick={() => setRole(entryRole)}
+                  >
+                    {entryRole === 'passenger' ? 'Passageiro' : 'Motorista'}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <Input
               label="Nome completo"
               type="text"
@@ -225,22 +241,6 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
                 placeholder="Mínimo 6 caracteres"
                 className="mt-1"
               />
-            </div>
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Tipo de conta</label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {(['passenger', 'driver'] as const).map((entryRole) => (
-                  <Button
-                    key={entryRole}
-                    type="button"
-                    variant={role === entryRole ? 'primary' : 'secondary'}
-                    fullWidth
-                    onClick={() => setRole(entryRole)}
-                  >
-                    {entryRole === 'passenger' ? 'Passageiro' : 'Motorista'}
-                  </Button>
-                ))}
-              </div>
             </div>
             {role === 'driver' && (
               <>
