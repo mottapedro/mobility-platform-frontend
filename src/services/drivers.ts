@@ -145,8 +145,8 @@ export async function getDriverRides(driverId: string): Promise<DriverRide[]> {
  * Handles multiple known backend formats:
  *   - { totalPassengers, ridesCompleted, estimatedRevenue, recentPassengers }  (expected)
  *   - { totalPassengers, ridesCompleted, estimatedRevenue, passengers }         (alt key)
- *   - { data: { ... } }                                                         (wrapped)
- *   - { referrals, ... }                                                         (wrong context)
+ *   - { data: { ... } }                                                         (wrapped envelope)
+ *   - unrecognised shape → defaults apply (recentPassengers: [], counts: 0)
  */
 function normalizeDriverNetwork(raw: unknown): DriverNetwork {
   if (!raw || typeof raw !== 'object') {
