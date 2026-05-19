@@ -15,7 +15,7 @@ export default function WelcomePage() {
     if (user.role === 'driver') {
       router.replace('/driver/offers')
     } else {
-      router.replace('/passenger/rides')
+      router.replace('/passenger')
     }
   }, [loading, user, router])
 

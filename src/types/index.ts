@@ -91,6 +91,7 @@ export interface CreateRidePayload {
   destination: string
   scheduledAt: string
   context?: RideContext
+  notes?: string
 }
 
 // â”€â”€â”€ Driver Offer (retornado por GET /drivers/:id/offers) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

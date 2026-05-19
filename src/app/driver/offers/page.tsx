@@ -6,8 +6,6 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useOffers } from '../../../hooks/useOffers'
 import { respondOffer } from '../../../services/rides'
 import { Countdown } from '../../../components/driver/Countdown'
-import { ProtectedRoute } from '../../../components/AuthGuard'
-import { AppHeader } from '../../../components/AppHeader'
 import type { DriverOffer, RideContext, RegionalContext } from '../../../types'
 
 export default function DriverOffersPage() {
@@ -52,43 +50,26 @@ export default function DriverOffersPage() {
   )
 
   return (
-    <ProtectedRoute requiredRole="driver">
-      <AppHeader />
-      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
-        <div className="mx-auto max-w-lg">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="mb-4 flex items-center gap-3">
-              <button
-                onClick={() => router.push('/')}
-                className="text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-              >
-                ← Voltar
-              </button>
-              <button
-                onClick={() => router.push('/driver/network')}
-                className="ml-auto rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
-              >
-                Minha Rede →
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-[#E6D2B3]">Ofertas</h1>
-                <p className="mt-1 text-sm text-[#E6D2B3]/50">
-                  Painel do motorista · atualizando a cada 2s
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {pendingOffers.length > 0 && (
-                  <span className="rounded-full bg-[#F28C28] px-2.5 py-0.5 text-xs font-bold text-[#1E140F]">
-                    {pendingOffers.length}
-                  </span>
-                )}
-                <div className="h-2 w-2 rounded-full bg-[#3FAE5A] animate-pulse" />
-              </div>
-            </div>
+    <div className="mx-auto max-w-lg">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#E6D2B3]">Ofertas</h1>
+            <p className="mt-1 text-sm text-[#E6D2B3]/50">
+              Painel do motorista · atualizando a cada 2s
+            </p>
           </div>
+          <div className="flex items-center gap-2">
+            {pendingOffers.length > 0 && (
+              <span className="rounded-full bg-[#F28C28] px-2.5 py-0.5 text-xs font-bold text-[#1E140F]">
+                {pendingOffers.length}
+              </span>
+            )}
+            <div className="h-2 w-2 rounded-full bg-[#3FAE5A] animate-pulse" />
+          </div>
+        </div>
+      </div>
 
           {/* Error */}
           {(error || respondError) && (
@@ -142,9 +123,7 @@ export default function DriverOffersPage() {
               <p className="text-sm text-[#E6D2B3]/50">Nenhuma oferta pendente no momento.</p>
             </div>
           )}
-        </div>
-      </main>
-    </ProtectedRoute>
+    </div>
   )
 }
 

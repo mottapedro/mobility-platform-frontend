@@ -3,8 +3,6 @@
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AppHeader } from '../../../components/AppHeader'
-import { ProtectedRoute } from '../../../components/AuthGuard'
 import { PassengerNetworkTree } from '../../../components/passenger/PassengerNetworkTree'
 import { PassengerReferralCard } from '../../../components/passenger/PassengerReferralCard'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -22,23 +20,13 @@ export default function PassengerNetworkPage() {
   }, [user])
 
   return (
-    <ProtectedRoute requiredRole="passenger">
-      <AppHeader />
-      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
-        <div className="mx-auto max-w-lg">
-          <div className="mb-6">
-            <button
-              onClick={() => router.push('/passenger/rides')}
-              className="mb-4 text-sm text-[#E6D2B3]/40 transition-colors hover:text-[#F28C28]"
-            >
-              &lt;- Corridas
-            </button>
-
-            <PassengerReferralCard
-              passengerId={passengerId}
-              passengerName={user?.name}
-              referralCode={hierarchy?.me.referralCode ?? null}
-            />
+    <div className="mx-auto max-w-lg">
+      <div className="mb-6">
+        <PassengerReferralCard
+          passengerId={passengerId}
+          passengerName={user?.name}
+          referralCode={hierarchy?.me.referralCode ?? null}
+        />
 
             <div className="mt-6 flex items-center justify-between gap-4">
               <div>
@@ -81,8 +69,6 @@ export default function PassengerNetworkPage() {
               onRetry={refresh}
             />
           )}
-        </div>
-      </main>
-    </ProtectedRoute>
+    </div>
   )
 }

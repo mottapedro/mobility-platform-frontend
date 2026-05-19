@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverNetwork, useDriverNetworkHierarchy } from '../../../hooks/useDriverNetwork'
-import { ProtectedRoute } from '../../../components/AuthGuard'
-import { AppHeader } from '../../../components/AppHeader'
 import { DriverNetworkTree } from '../../../components/driver/DriverNetworkTree'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
 import type { DriverNetworkPassenger } from '../../../types'
@@ -115,10 +113,12 @@ function PassengerRow({ passenger }: { passenger: DriverNetworkPassenger }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DriverNetworkPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const [driverId, setDriverId] = useState<string | null>(null)
   const [errorDismissed, setErrorDismissed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'passengers' | 'drivers'>('passengers')
+  const initialTab = searchParams.get('tab') === 'drivers' ? 'drivers' : 'passengers'
+  const [activeTab, setActiveTab] = useState<'passengers' | 'drivers'>(initialTab)
 
   useEffect(() => {
     const id =
@@ -135,72 +135,62 @@ export default function DriverNetworkPage() {
   const showHierarchyError = !!hierarchyError && activeTab === 'drivers'
 
   return (
-    <ProtectedRoute requiredRole="driver">
-      <AppHeader />
-      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
-        <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-lg">
 
-          {/* Header */}
-          <div className="mb-8">
-            <button
-              onClick={() => router.push('/driver/offers')}
-              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-            >
-              ← Ofertas
-            </button>
+      {/* Header */}
+      <div className="mb-8">
+        {/* Referral card */}
+        <div className="mb-6">
+          <DriverReferralCard />
+        </div>
 
-            {/* Referral card */}
-            <div className="mb-6">
-              <DriverReferralCard />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-[#E6D2B3]">Minha Rede</h1>
-                <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiros e motoristas</p>
-              </div>
-              {activeTab === 'passengers' && !loading && data && (
-                <button
-                  onClick={refresh}
-                  className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
-                >
-                  Atualizar
-                </button>
-              )}
-              {activeTab === 'drivers' && !hierarchyLoading && hierarchy && (
-                <button
-                  onClick={refreshHierarchy}
-                  className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
-                >
-                  Atualizar
-                </button>
-              )}
-            </div>
-
-            {/* Tab switcher */}
-            <div className="mt-4 flex rounded-xl border border-[#E6D2B3]/10 bg-[#2B1E15]/60 p-1">
-              <button
-                onClick={() => setActiveTab('passengers')}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
-                  activeTab === 'passengers'
-                    ? 'bg-[#F28C28] text-[#1E140F] shadow'
-                    : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
-                }`}
-              >
-                Passageiros
-              </button>
-              <button
-                onClick={() => setActiveTab('drivers')}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
-                  activeTab === 'drivers'
-                    ? 'bg-[#F28C28] text-[#1E140F] shadow'
-                    : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
-                }`}
-              >
-                Motoristas
-              </button>
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#E6D2B3]">Minha Rede</h1>
+            <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiros e motoristas</p>
           </div>
+          {activeTab === 'passengers' && !loading && data && (
+            <button
+              onClick={refresh}
+              className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+            >
+              Atualizar
+            </button>
+          )}
+          {activeTab === 'drivers' && !hierarchyLoading && hierarchy && (
+            <button
+              onClick={refreshHierarchy}
+              className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+            >
+              Atualizar
+            </button>
+          )}
+        </div>
+
+        {/* Tab switcher */}
+        <div className="mt-4 flex rounded-xl border border-[#E6D2B3]/10 bg-[#2B1E15]/60 p-1">
+          <button
+            onClick={() => setActiveTab('passengers')}
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+              activeTab === 'passengers'
+                ? 'bg-[#F28C28] text-[#1E140F] shadow'
+                : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+            }`}
+          >
+            Passageiros
+          </button>
+          <button
+            onClick={() => setActiveTab('drivers')}
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+              activeTab === 'drivers'
+                ? 'bg-[#F28C28] text-[#1E140F] shadow'
+                : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
+            }`}
+          >
+            Motoristas
+          </button>
+        </div>
+      </div>
 
           {/* Error */}
           {showError && (
@@ -362,8 +352,6 @@ export default function DriverNetworkPage() {
             </div>
           )}
 
-        </div>
-      </main>
-    </ProtectedRoute>
+    </div>
   )
 }

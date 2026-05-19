@@ -1,15 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useDriverRides } from '../../../hooks/useDriverRides'
-import { ProtectedRoute } from '../../../components/AuthGuard'
-import { AppHeader } from '../../../components/AppHeader'
 import { useAuth } from '../../../contexts/AuthContext'
+import { useDriverRides } from '../../../hooks/useDriverRides'
+import { updateRide } from '../../../services/rides'
 import type { DriverRide, RideContext } from '../../../types'
 
 export default function DriverRidesPage() {
-  const router = useRouter()
   const { user } = useAuth()
   const [driverId, setDriverId] = useState<string | null>(null)
 
@@ -22,30 +19,25 @@ export default function DriverRidesPage() {
   }, [user])
 
   const { rides, loading, error } = useDriverRides(driverId)
+  const [updatingRide, setUpdatingRide] = useState<string | null>(null)
+
+  async function handleStartRide(rideId: string) {
+    setUpdatingRide(rideId)
+    try {
+      await updateRide(rideId, { status: 'IN_PROGRESS' })
+    } catch {
+      // ignore — hook will refresh
+    } finally {
+      setUpdatingRide(null)
+    }
+  }
 
   return (
-    <ProtectedRoute requiredRole="driver">
-      <AppHeader />
-      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
-        <div className="mx-auto max-w-lg">
-          <div className="mb-8">
-            <div className="mb-4 flex items-center gap-3">
-              <button
-                onClick={() => router.push('/')}
-                className="text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-              >
-                ← Voltar
-              </button>
-              <button
-                onClick={() => router.push('/driver/network')}
-                className="ml-auto rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
-              >
-                Minha Rede →
-              </button>
-            </div>
-            <h1 className="text-2xl font-bold text-[#E6D2B3]">Agenda</h1>
-            <p className="mt-1 text-sm text-[#E6D2B3]/50">Corridas confirmadas</p>
-          </div>
+    <div className="mx-auto max-w-lg">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#E6D2B3]">Agenda</h1>
+        <p className="mt-1 text-sm text-[#E6D2B3]/50">Corridas confirmadas</p>
+      </div>
 
           {error && (
             <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
@@ -76,18 +68,29 @@ export default function DriverRidesPage() {
 
           {rides.length > 0 && (
             <div className="flex flex-col gap-4">
-              {rides.map((ride) => (
-                <RideCard key={ride.id} ride={ride} />
+          {rides.map((ride) => (
+                <RideCard
+                  key={ride.id}
+                  ride={ride}
+                  updating={updatingRide === ride.id}
+                  onStartRide={() => handleStartRide(ride.id)}
+                />
               ))}
             </div>
           )}
-        </div>
-      </main>
-    </ProtectedRoute>
+    </div>
   )
 }
 
-function RideCard({ ride }: { ride: DriverRide }) {
+function RideCard({
+  ride,
+  updating,
+  onStartRide,
+}: {
+  ride: DriverRide
+  updating: boolean
+  onStartRide: () => void
+}) {
   const passenger = ride.passenger.user
   const context = ride.context as RideContext | null
   const scheduledDate = new Date(ride.scheduledAt).toLocaleString('pt-BR', {
@@ -116,7 +119,7 @@ function RideCard({ ride }: { ride: DriverRide }) {
           </div>
         </div>
         <span className="flex items-center gap-1.5 rounded-full border border-[#3FAE5A]/30 bg-[#3FAE5A]/10 px-3 py-1 text-xs font-semibold text-[#3FAE5A]">
-          ✓ Confirmada
+          {ride.status === 'IN_PROGRESS' ? '🚗 A caminho' : '✓ Confirmada'}
         </span>
       </div>
 
@@ -142,6 +145,23 @@ function RideCard({ ride }: { ride: DriverRide }) {
           {context.isPet     && <Badge>🐶 Pet</Badge>}
           {context.isLuggage && <Badge>💼 Bagagem</Badge>}
         </div>
+      )}
+
+      {ride.status === 'ACCEPTED' && (
+        <button
+          onClick={onStartRide}
+          disabled={updating}
+          className="w-full rounded-xl bg-[#F28C28] py-2.5 text-sm font-bold text-[#1E140F] transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {updating ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E140F]/30 border-t-[#1E140F]" />
+              Atualizando...
+            </span>
+          ) : (
+            '🚗 A caminho'
+          )}
+        </button>
       )}
     </div>
   )
