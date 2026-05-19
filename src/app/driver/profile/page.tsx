@@ -1,5 +1,6 @@
 ﻿'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
@@ -7,6 +8,11 @@ import { DriverReferralCard } from '../../../components/driver/DriverReferralCar
 export default function DriverProfilePage() {
   const router = useRouter()
   const { user, logout } = useAuth()
+  const [hasAssistedTransport, setHasAssistedTransport] = useState(false)
+
+  useEffect(() => {
+    setHasAssistedTransport(localStorage.getItem('aliado:assistedTransport') === 'true')
+  }, [])
 
   const initials = user?.name
     ? user.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
@@ -36,6 +42,24 @@ export default function DriverProfilePage() {
       {/* Referral card */}
       <div className="mb-6">
         <DriverReferralCard />
+      </div>
+
+      {/* Especialidades */}
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">Especialidades</p>
+        {hasAssistedTransport ? (
+          <div className="flex items-center gap-3 rounded-xl border border-violet-500/30 bg-violet-500/8 px-4 py-3">
+            <span className="text-xl">♿</span>
+            <div>
+              <p className="text-sm font-semibold text-violet-300">Transporte Assistido</p>
+              <p className="text-xs text-[#9A7D5A]">Mobilidade reduzida, cadeirante e acompanhamento</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-[#5A3F22]">
+            Nenhuma especialidade declarada. Você pode atualizar no cadastro.
+          </p>
+        )}
       </div>
 
       {/* Info rows */}

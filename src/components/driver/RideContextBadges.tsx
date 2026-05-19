@@ -17,16 +17,16 @@ const BADGES: Badge[] = [
     color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
   },
   {
+    key: 'isAssistedTransport',
+    emoji: '♿',
+    label: 'Transporte Assistido',
+    color: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
+  },
+  {
     key: 'isAirport',
     emoji: '✈️',
     label: 'Aeroporto',
     color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-  },
-  {
-    key: 'isPet',
-    emoji: '🐶',
-    label: 'Pet',
-    color: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
   },
   {
     key: 'isLuggage',

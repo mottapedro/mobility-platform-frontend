@@ -79,6 +79,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
   const [vehiclePlate, setVehiclePlate] = useState('')
   const [vehicleCategory, setVehicleCategory] = useState('CONFORTO')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [offerAssistedTransport, setOfferAssistedTransport] = useState(false)
 
   useEffect(() => {
     const storedReferralCode = getStoredReferralCode(localStorage)
@@ -136,6 +137,10 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
         ...(role === 'passenger' && activeReferralCode ? { referralCode: activeReferralCode } : {}),
       }
       await register(payload)
+
+      if (role === 'driver') {
+        localStorage.setItem('aliado:assistedTransport', String(offerAssistedTransport))
+      }
 
       if (role !== 'passenger' || !activeReferralCode) {
         localStorage.removeItem('aliado:referredDriver')
@@ -316,6 +321,29 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
                       <option value="EXECUTIVO">Executivo</option>
                     </select>
                   </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Especialidades</label>
+                  <button
+                    type="button"
+                    onClick={() => setOfferAssistedTransport((v) => !v)}
+                    className={`mt-1 flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-all ${
+                      offerAssistedTransport
+                        ? 'border-violet-500/40 bg-violet-500/8'
+                        : 'border-zinc-700 bg-zinc-900 hover:border-zinc-500'
+                    }`}
+                  >
+                    <span className="text-xl">♿</span>
+                    <div className="flex-1">
+                      <p className={`text-sm font-semibold ${offerAssistedTransport ? 'text-violet-300' : 'text-white'}`}>
+                        Transporte Assistido
+                      </p>
+                      <p className="text-xs text-zinc-400">Mobilidade reduzida, cadeirante e acompanhamento</p>
+                    </div>
+                    <div className={`h-5 w-5 rounded border transition-colors ${offerAssistedTransport ? 'border-violet-500 bg-violet-500' : 'border-zinc-600'} flex items-center justify-center`}>
+                      {offerAssistedTransport && <span className="text-xs font-bold text-white">✓</span>}
+                    </div>
+                  </button>
                 </div>
               </>
             )}

@@ -213,6 +213,30 @@ export default function PassengerCreatePage() {
           />
         </div>
 
+        {/* Transporte Assistido highlight */}
+        <button
+          type="button"
+          onClick={() => setIsAssistedTransport((v) => !v)}
+          className={`flex items-center gap-3 rounded-2xl border px-4 py-4 text-left transition-all ${
+            isAssistedTransport
+              ? 'border-violet-500/40 bg-violet-500/8'
+              : 'border-[#2E1A08] bg-[#1A0E04] hover:border-[#5A3F22]'
+          }`}
+        >
+          <span className="text-2xl">♿</span>
+          <div className="flex-1">
+            <p className={`text-sm font-semibold ${isAssistedTransport ? 'text-violet-300' : 'text-[#F5ECD8]'}`}>
+              Precisa de auxílio durante a corrida?
+            </p>
+            <p className="mt-0.5 text-xs text-[#9A7D5A]">
+              Transporte Assistido — acompanhamento, cadeirante ou mobilidade reduzida
+            </p>
+          </div>
+          {isAssistedTransport && (
+            <span className="shrink-0 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-bold text-violet-300">✓ Ativo</span>
+          )}
+        </button>
+
         <div className="flex flex-col gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
             Informações adicionais
@@ -220,7 +244,6 @@ export default function PassengerCreatePage() {
           <div className="grid grid-cols-2 gap-2">
             <ContextCheckbox emoji="⭐" label="VIP" checked={isVip} onChange={setIsVip} />
             <ContextCheckbox emoji="✈️" label="Aeroporto" checked={isAirport} onChange={setIsAirport} />
-            <ContextCheckbox emoji="♿" label="Cadeirante" checked={isAssistedTransport} onChange={setIsAssistedTransport} />
             <ContextCheckbox emoji="🧳" label="Bagagem" checked={isLuggage} onChange={setIsLuggage} />
           </div>
         </div>
