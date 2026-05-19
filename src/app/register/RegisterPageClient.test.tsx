@@ -6,6 +6,13 @@ import RegisterPageClient from './RegisterPageClient'
 const mockPush = jest.fn()
 const mockRegister = jest.fn()
 
+async function fillRegisterForm(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByPlaceholderText('Seu nome'), 'Invalid Referral')
+  await user.type(screen.getByPlaceholderText('seu@email.com'), 'invalid.referral@test.com')
+  await user.type(screen.getByPlaceholderText('(11) 99999-9999'), '21955554444')
+  await user.type(screen.getByPlaceholderText('Mínimo 6 caracteres'), '123456')
+}
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }))
@@ -38,10 +45,10 @@ describe('RegisterPageClient invalid referral flow', () => {
 
     render(<RegisterPageClient referralSlug="pedro-motta-zs" />)
 
-    await user.type(screen.getByPlaceholderText('Seu nome'), 'Invalid Referral')
-    await user.type(screen.getByPlaceholderText('seu@email.com'), 'invalid.referral@test.com')
-    await user.type(screen.getByPlaceholderText('(11) 99999-9999'), '21955554444')
-    await user.type(screen.getByPlaceholderText('Mínimo 6 caracteres'), '123456')
+    expect(await screen.findByText(/convite ativo/i)).toBeInTheDocument()
+    expect(await screen.findByText(/você foi convidado por pedro motta/i)).toBeInTheDocument()
+
+    await fillRegisterForm(user)
 
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
@@ -62,6 +69,11 @@ describe('RegisterPageClient invalid referral flow', () => {
     expect(localStorage.getItem('aliado:referredSlug')).toBeNull()
     expect(localStorage.getItem('aliado:referredDriver')).toBeNull()
 
+    await waitFor(() => {
+      expect(screen.queryByText(/convite ativo/i)).not.toBeInTheDocument()
+    })
+    expect(screen.queryByText(/você foi convidado por/i)).not.toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
     await waitFor(() => {
@@ -76,5 +88,29 @@ describe('RegisterPageClient invalid referral flow', () => {
       phone: '21955554444',
     })
     expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  it('redirects after retrying without referralCode when the first attempt fails with invalid referral', async () => {
+    const user = userEvent.setup()
+
+    localStorage.setItem('aliado:referralCode', 'pedro-motta-zs')
+    localStorage.setItem('aliado:referredSlug', 'pedro-motta-zs')
+
+    mockRegister
+      .mockRejectedValueOnce(new Error('Referral code inválido ou expirado'))
+      .mockResolvedValueOnce(undefined)
+
+    render(<RegisterPageClient referralSlug="pedro-motta-zs" />)
+
+    await fillRegisterForm(user)
+
+    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+    expect(await screen.findByText(/referral code inválido ou expirado/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/passenger/rides')
+    })
   })
 })
