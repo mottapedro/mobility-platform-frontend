@@ -1,7 +1,5 @@
-// __mocks__/next/navigation.js
-const nextRouter = require('next-router-mock');
+import nextRouter from 'next-router-mock'
 
-module.exports = {
-    ...nextRouter,
-    useRouter: nextRouter.useRouter,
-};
+export * from 'next-router-mock'
+
+export const useRouter = nextRouter.useRouter

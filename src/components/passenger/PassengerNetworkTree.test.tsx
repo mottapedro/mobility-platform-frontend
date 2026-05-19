@@ -41,7 +41,7 @@ const mockNetwork: PassengerNetwork = {
 
 describe('PassengerNetworkTree — empty state', () => {
   afterEach(() => {
-    delete (navigator as Record<string, unknown>).clipboard
+    delete (navigator as unknown as { clipboard?: Clipboard }).clipboard
   })
   it('renders premium empty state when hierarchy has no referrals', () => {
     render(
