@@ -34,7 +34,7 @@ const BOLD   = '\x1b[1m'
 const DIM    = '\x1b[2m'
 
 const pass   = (msg: string) => console.log(`${GREEN}✅ ${msg}${RESET}`)
-const fail   = (msg: string) => console.log(`${RED}❌ ${msg}${RESET}`)
+const failLog = (msg: string) => console.log(`${RED}❌ ${msg}${RESET}`)
 const info   = (msg: string) => console.log(`${CYAN}ℹ  ${msg}${RESET}`)
 const warn   = (msg: string) => console.log(`${YELLOW}⚠  ${msg}${RESET}`)
 const dim    = (msg: string) => console.log(`${DIM}   ${msg}${RESET}`)
@@ -164,7 +164,7 @@ async function step<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
     return result
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    fail(`${label}\n    ${RED}↳ ${msg}${RESET}`)
+    failLog(`${label}\n    ${RED}↳ ${msg}${RESET}`)
     failures.push(label)
     return null
   }
@@ -239,7 +239,6 @@ async function main(): Promise<void> {
 
   let token        = ''
   let driverId     = ''
-  let referralCode = GOLDEN_REFERRAL_CODE  // start with user-specified code
   let testSlug     = TEST_SLUG
   let beforeTotal  = 0
   let smokePassengerId = ''
@@ -266,7 +265,7 @@ async function main(): Promise<void> {
   )
 
   if (!loginResult) {
-    fail('Login falhou — abortando smoke test')
+    failLog('Login falhou — abortando smoke test')
     process.exit(1)
   }
 
