@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { ReferralLinkCard } from '../network/ReferralLinkCard'
 import { useAuth } from '../../contexts/AuthContext'
-import { buildDriverSlug } from '../../services/drivers'
 
 function avatarLabel(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean)
@@ -19,8 +18,10 @@ export function DriverReferralCard() {
   }, [])
 
   if (!user?.name) return null
+  // Always use the slug persisted by the backend — never derive from name
+  if (!user.publicSlug) return null
 
-  const slug = buildDriverSlug(user.name)
+  const slug = user.publicSlug
   const origin = mounted ? window.location.origin : ''
   const url = `${origin}/r/${slug}`
 

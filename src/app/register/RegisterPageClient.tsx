@@ -144,13 +144,16 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
 
       if (role !== 'passenger' || !activeReferralCode) {
         localStorage.removeItem('aliado:referredDriver')
-        localStorage.removeItem('aliado:referredSlug')
       }
+      localStorage.removeItem('aliado:referredSlug')
       clearStoredReferralCode(localStorage)
       clearStoredReferralInvite(localStorage)
       clearStoredOriginPassengerId(localStorage)
 
       router.push(redirectByRole(role))
+      // Garantir sincronização imediata da rede após signup via referral
+      // (evita stale UI e dependência de refresh manual)
+      router.refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao cadastrar'
 

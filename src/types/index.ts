@@ -205,6 +205,8 @@ export interface AuthUser {
   role: 'driver' | 'passenger'
   passengerId?: string
   driverId?: string
+  publicSlug?: string
+  referralCode?: string
   referredByDriverId?: string | null
 }
 

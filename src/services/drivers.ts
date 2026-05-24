@@ -88,7 +88,7 @@ export function findDriverByReferralSlug(drivers: DriverSummary[], slug: string)
   return null
 }
 
-export function toDriverReferralProfile(driver: DriverSummary, slug = buildDriverSlug(driver.name)): DriverReferralProfile {
+export function toDriverReferralProfile(driver: DriverSummary, slug = driver.publicSlug ?? buildDriverSlug(driver.name)): DriverReferralProfile {
   const avatarWords = driver.name.split(/\s+/).filter(Boolean)
   const avatarLabel = avatarWords
     .slice(0, 2)

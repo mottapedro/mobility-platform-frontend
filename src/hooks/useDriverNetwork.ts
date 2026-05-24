@@ -63,6 +63,15 @@ export function useDriverNetwork(driverId: string | null): UseDriverNetworkResul
     fetchNetwork()
   }, [fetchNetwork])
 
+  // Re-fetch when the tab regains focus so the driver sees new passengers
+  // that signed up via referral while the tab was in the background.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onFocus = () => { fetchNetwork() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [fetchNetwork])
+
   return { data, loading, error, refresh: fetchNetwork }
 }
 
@@ -112,6 +121,15 @@ export function useDriverNetworkHierarchy(driverId: string | null): UseDriverNet
 
   useEffect(() => {
     fetchHierarchy()
+  }, [fetchHierarchy])
+
+  // Re-fetch when the tab regains focus so the hierarchy reflects referrals
+  // that completed while the driver had this tab in the background.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onFocus = () => { fetchHierarchy() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [fetchHierarchy])
 
   return { data, loading, error, refresh: fetchHierarchy }
