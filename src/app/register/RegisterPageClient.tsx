@@ -1,23 +1,15 @@
 ﻿'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import PasswordInput from '../../components/PasswordInput'
 import { useAuth } from '../../contexts/AuthContext'
 import type { AuthUser } from '../../types'
+import type { OnboardingContext } from '../../types/network-v2'
 import { redirectByRole } from '../../utils/redirectByRole'
 import { Button, Input, Card, SectionTitle } from '../../design-system'
-import {
-  clearStoredOriginPassengerId,
-  clearStoredReferralCode,
-  clearStoredReferralInvite,
-  getStoredReferralCode,
-  getStoredReferralInvite,
-  isInvalidReferralErrorMessage,
-  normalizeReferralCode,
-  setStoredReferralCode,
-} from '../../utils/referral'
+import { isInvalidReferralErrorMessage, normalizeReferralCode } from '../../utils/referral'
 
 /** Formats a raw numeric string into Brazilian phone mask: (XX) XXXXX-XXXX or (XX) XXXX-XXXX */
 function formatBrazilianPhone(value: string): string {
@@ -36,40 +28,46 @@ function phoneDigits(value: string): string {
 
 type RegisterPageClientProps = {
   referralSlug: string
+  /**
+   * Backend-governed onboarding context. When present, drives:
+   *  - role lock (expectedActor)
+   *  - invite badge label (invite.displayLabel)
+   *  - referralCode submitted to /auth/register (invite.code)
+   * When null, the user lands organically (or backend was unreachable);
+   * referralSlug is still forwarded as referralCode for backward
+   * compatibility with legacy links.
+   */
+  onboarding: OnboardingContext | null
 }
 
-function getStoredDriverInviteLabel(): string {
-  try {
-    const storedDriver = localStorage.getItem('aliado:referredDriver')
-    if (!storedDriver) return ''
-    const parsed = JSON.parse(storedDriver) as { name?: string }
-    return parsed.name ? `Você foi convidado por ${parsed.name}` : ''
-  } catch {
-    return ''
-  }
-}
-
-function resolveInviteLabel(): string {
-  const driverLabel = getStoredDriverInviteLabel()
-  if (driverLabel) return driverLabel
-  const invite = getStoredReferralInvite(localStorage)
-  if (invite?.name) return `Você foi convidado por ${invite.name}`
-  if (invite?.type === 'passenger') return 'Você foi convidado por um passageiro Aliado'
-  return 'Você chegou por um convite Aliado'
-}
-
-export default function RegisterPageClient({ referralSlug }: RegisterPageClientProps) {
+export default function RegisterPageClient({ referralSlug, onboarding }: RegisterPageClientProps) {
   const router = useRouter()
   const { register } = useAuth()
-  const normalizedReferralSlug = normalizeReferralCode(referralSlug)
+
+  // Backend is the source of truth. The frontend NEVER infers flowType,
+  // expectedActor, ownership or genealogy from the URL slug or storage.
+  const normalizedSlug = normalizeReferralCode(referralSlug)
+  const initialReferralCode = onboarding?.invite.code ?? normalizedSlug
+
+  // Allow runtime invalidation when the backend rejects the referral on
+  // submit. We never read/write referral state from localStorage.
+  const [referralCleared, setReferralCleared] = useState(false)
+  const activeReferralCode = referralCleared ? '' : initialReferralCode
+  const inviteLabel = referralCleared ? '' : onboarding?.invite.displayLabel ?? ''
+  const inviteActive = activeReferralCode.length > 0
+
+  // When the backend governs the onboarding context, expectedActor locks
+  // the role. Without context, we offer the organic toggle.
+  const lockedRole: AuthUser['role'] | null = useMemo(() => {
+    if (!onboarding || referralCleared) return null
+    return onboarding.expectedActor === 'driver' ? 'driver' : 'passenger'
+  }, [onboarding, referralCleared])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<AuthUser['role']>('passenger')
-  const [activeReferralCode, setActiveReferralCode] = useState('')
-  const [inviteLabel, setInviteLabel] = useState('')
+  const [role, setRole] = useState<AuthUser['role']>(lockedRole ?? 'passenger')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -81,17 +79,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [offerAssistedTransport, setOfferAssistedTransport] = useState(false)
 
-  useEffect(() => {
-    const storedReferralCode = getStoredReferralCode(localStorage)
-    const nextReferralCode = normalizedReferralSlug || storedReferralCode
-
-    if (nextReferralCode) {
-      setStoredReferralCode(localStorage, nextReferralCode)
-    }
-
-    setActiveReferralCode(nextReferralCode)
-    setInviteLabel(nextReferralCode ? resolveInviteLabel() : '')
-  }, [normalizedReferralSlug])
+  const effectiveRole: AuthUser['role'] = lockedRole ?? role
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -108,7 +96,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
       return
     }
 
-    if (role === 'driver') {
+    if (effectiveRole === 'driver') {
       if (!vehicleModel.trim() || !vehicleBrand.trim() || !vehiclePlate.trim()) {
         setError('Preencha os dados do veículo')
         return
@@ -125,46 +113,33 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
         name,
         email,
         password,
-        role,
+        role: effectiveRole,
         phone: rawPhone,
-        ...(role === 'driver'
+        ...(effectiveRole === 'driver'
           ? {
               experienceLevel,
               vehicle: { model: vehicleModel, brand: vehicleBrand, plate: vehiclePlate, category: vehicleCategory },
               region: selectedRegions,
             }
           : {}),
-        ...(role === 'passenger' && activeReferralCode ? { referralCode: activeReferralCode } : {}),
+        ...(activeReferralCode ? { referralCode: activeReferralCode } : {}),
       }
       await register(payload)
 
-      if (role === 'driver') {
+      if (effectiveRole === 'driver') {
+        // Per-user UI preference; unrelated to network/referral graph.
         localStorage.setItem('aliado:assistedTransport', String(offerAssistedTransport))
       }
 
-      if (role !== 'passenger' || !activeReferralCode) {
-        localStorage.removeItem('aliado:referredDriver')
-      }
-      localStorage.removeItem('aliado:referredSlug')
-      clearStoredReferralCode(localStorage)
-      clearStoredReferralInvite(localStorage)
-      clearStoredOriginPassengerId(localStorage)
-
-      router.push(redirectByRole(role))
-      // Garantir sincronização imediata da rede após signup via referral
-      // (evita stale UI e dependência de refresh manual)
+      router.push(redirectByRole(effectiveRole))
+      // Force a server-component refresh so /driver or /passenger pick up
+      // the freshly created network context on first paint.
       router.refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao cadastrar'
 
       if (activeReferralCode && isInvalidReferralErrorMessage(message)) {
-        clearStoredReferralCode(localStorage)
-        clearStoredReferralInvite(localStorage)
-        clearStoredOriginPassengerId(localStorage)
-        localStorage.removeItem('aliado:referredDriver')
-        localStorage.removeItem('aliado:referredSlug')
-        setActiveReferralCode('')
-        setInviteLabel('')
+        setReferralCleared(true)
       }
 
       setError(message)
@@ -183,35 +158,46 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
         <p className="text-center text-sm text-gray-200 mb-4">Criar conta</p>
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {activeReferralCode && (
-              <div className="rounded-2xl border border-[#F28C28]/25 bg-[#F28C28]/10 px-4 py-3 mb-2">
+            {inviteActive && (
+              <div
+                className="rounded-2xl border border-[#F28C28]/25 bg-[#F28C28]/10 px-4 py-3 mb-2"
+                data-testid="invite-banner"
+              >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/75">
                   Convite ativo
                 </p>
                 <p className="mt-1 text-sm font-semibold text-orange-100">
                   {inviteLabel || 'Você chegou por um convite Aliado'}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-zinc-400">
-                  O referral será aplicado automaticamente no cadastro de passageiro.
-                </p>
+                {lockedRole && (
+                  <p className="mt-1 text-xs leading-5 text-zinc-400">
+                    Este convite cria uma conta de{' '}
+                    <span className="font-semibold text-orange-200">
+                      {lockedRole === 'driver' ? 'motorista' : 'passageiro'}
+                    </span>
+                    .
+                  </p>
+                )}
               </div>
             )}
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Tipo de conta</label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {(['passenger', 'driver'] as const).map((entryRole) => (
-                  <Button
-                    key={entryRole}
-                    type="button"
-                    variant={role === entryRole ? 'primary' : 'secondary'}
-                    fullWidth
-                    onClick={() => setRole(entryRole)}
-                  >
-                    {entryRole === 'passenger' ? 'Passageiro' : 'Motorista'}
-                  </Button>
-                ))}
+            {!lockedRole && (
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Tipo de conta</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {(['passenger', 'driver'] as const).map((entryRole) => (
+                    <Button
+                      key={entryRole}
+                      type="button"
+                      variant={role === entryRole ? 'primary' : 'secondary'}
+                      fullWidth
+                      onClick={() => setRole(entryRole)}
+                    >
+                      {entryRole === 'passenger' ? 'Passageiro' : 'Motorista'}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <Input
               label="Nome completo"
               type="text"
@@ -250,7 +236,7 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
                 className="mt-1"
               />
             </div>
-            {role === 'driver' && (
+            {effectiveRole === 'driver' && (
               <>
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Nível de experiência</label>
@@ -370,3 +356,4 @@ export default function RegisterPageClient({ referralSlug }: RegisterPageClientP
     </main>
   )
 }
+
