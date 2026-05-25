@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import DriverNetworkPage from './page'
-import { useDriverNetwork, useDriverNetworkHierarchy } from '../../../hooks/useDriverNetwork'
+import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { useAuth } from '../../../contexts/AuthContext'
+import type { NetworkContext } from '../../../types/network-v2'
 
-jest.mock('../../../hooks/useDriverNetwork')
+jest.mock('../../../hooks/useNetworkContext')
 jest.mock('../../../contexts/AuthContext')
 jest.mock('../../../components/AuthGuard', () => ({
   ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -11,14 +12,16 @@ jest.mock('../../../components/AuthGuard', () => ({
 jest.mock('../../../components/AppHeader', () => ({
   AppHeader: () => null,
 }))
+jest.mock('../../../components/driver/DriverReferralCard', () => ({
+  DriverReferralCard: () => <div data-testid="referral-card" />,
+}))
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   usePathname: () => '/driver/network',
   useSearchParams: () => ({ get: () => null }),
 }))
 
-const mockUseDriverNetwork = useDriverNetwork as jest.MockedFunction<typeof useDriverNetwork>
-const mockUseDriverNetworkHierarchy = useDriverNetworkHierarchy as jest.MockedFunction<typeof useDriverNetworkHierarchy>
+const mockUseNetworkContext = useNetworkContext as jest.MockedFunction<typeof useNetworkContext>
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>
 
 const baseAuth = {
@@ -29,28 +32,52 @@ const baseAuth = {
   logout: jest.fn(),
 }
 
-describe('DriverNetworkPage', () => {
+const d2dContext: NetworkContext = {
+  flowType: 'DRIVER_TO_DRIVER',
+  targetActorExpected: 'driver',
+  rootDriver: {
+    id: 'drv-root',
+    actorType: 'driver',
+    name: 'Pedro Motta',
+    slug: 'pedro-motta',
+    region: 'SP',
+    rating: 4.9,
+    offersAssistedTransport: true,
+  },
+  genealogy: {
+    me: { id: 'drv-me', actorType: 'driver', name: 'João Silva' },
+    ancestors: [
+      { id: 'drv-root', actorType: 'driver', name: 'Pedro Motta' },
+    ],
+    descendants: [
+      {
+        actor: { id: 'drv-d1', actorType: 'driver', name: 'Maria Souza' },
+        depth: 1,
+        children: [],
+      },
+    ],
+    lateral: [
+      { id: 'drv-s1', actorType: 'driver', name: 'Carlos Dias' },
+    ],
+    operationalOwner: null,
+  },
+  networkMetrics: {
+    totalActors: 4,
+    activeCount: 3,
+    depth: 2,
+    ridesFromNetwork: 87,
+    estimatedRevenue: 2540.5,
+  },
+}
+
+describe('DriverNetworkPage (V2)', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue(baseAuth)
-    mockUseDriverNetworkHierarchy.mockReturnValue({
-      data: null,
-      loading: false,
-      error: null,
-      refresh: jest.fn(),
-    })
   })
 
-  it('renders stat cards when network data is loaded', () => {
-    mockUseDriverNetwork.mockReturnValue({
-      data: {
-        totalPassengers: 5,
-        ridesCompleted: 18,
-        estimatedRevenue: 850.5,
-        recentPassengers: [
-          { id: 'p1', name: 'Ana Costa', ridesCount: 4, lastRideAt: '2026-05-10T12:00:00Z' },
-          { id: 'p2', name: 'Bruno Lima', ridesCount: 1, lastRideAt: null },
-        ],
-      },
+  it('renders NetworkExperience with backend-governed context', () => {
+    mockUseNetworkContext.mockReturnValue({
+      context: d2dContext,
       loading: false,
       error: null,
       refresh: jest.fn(),
@@ -58,51 +85,49 @@ describe('DriverNetworkPage', () => {
 
     render(<DriverNetworkPage />)
 
-    expect(screen.getByText('5')).toBeInTheDocument()
-    expect(screen.getByText('18')).toBeInTheDocument()
-    expect(screen.getByText('Ana Costa')).toBeInTheDocument()
-    expect(screen.getByText('Bruno Lima')).toBeInTheDocument()
-    // Frequent passenger badge
-    expect(screen.getByText('Fiel')).toBeInTheDocument()
-    // Growth banner
-    expect(screen.getByText('Rede crescendo!')).toBeInTheDocument()
+    expect(screen.getByText('Minha Rede')).toBeInTheDocument()
+    const experience = screen.getByTestId('network-experience')
+    expect(experience).toBeInTheDocument()
+    expect(experience).toHaveAttribute('data-flow-type', 'DRIVER_TO_DRIVER')
   })
 
-  it('renders empty state when totalPassengers is 0', () => {
-    mockUseDriverNetwork.mockReturnValue({
-      data: {
-        totalPassengers: 0,
-        ridesCompleted: 0,
-        estimatedRevenue: 0,
-        recentPassengers: [],
-      },
-      loading: false,
-      error: null,
-      refresh: jest.fn(),
-    })
-
-    render(<DriverNetworkPage />)
-
-    // All three stat cards show 0 / R$ 0,00
-    const zeros = screen.getAllByText('0')
-    expect(zeros.length).toBeGreaterThanOrEqual(2)
-    // No growth banner when 0 passengers
-    expect(screen.queryByText('Rede crescendo!')).not.toBeInTheDocument()
-  })
-
-  it('shows loading skeleton when fetching', () => {
-    mockUseDriverNetwork.mockReturnValue({
-      data: null,
+  it('shows loading skeleton while fetching', () => {
+    mockUseNetworkContext.mockReturnValue({
+      context: null,
       loading: true,
       error: null,
       refresh: jest.fn(),
     })
 
     render(<DriverNetworkPage />)
+    expect(screen.getByTestId('network-loading')).toBeInTheDocument()
+    expect(screen.queryByTestId('network-experience')).not.toBeInTheDocument()
+  })
 
-    // Skeletons are pulse divs — page heading still visible
-    expect(screen.getByText('Minha Rede')).toBeInTheDocument()
-    // No passenger names in loading state
-    expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
+  it('renders error banner with retry button when fetch fails', () => {
+    const refresh = jest.fn()
+    mockUseNetworkContext.mockReturnValue({
+      context: null,
+      loading: false,
+      error: 'Não foi possível carregar sua rede agora.',
+      refresh,
+    })
+
+    render(<DriverNetworkPage />)
+    expect(screen.getByTestId('network-error')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeInTheDocument()
+  })
+
+  it('renders empty state when no driverId is available', () => {
+    mockUseAuth.mockReturnValue({ ...baseAuth, user: { ...baseAuth.user, driverId: undefined } })
+    mockUseNetworkContext.mockReturnValue({
+      context: null,
+      loading: false,
+      error: null,
+      refresh: jest.fn(),
+    })
+
+    render(<DriverNetworkPage />)
+    expect(screen.getByText(/Perfil de motorista não encontrado/i)).toBeInTheDocument()
   })
 })
