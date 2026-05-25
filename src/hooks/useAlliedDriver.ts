@@ -68,6 +68,10 @@ interface UseAlliedDriverResult {
   error: boolean
 }
 
+/**
+ * @deprecated ALIADO Nacional V2: use `useNetworkContext` + `useRootDriverContext` instead.
+ * This hook is scheduled for removal in Phase 4 (clean break).
+ */
 export function useAlliedDriver(passengerId: string): UseAlliedDriverResult {
   const { data: passenger, loading, error: passengerError } = usePassenger(passengerId)
   const [storedDriver, setStoredDriver] = useState<StoredReferralDriver | null>(null)
