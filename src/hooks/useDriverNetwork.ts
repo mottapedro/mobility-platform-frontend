@@ -26,6 +26,10 @@ interface UseDriverNetworkResult {
   refresh: () => void
 }
 
+/**
+ * @deprecated ALIADO Nacional V2: use `useNetworkContext({ actorId, actorType: 'driver' })` instead.
+ * Removed in Phase 4 (clean break).
+ */
 export function useDriverNetwork(driverId: string | null): UseDriverNetworkResult {
   const [data, setData] = useState<DriverNetwork | null>(null)
   const [loading, setLoading] = useState(false)
@@ -82,6 +86,10 @@ interface UseDriverNetworkHierarchyResult {
   refresh: () => void
 }
 
+/**
+ * @deprecated ALIADO Nacional V2: use `useNetworkContext({ actorId, actorType: 'driver' })` and read `context.genealogy` instead.
+ * Removed in Phase 4 (clean break).
+ */
 export function useDriverNetworkHierarchy(driverId: string | null): UseDriverNetworkHierarchyResult {
   const [data, setData] = useState<DriverNetworkHierarchy | null>(null)
   const [loading, setLoading] = useState(false)

@@ -13,6 +13,10 @@ interface UsePassengerNetworkResult {
   refresh: () => void
 }
 
+/**
+ * @deprecated ALIADO Nacional V2: use `useNetworkContext({ actorId, actorType: 'passenger' })` instead.
+ * Removed in Phase 4 (clean break).
+ */
 export function usePassengerNetwork(passengerId: string | null): UsePassengerNetworkResult {
   const [data, setData] = useState<PassengerNetwork | null>(null)
   const [hierarchy, setHierarchy] = useState<PassengerNetworkHierarchy | null>(null)
