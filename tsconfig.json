@@ -18,6 +18,7 @@
         "name": "next"
       }
     ],
+    "types": ["jest", "node", "@testing-library/jest-dom"],
     "paths": {
       "@/*": ["./src/*"]
     }
@@ -32,8 +33,6 @@
   ],
   "exclude": [
     "node_modules",
-    "**/*.test.ts",
-    "**/*.test.tsx",
     "jest.config.ts",
     "jest.setup.ts"
   ]

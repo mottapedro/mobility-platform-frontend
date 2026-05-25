@@ -1,11 +1,14 @@
 'use client'
 
-import PasswordInput from '../../components/PasswordInput'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { Button, Input, Card, SectionTitle } from '../../design-system'
+import PasswordInput from '../../components/PasswordInput'
 
 export default function LoginPage() {
   const { login } = useAuth()
+  const router = useRouter()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,63 +31,65 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0D0700] px-4">
       <div className="w-full max-w-sm space-y-6">
-        {/* Logo / header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-white">Aliado</h1>
-          <p className="mt-1 text-sm text-zinc-400">Entre na sua conta</p>
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-200 mb-2"
+        >
+          ← Voltar
+        </button>
+        <div className="flex flex-col items-center mb-2">
+          <img src="/logo-aliado.jpeg" alt="Logo Aliado" className="h-28 w-auto mb-2" />
+          <SectionTitle className="text-center text-3xl mb-0">Aliado</SectionTitle>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-              Email
-            </label>
-            <input
-              type="email"
+        <p className="text-center text-xl font-semibold text-gray-100 mb-4">Bem-vindo de volta!</p>
+        <Card className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="E-mail ou Telefone"
+              type="text"
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
             />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-              Senha
-            </label>
-            <PasswordInput
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition-colors focus:border-orange-500"
-            />
-          </div>
-
-          {error && (
-            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-zinc-500">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Senha</label>
+              <PasswordInput
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••"
+                className="mt-1"
+              />
+              <div className="flex justify-end mt-1">
+                <a href="#" className="text-xs text-[#F28C28] hover:underline">Esqueceu a senha?</a>
+              </div>
+            </div>
+            {error && (
+              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+                {error}
+              </p>
+            )}
+            <Button type="submit" fullWidth disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </Button>
+            <div className="flex items-center gap-3 my-1">
+              <div className="flex-1 h-px bg-gray-700" />
+              <span className="text-xs text-gray-500">ou</span>
+              <div className="flex-1 h-px bg-gray-700" />
+            </div>
+            <Button type="button" variant="secondary" fullWidth onClick={() => {}}>G Entrar com Google</Button>
+            <Button type="button" variant="secondary" fullWidth onClick={() => {}}>Entrar com Apple</Button>
+          </form>
+        </Card>
+        <p className="text-center text-sm text-gray-400">
           Não tem conta?{' '}
           <a href="/register" className="text-orange-400 hover:underline">
-            Cadastre-se
+            Criar conta
           </a>
         </p>
       </div>

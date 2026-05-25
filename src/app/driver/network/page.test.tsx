@@ -14,6 +14,7 @@ jest.mock('../../../components/AppHeader', () => ({
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   usePathname: () => '/driver/network',
+  useSearchParams: () => ({ get: () => null }),
 }))
 
 const mockUseDriverNetwork = useDriverNetwork as jest.MockedFunction<typeof useDriverNetwork>

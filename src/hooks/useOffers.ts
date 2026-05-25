@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getDriverOffers } from '../services/drivers'
+import { ApiError } from '../services/api'
 import type { DriverOffer } from '../types'
 
 interface UseOffersResult {
@@ -28,9 +29,27 @@ export function useOffers(driverId: string | null): UseOffersResult {
       )
       setOffers(data)
       setError(null)
+      return true // success
     } catch (err) {
-      console.error('[useOffers] fetch error:', err)
-      setError('Erro ao carregar ofertas. Verifique se o backend está rodando.')
+      if (err instanceof ApiError && err.status === 404) {
+        // Stale driverId — clear it so re-login gets a fresh one
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('driverId')
+          const stored = localStorage.getItem('aliado:auth')
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored)
+              delete parsed.driverId
+              localStorage.setItem('aliado:auth', JSON.stringify(parsed))
+            } catch { /* ignore */ }
+          }
+        }
+        setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
+      } else {
+        console.error('[useOffers] fetch error:', err)
+        setError('Erro ao carregar ofertas. Verifique se o backend está rodando.')
+      }
+      return false // failure
     } finally {
       setLoading(false)
     }
@@ -40,9 +59,11 @@ export function useOffers(driverId: string | null): UseOffersResult {
     if (!driverId) return
 
     setLoading(true)
-    fetchOffers()
-
-    intervalRef.current = setInterval(fetchOffers, 2000)
+    // Only start polling after a successful first fetch
+    fetchOffers().then((ok) => {
+      if (!ok) return
+      intervalRef.current = setInterval(fetchOffers, 2000)
+    })
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)

@@ -1,4 +1,4 @@
-export interface Vehicle {
+﻿export interface Vehicle {
   id: string
   model: string
   brand: string
@@ -51,15 +51,16 @@ export type RideStatus =
   | 'REJECTED'
   | 'EXPIRED'
 
-// ─── V1.3 — Contexto da corrida ────────────────────────────────────────────
+// â”€â”€â”€ V1.3 â€” Contexto da corrida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface RideContext {
   isAirport?: boolean
   isPet?: boolean
+  isAssistedTransport?: boolean
   isLuggage?: boolean
   isVip?: boolean
 }
 
-// ─── V1.4 — Contexto regional (matching) ───────────────────────────────────
+// â”€â”€â”€ V1.4 â€” Contexto regional (matching) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface RegionalContext {
   region?: string
   cluster?: string
@@ -90,9 +91,10 @@ export interface CreateRidePayload {
   destination: string
   scheduledAt: string
   context?: RideContext
+  notes?: string
 }
 
-// ─── Driver Offer (retornado por GET /drivers/:id/offers) ──────────────────
+// â”€â”€â”€ Driver Offer (retornado por GET /drivers/:id/offers) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface DriverOffer {
   id: string
   status: OfferStatus
@@ -114,7 +116,7 @@ export interface DriverOffer {
     }
   }
 }
-// ─── Driver Ride (retornado por GET /drivers/:id/rides) ───────────────────────
+// â”€â”€â”€ Driver Ride (retornado por GET /drivers/:id/rides) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface DriverRide {
   id: string
   origin: string
@@ -126,7 +128,7 @@ export interface DriverRide {
     user: { name: string; phone?: string }
   }
 }
-// ─── Driver Network (retornado por GET /drivers/:id/network) ────────────────
+// â”€â”€â”€ Driver Network (retornado por GET /drivers/:id/network) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface DriverNetworkPassenger {
   id: string
   name: string
@@ -141,7 +143,7 @@ export interface DriverNetwork {
   recentPassengers: DriverNetworkPassenger[]
 }
 
-// ─── V1.5 — Driver Network Hierarchy (GET /drivers/:id/network/hierarchy) ──
+// â”€â”€â”€ V1.5 â€” Driver Network Hierarchy (GET /drivers/:id/network/hierarchy) â”€â”€
 export interface DriverNetworkNode {
   id: string
   name: string
@@ -159,7 +161,43 @@ export interface DriverNetworkHierarchy {
   maxDepth: number
 }
 
-// ─── Auth ───────────────────────────────────────────────────────────────────
+export interface PassengerNetworkReferral {
+  id: string
+  name: string
+  createdAt: string
+  status?: 'active' | 'new' | string
+  ridesCount?: number
+}
+
+export interface PassengerNetwork {
+  totalReferrals: number
+  activeReferrals?: number
+  growth?: number
+  growthPercent?: number
+  ridesFromNetwork?: number
+  level1: string[]
+  level2: string[]
+  level3: string[]
+  recentReferrals: PassengerNetworkReferral[]
+}
+
+export interface PassengerNetworkNode {
+  id: string
+  name: string
+  referralCode?: string | null
+  networkLevel?: number
+  referrals?: PassengerNetworkNode[]
+}
+
+export interface PassengerNetworkHierarchy {
+  me: PassengerNetworkNode
+  referredBy: PassengerNetworkNode | null
+  referrals: PassengerNetworkNode[]
+  totalPassengers: number
+  maxDepth: number
+}
+
+// â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface AuthUser {
   id: string
   name: string
@@ -167,5 +205,8 @@ export interface AuthUser {
   role: 'driver' | 'passenger'
   passengerId?: string
   driverId?: string
+  publicSlug?: string
+  referralCode?: string
   referredByDriverId?: string | null
 }
+

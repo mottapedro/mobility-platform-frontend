@@ -19,6 +19,8 @@ interface ApiAuthResponse {
   user: { id: string; name: string; email: string; role: string }
   driverId?: string
   passengerId?: string
+  publicSlug?: string
+  referralCode?: string
   referredByDriverId?: string | null
   error?: string
   message?: string
@@ -91,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: data.user.role.toLowerCase() as AuthUser['role'],
       ...(data.passengerId ? { passengerId: data.passengerId } : {}),
       ...(data.driverId ? { driverId: data.driverId } : {}),
+      ...(data.publicSlug ? { publicSlug: data.publicSlug } : {}),
+      ...(data.referralCode ? { referralCode: data.referralCode } : {}),
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
@@ -125,6 +129,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: data.user.role.toLowerCase() as AuthUser['role'],
       ...(data.passengerId ? { passengerId: data.passengerId } : {}),
       ...(data.driverId ? { driverId: data.driverId } : {}),
+      ...(data.publicSlug ? { publicSlug: data.publicSlug } : {}),
+      ...(data.referralCode ? { referralCode: data.referralCode } : {}),
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))

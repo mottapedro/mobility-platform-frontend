@@ -1,11 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverNetwork, useDriverNetworkHierarchy } from '../../../hooks/useDriverNetwork'
-import { ProtectedRoute } from '../../../components/AuthGuard'
-import { AppHeader } from '../../../components/AppHeader'
 import { DriverNetworkTree } from '../../../components/driver/DriverNetworkTree'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
 import type { DriverNetworkPassenger } from '../../../types'
@@ -33,10 +31,10 @@ function buildAvatarLabel(name: string): string {
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4">
+    <div className="flex flex-col gap-1 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F28C28]/70">{label}</p>
-      <p className="text-2xl font-bold text-[#E6D2B3]">{value}</p>
-      {sub && <p className="text-xs text-[#E6D2B3]/40">{sub}</p>}
+      <p className="text-2xl font-bold text-[#F5ECD8]">{value}</p>
+      {sub && <p className="text-xs text-[#9A7D5A]">{sub}</p>}
     </div>
   )
 }
@@ -44,20 +42,20 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4 animate-pulse">
-      <div className="mb-2 h-3 w-24 rounded bg-[#E6D2B3]/10" />
-      <div className="h-8 w-16 rounded bg-[#E6D2B3]/10" />
+    <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4 animate-pulse">
+      <div className="mb-2 h-3 w-24 rounded bg-[#2E1A08]" />
+      <div className="h-8 w-16 rounded bg-[#2E1A08]" />
     </div>
   )
 }
 
 function SkeletonPassenger() {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-4 animate-pulse">
-      <div className="h-10 w-10 shrink-0 rounded-full bg-[#E6D2B3]/10" />
+    <div className="flex items-center gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4 animate-pulse">
+      <div className="h-10 w-10 shrink-0 rounded-full bg-[#2E1A08]" />
       <div className="flex-1 space-y-2">
-        <div className="h-3 w-32 rounded bg-[#E6D2B3]/10" />
-        <div className="h-2 w-20 rounded bg-[#E6D2B3]/10" />
+        <div className="h-3 w-32 rounded bg-[#2E1A08]" />
+        <div className="h-2 w-20 rounded bg-[#2E1A08]" />
       </div>
     </div>
   )
@@ -70,16 +68,16 @@ function PassengerRow({ passenger }: { passenger: DriverNetworkPassenger }) {
     <div
       className={`flex items-center gap-3 rounded-2xl border p-4 transition-all ${
         frequent
-          ? 'border-[#F28C28]/40 bg-[#2B1E15] shadow-[0_0_16px_0_rgba(242,140,40,0.07)]'
-          : 'border-[#E6D2B3]/10 bg-[#2B1E15]'
+          ? 'border-[#F28C28]/40 bg-[#1A0E04] shadow-[0_0_16px_0_rgba(242,140,40,0.07)]'
+          : 'border-[#2E1A08] bg-[#1A0E04]'
       }`}
     >
       {/* Avatar */}
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
           frequent
-            ? 'bg-[#F28C28] text-[#1E140F] ring-2 ring-[#F28C28]/40 ring-offset-1 ring-offset-[#1E140F]'
-            : 'bg-[#3B2A1F] text-[#E6D2B3]'
+            ? 'bg-[#F28C28] text-[#0D0700] ring-2 ring-[#F28C28]/40 ring-offset-1 ring-offset-[#0D0700]'
+            : 'bg-[#1A0E04] text-[#F5ECD8]'
         }`}
       >
         {buildAvatarLabel(passenger.name)}
@@ -87,8 +85,8 @@ function PassengerRow({ passenger }: { passenger: DriverNetworkPassenger }) {
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-[#E6D2B3]">{passenger.name}</p>
-        <p className="text-xs text-[#E6D2B3]/40">{formatLastRide(passenger.lastRideAt)}</p>
+        <p className="truncate font-semibold text-[#F5ECD8]">{passenger.name}</p>
+        <p className="text-xs text-[#9A7D5A]">{formatLastRide(passenger.lastRideAt)}</p>
       </div>
 
       {/* Rides badge */}
@@ -97,7 +95,7 @@ function PassengerRow({ passenger }: { passenger: DriverNetworkPassenger }) {
           className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
             frequent
               ? 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/30'
-              : 'bg-[#E6D2B3]/8 text-[#E6D2B3]/50 border border-[#E6D2B3]/15'
+              : 'bg-[#2E1A08] text-[#9A7D5A] border border-[#2E1A08]'
           }`}
         >
           {passenger.ridesCount}×
@@ -115,10 +113,12 @@ function PassengerRow({ passenger }: { passenger: DriverNetworkPassenger }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DriverNetworkPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const [driverId, setDriverId] = useState<string | null>(null)
   const [errorDismissed, setErrorDismissed] = useState(false)
-  const [activeTab, setActiveTab] = useState<'passengers' | 'drivers'>('passengers')
+  const initialTab = searchParams.get('tab') === 'drivers' ? 'drivers' : 'passengers'
+  const [activeTab, setActiveTab] = useState<'passengers' | 'drivers'>(initialTab)
 
   useEffect(() => {
     const id =
@@ -135,80 +135,70 @@ export default function DriverNetworkPage() {
   const showHierarchyError = !!hierarchyError && activeTab === 'drivers'
 
   return (
-    <ProtectedRoute requiredRole="driver">
-      <AppHeader />
-      <main className="min-h-screen bg-[#1E140F] px-4 pt-24 pb-10">
-        <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-lg">
 
-          {/* Header */}
-          <div className="mb-8">
-            <button
-              onClick={() => router.push('/driver/offers')}
-              className="mb-4 text-sm text-[#E6D2B3]/40 hover:text-[#F28C28] transition-colors"
-            >
-              ← Ofertas
-            </button>
+      {/* Header */}
+      <div className="mb-8">
+        {/* Referral card */}
+        <div className="mb-6">
+          <DriverReferralCard />
+        </div>
 
-            {/* Referral card */}
-            <div className="mb-6">
-              <DriverReferralCard />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-[#E6D2B3]">Minha Rede</h1>
-                <p className="mt-1 text-sm text-[#E6D2B3]/50">Passageiros e motoristas</p>
-              </div>
-              {activeTab === 'passengers' && !loading && data && (
-                <button
-                  onClick={refresh}
-                  className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
-                >
-                  Atualizar
-                </button>
-              )}
-              {activeTab === 'drivers' && !hierarchyLoading && hierarchy && (
-                <button
-                  onClick={refreshHierarchy}
-                  className="rounded-xl border border-[#E6D2B3]/15 px-3 py-1.5 text-xs font-semibold text-[#E6D2B3]/50 transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
-                >
-                  Atualizar
-                </button>
-              )}
-            </div>
-
-            {/* Tab switcher */}
-            <div className="mt-4 flex rounded-xl border border-[#E6D2B3]/10 bg-[#2B1E15]/60 p-1">
-              <button
-                onClick={() => setActiveTab('passengers')}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
-                  activeTab === 'passengers'
-                    ? 'bg-[#F28C28] text-[#1E140F] shadow'
-                    : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
-                }`}
-              >
-                Passageiros
-              </button>
-              <button
-                onClick={() => setActiveTab('drivers')}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
-                  activeTab === 'drivers'
-                    ? 'bg-[#F28C28] text-[#1E140F] shadow'
-                    : 'text-[#E6D2B3]/50 hover:text-[#E6D2B3]'
-                }`}
-              >
-                Motoristas
-              </button>
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#F5ECD8]">Minha Rede</h1>
+            <p className="mt-1 text-sm text-[#9A7D5A]">Passageiros e motoristas</p>
           </div>
+          {activeTab === 'passengers' && !loading && data && (
+            <button
+              onClick={refresh}
+              className="rounded-xl border border-[#2E1A08] px-3 py-1.5 text-xs font-semibold text-[#9A7D5A] transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+            >
+              Atualizar
+            </button>
+          )}
+          {activeTab === 'drivers' && !hierarchyLoading && hierarchy && (
+            <button
+              onClick={refreshHierarchy}
+              className="rounded-xl border border-[#2E1A08] px-3 py-1.5 text-xs font-semibold text-[#9A7D5A] transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
+            >
+              Atualizar
+            </button>
+          )}
+        </div>
+
+        {/* Tab switcher */}
+        <div className="mt-4 flex rounded-xl border border-[#2E1A08] bg-[#1A0E04]/60 p-1">
+          <button
+            onClick={() => setActiveTab('passengers')}
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+              activeTab === 'passengers'
+                ? 'bg-[#F28C28] text-[#0D0700] shadow'
+                : 'text-[#9A7D5A] hover:text-[#F5ECD8]'
+            }`}
+          >
+            Passageiros
+          </button>
+          <button
+            onClick={() => setActiveTab('drivers')}
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+              activeTab === 'drivers'
+                ? 'bg-[#F28C28] text-[#0D0700] shadow'
+                : 'text-[#9A7D5A] hover:text-[#F5ECD8]'
+            }`}
+          >
+            Motoristas
+          </button>
+        </div>
+      </div>
 
           {/* Error */}
           {showError && (
-            <div className="mb-4 flex items-center justify-between rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+            <div className="mb-4 flex items-center justify-between rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
               <span>{error}</span>
               <button
                 onClick={() => setErrorDismissed(true)}
-                className="ml-4 text-[#D64545]/60 hover:text-[#D64545]"
+                className="ml-4 text-[#E05050]/60 hover:text-[#E05050]"
               >
                 ✕
               </button>
@@ -217,13 +207,13 @@ export default function DriverNetworkPage() {
 
           {/* No driver */}
           {!driverId && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
-              <p className="mb-4 text-[#E6D2B3]/60">
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
+              <p className="mb-4 text-[#9A7D5A]">
                 Perfil de motorista não encontrado. Faça login novamente.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity"
+                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#0D0700] hover:opacity-90 transition-opacity"
               >
                 Ir para login
               </button>
@@ -269,11 +259,11 @@ export default function DriverNetworkPage() {
 
               {/* Growth badge */}
               {data.totalPassengers > 0 && (
-                <div className="flex items-center gap-3 rounded-2xl border border-[#3FAE5A]/30 bg-[#3FAE5A]/8 px-4 py-3">
+                <div className="flex items-center gap-3 rounded-2xl border border-[#3DB87A]/30 bg-[#3DB87A]/8 px-4 py-3">
                   <span className="text-2xl">🚀</span>
                   <div>
-                    <p className="text-sm font-semibold text-[#3FAE5A]">Rede crescendo!</p>
-                    <p className="text-xs text-[#E6D2B3]/50">
+                    <p className="text-sm font-semibold text-[#3DB87A]">Rede crescendo!</p>
+                    <p className="text-xs text-[#9A7D5A]">
                       {data.totalPassengers === 1
                         ? 'Você tem 1 passageiro na sua rede.'
                         : `Você tem ${data.totalPassengers} passageiros na sua rede.`}
@@ -283,29 +273,29 @@ export default function DriverNetworkPage() {
               )}
 
               {/* Recurrence tip */}
-              {data.recentPassengers.some((p) => p.ridesCount >= 3) && (
+              {(data.recentPassengers ?? []).some((p) => p.ridesCount >= 3) && (
                 <div className="flex items-center gap-3 rounded-2xl border border-[#F28C28]/25 bg-[#F28C28]/8 px-4 py-3">
                   <span className="text-xl">⭐</span>
-                  <p className="text-xs text-[#E6D2B3]/70">
+                  <p className="text-xs text-[#F5ECD8]/70">
                     Passageiros com anel laranja são frequentes — eles confiam em você!
                   </p>
                 </div>
               )}
 
               {/* Recent passengers */}
-              {data.recentPassengers.length > 0 ? (
+              {(data.recentPassengers ?? []).length > 0 ? (
                 <div className="flex flex-col gap-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-[#E6D2B3]/40">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
                     Passageiros recentes
                   </p>
-                  {data.recentPassengers.map((passenger) => (
+                  {(data.recentPassengers ?? []).map((passenger) => (
                     <PassengerRow key={passenger.id} passenger={passenger} />
                   ))}
                 </div>
               ) : (
                 /* Empty passengers list inside loaded state */
-                <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-6 text-center">
-                  <p className="text-sm text-[#E6D2B3]/50">
+                <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-6 text-center">
+                  <p className="text-sm text-[#9A7D5A]">
                     Nenhum passageiro recente encontrado.
                   </p>
                 </div>
@@ -316,15 +306,15 @@ export default function DriverNetworkPage() {
 
           {/* Empty state — Passengers tab */}
           {activeTab === 'passengers' && driverId && !loading && !data && !error && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
               <p className="mb-2 text-3xl">🤝</p>
-              <p className="mb-1 font-semibold text-[#E6D2B3]">Sua rede está vazia</p>
-              <p className="mb-5 text-sm text-[#E6D2B3]/50">
+              <p className="mb-1 font-semibold text-[#F5ECD8]">Sua rede está vazia</p>
+              <p className="mb-5 text-sm text-[#9A7D5A]">
                 Compartilhe seu link de indicação e comece a construir sua base de clientes.
               </p>
               <button
                 onClick={() => router.push('/driver/offers')}
-                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#1E140F] hover:opacity-90 transition-opacity"
+                className="rounded-xl bg-[#F28C28] px-6 py-3 text-sm font-bold text-[#0D0700] hover:opacity-90 transition-opacity"
               >
                 Ver ofertas
               </button>
@@ -333,15 +323,15 @@ export default function DriverNetworkPage() {
 
           {/* Loading — Drivers tab */}
           {activeTab === 'drivers' && driverId && hierarchyLoading && (
-            <div className="flex flex-col items-center gap-3 py-16 text-[#E6D2B3]/40">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#E6D2B3]/20 border-t-[#F28C28]" />
+            <div className="flex flex-col items-center gap-3 py-16 text-[#9A7D5A]">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#5A3F22] border-t-[#F28C28]" />
               <p className="text-sm">Carregando rede de motoristas...</p>
             </div>
           )}
 
           {/* Error — Drivers tab */}
           {showHierarchyError && (
-            <div className="mb-4 rounded-xl border border-[#D64545]/30 bg-[#D64545]/10 px-4 py-3 text-sm text-[#D64545]">
+            <div className="mb-4 rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
               {hierarchyError}
             </div>
           )}
@@ -353,17 +343,15 @@ export default function DriverNetworkPage() {
 
           {/* Empty state — Drivers tab */}
           {activeTab === 'drivers' && driverId && !hierarchyLoading && !hierarchy && !hierarchyError && (
-            <div className="rounded-2xl border border-[#E6D2B3]/10 bg-[#2B1E15] p-8 text-center">
+            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
               <p className="mb-2 text-3xl">🤝</p>
-              <p className="mb-1 font-semibold text-[#E6D2B3]">Rede de motoristas vazia</p>
-              <p className="text-sm text-[#E6D2B3]/50">
+              <p className="mb-1 font-semibold text-[#F5ECD8]">Rede de motoristas vazia</p>
+              <p className="text-sm text-[#9A7D5A]">
                 Quando motoristas se cadastrarem pelo seu link, a hierarquia aparece aqui.
               </p>
             </div>
           )}
 
-        </div>
-      </main>
-    </ProtectedRoute>
+    </div>
   )
 }

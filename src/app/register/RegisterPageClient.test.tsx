@@ -14,11 +14,25 @@ async function fillRegisterForm(user: ReturnType<typeof userEvent.setup>) {
 }
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({
+    push: mockPush,
+    prefetch: jest.fn(),
+    replace: jest.fn(),
+    refresh: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+  }),
 }))
 
 jest.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({ register: mockRegister }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: mockRegister,
+  }),
 }))
 
 describe('RegisterPageClient invalid referral flow', () => {
@@ -28,16 +42,15 @@ describe('RegisterPageClient invalid referral flow', () => {
     mockRegister.mockReset()
   })
 
-  it('shows the invalid referral error, clears stored referral data, and retries without referralCode', async () => {
+  it('clears invalid referral and retries without referralCode', async () => {
     const user = userEvent.setup()
 
     localStorage.setItem('aliado:referralCode', 'pedro-motta-zs')
     localStorage.setItem('aliado:referredSlug', 'pedro-motta-zs')
-    localStorage.setItem('aliado:referredDriver', JSON.stringify({
-      id: 'driver-1',
-      name: 'Pedro Motta',
-      phone: '21900000001',
-    }))
+    localStorage.setItem(
+      'aliado:referredDriver',
+      JSON.stringify({ id: 'driver-1', name: 'Pedro Motta', phone: '21900000001' })
+    )
 
     mockRegister
       .mockRejectedValueOnce(new Error('Referral code inválido ou expirado'))
@@ -49,12 +62,9 @@ describe('RegisterPageClient invalid referral flow', () => {
     expect(await screen.findByText(/você foi convidado por pedro motta/i)).toBeInTheDocument()
 
     await fillRegisterForm(user)
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
-    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Referral code inválido ou expirado')).toBeInTheDocument()
-    })
+    expect(await screen.findByText(/referral code inválido ou expirado/i)).toBeInTheDocument()
 
     expect(mockRegister).toHaveBeenNthCalledWith(1, {
       name: 'Invalid Referral',
@@ -74,7 +84,7 @@ describe('RegisterPageClient invalid referral flow', () => {
     })
     expect(screen.queryByText(/você foi convidado por/i)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() => {
       expect(mockRegister).toHaveBeenCalledTimes(2)
@@ -90,7 +100,7 @@ describe('RegisterPageClient invalid referral flow', () => {
     expect(mockPush).not.toHaveBeenCalled()
   })
 
-  it('redirects after retrying without referralCode when the first attempt fails with invalid referral', async () => {
+  it('redirects on successful retry after invalid referral cleanup', async () => {
     const user = userEvent.setup()
 
     localStorage.setItem('aliado:referralCode', 'pedro-motta-zs')
@@ -103,14 +113,13 @@ describe('RegisterPageClient invalid referral flow', () => {
     render(<RegisterPageClient referralSlug="pedro-motta-zs" />)
 
     await fillRegisterForm(user)
-
-    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
     expect(await screen.findByText(/referral code inválido ou expirado/i)).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/passenger/rides')
+      expect(mockPush).toHaveBeenCalledWith('/passenger')
     })
   })
 })

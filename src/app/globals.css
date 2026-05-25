@@ -1,23 +1,61 @@
 @import "tailwindcss";
 
+/* ── Aliado Design System Tokens ─────────────────────────────────────────── */
 :root {
-  --background: #0a0500;
-  --foreground: #f5f5f5;
-  --accent: #f97316;
+  --aliado-bg:           #0D0700;
+  --aliado-card:         #1A0E04;
+  --aliado-card-deep:    #140A02;
+  --aliado-border:       #2E1A08;
+  --aliado-orange:       #F28C28;
+  --aliado-orange-dark:  #C96E10;
+  --aliado-orange-glow:  rgba(242,140,40,0.18);
+  --aliado-text:         #F5ECD8;
+  --aliado-sub:          #9A7D5A;
+  --aliado-muted:        #5A3F22;
+  --aliado-input:        #150B02;
+  --aliado-success:      #3DB87A;
+  --aliado-error:        #E05050;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans:            var(--font-dm-sans);
+  --color-aliado-bg:      var(--aliado-bg);
+  --color-aliado-card:    var(--aliado-card);
+  --color-aliado-border:  var(--aliado-border);
+  --color-aliado-orange:  var(--aliado-orange);
+  --color-aliado-text:    var(--aliado-text);
+  --color-aliado-sub:     var(--aliado-sub);
+  --color-aliado-muted:   var(--aliado-muted);
+  --color-aliado-success: var(--aliado-success);
+  --color-aliado-error:   var(--aliado-error);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  background: var(--aliado-bg);
+  color: var(--aliado-text);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
 }
 
 * {
   box-sizing: border-box;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
 }

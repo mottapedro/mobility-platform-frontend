@@ -2,8 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { getDriverNetwork, getDriverNetworkHierarchy } from '../services/drivers'
+import { ApiError } from '../services/api'
 import { sanitizeNetworkTree } from '../utils/networkTree'
 import type { DriverNetwork, DriverNetworkHierarchy } from '../types'
+
+function clearStaleDriverId() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('driverId')
+  const stored = localStorage.getItem('aliado:auth')
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored)
+      delete parsed.driverId
+      localStorage.setItem('aliado:auth', JSON.stringify(parsed))
+    } catch { /* ignore */ }
+  }
+}
 
 interface UseDriverNetworkResult {
   data: DriverNetwork | null
@@ -22,10 +36,24 @@ export function useDriverNetwork(driverId: string | null): UseDriverNetworkResul
     setLoading(true)
     setError(null)
     try {
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[useDriverNetwork] fetching network for driverId:', driverId)
+      }
       const result = await getDriverNetwork(driverId)
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[useDriverNetwork] network result:', result)
+      }
       setData(result)
-    } catch {
-      setError('Não foi possível carregar sua rede agora.')
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[useDriverNetwork] fetch error:', err)
+      }
+      if (err instanceof ApiError && err.status === 404) {
+        clearStaleDriverId()
+        setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
+      } else {
+        setError('Não foi possível carregar sua rede agora.')
+      }
     } finally {
       setLoading(false)
     }
@@ -33,6 +61,15 @@ export function useDriverNetwork(driverId: string | null): UseDriverNetworkResul
 
   useEffect(() => {
     fetchNetwork()
+  }, [fetchNetwork])
+
+  // Re-fetch when the tab regains focus so the driver sees new passengers
+  // that signed up via referral while the tab was in the background.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onFocus = () => { fetchNetwork() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [fetchNetwork])
 
   return { data, loading, error, refresh: fetchNetwork }
@@ -55,14 +92,28 @@ export function useDriverNetworkHierarchy(driverId: string | null): UseDriverNet
     setLoading(true)
     setError(null)
     try {
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[useDriverNetworkHierarchy] fetching hierarchy for driverId:', driverId)
+      }
       const result = await getDriverNetworkHierarchy(driverId)
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[useDriverNetworkHierarchy] hierarchy result:', result)
+      }
       const sanitized: DriverNetworkHierarchy = {
         ...result,
-        referrals: result.referrals.map((node) => sanitizeNetworkTree(node)),
+        referrals: (result.referrals ?? []).map((node) => sanitizeNetworkTree(node)),
       }
       setData(sanitized)
-    } catch {
-      setError('Não foi possível carregar a hierarquia da rede.')
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[useDriverNetworkHierarchy] fetch error:', err)
+      }
+      if (err instanceof ApiError && err.status === 404) {
+        clearStaleDriverId()
+        setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
+      } else {
+        setError('Não foi possível carregar a hierarquia da rede.')
+      }
     } finally {
       setLoading(false)
     }
@@ -70,6 +121,15 @@ export function useDriverNetworkHierarchy(driverId: string | null): UseDriverNet
 
   useEffect(() => {
     fetchHierarchy()
+  }, [fetchHierarchy])
+
+  // Re-fetch when the tab regains focus so the hierarchy reflects referrals
+  // that completed while the driver had this tab in the background.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onFocus = () => { fetchHierarchy() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [fetchHierarchy])
 
   return { data, loading, error, refresh: fetchHierarchy }

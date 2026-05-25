@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import type { Offer } from '../../types'
 import { RideContextBadges } from './RideContextBadges'
@@ -28,13 +28,16 @@ export function DriverOfferCard({
   responding,
 }: DriverOfferCardProps) {
   const isVip = offer.rideContext?.isVip
+  const isAssisted = offer.rideContext?.isAssistedTransport
 
   return (
     <div
       className={`rounded-xl border p-5 transition-colors ${
         isVip
           ? 'border-orange-500/40 bg-orange-500/5'
-          : 'border-zinc-800 bg-zinc-900'
+          : isAssisted
+          ? 'border-violet-500/30 bg-violet-500/5'
+          : 'border-[#2E1A08] bg-[#1A0E04]'
       }`}
     >
       {/* Driver info */}
@@ -53,6 +56,11 @@ export function DriverOfferCard({
         {isVip && (
           <span className="shrink-0 rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-xs font-bold text-orange-400">
             ⭐ VIP
+          </span>
+        )}
+        {isAssisted && !isVip && (
+          <span className="shrink-0 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-xs font-bold text-violet-400">
+            ♿ Assistido
           </span>
         )}
       </div>
@@ -78,7 +86,7 @@ export function DriverOfferCard({
             </p>
           )}
           {(distanceKm != null || durationMin != null) && (
-            <p className="mt-1 text-xs text-[#E6D2B3]/70">
+            <p className="mt-1 text-xs text-[#F5ECD8]/70">
               🚗 {distanceKm ?? '--'} km • ⏱ {durationMin ?? '--'} min
             </p>
           )}
