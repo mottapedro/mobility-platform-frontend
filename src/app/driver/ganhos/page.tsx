@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { useDriverNetwork } from '../../../hooks/useDriverNetwork'
+import { useNetworkContext } from '../../../hooks/useNetworkContext'
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -10,8 +10,10 @@ function formatCurrency(value: number) {
 
 export default function DriverGanhosPage() {
   const { user } = useAuth()
-  const [driverId, setDriverId] = useState<string | null>(null)
-  const { data, loading, error } = useDriverNetwork(driverId)
+  const [driverId, setDriverId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('driverId')
+  })
 
   useEffect(() => {
     const id =
@@ -21,11 +23,19 @@ export default function DriverGanhosPage() {
     setDriverId(id)
   }, [user])
 
-  const stats = data
+  const { context, loading, error } = useNetworkContext({
+    actorId: driverId,
+    actorType: 'driver',
+  })
+
+  const metrics = context?.networkMetrics ?? null
+  // totalActors = drivers + passengers; activeCount = drivers only.
+  // passengers = totalActors − activeCount.
+  const stats = metrics
     ? {
-        passengers: data.totalPassengers,
-        rides: data.ridesCompleted,
-        revenue: data.estimatedRevenue,
+        passengers: (metrics.totalActors ?? 0) - (metrics.activeCount ?? 0),
+        rides: metrics.ridesFromNetwork ?? 0,
+        revenue: metrics.estimatedRevenue ?? 0,
       }
     : null
 

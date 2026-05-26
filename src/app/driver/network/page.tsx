@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useNetworkContext } from '../../../hooks/useNetworkContext'
+import { useGenealogyProjection } from '../../../hooks/useGenealogyProjection'
 import { NetworkExperience } from '../../../components/network/v2/NetworkExperience'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
 
@@ -20,7 +21,12 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
 export default function DriverNetworkPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [driverId, setDriverId] = useState<string | null>(null)
+  // Lazy initialiser reads from localStorage on first render so useNetworkContext
+  // fires immediately with a real actorId instead of null.
+  const [driverId, setDriverId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('driverId')
+  })
 
   useEffect(() => {
     const id =
@@ -34,6 +40,18 @@ export default function DriverNetworkPage() {
     actorId: driverId,
     actorType: 'driver',
   })
+
+  const { projection } = useGenealogyProjection({ driverId })
+
+  // Augment context with genealogy projection data when both are available.
+  // Creates a new object — never mutates hook state.
+  const augmentedContext =
+    context && projection
+      ? {
+          ...context,
+          genealogy: { ...context.genealogy, tree: projection },
+        }
+      : context
 
   return (
     <div className="mx-auto max-w-lg">
@@ -107,7 +125,7 @@ export default function DriverNetworkPage() {
 
       {/* Loaded */}
       {driverId && context && (
-        <NetworkExperience context={context} />
+        <NetworkExperience context={augmentedContext ?? context} projection={projection} />
       )}
 
       {/* Empty (loaded but no genealogy) */}

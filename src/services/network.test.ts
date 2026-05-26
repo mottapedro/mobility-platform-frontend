@@ -1,4 +1,4 @@
-import { fetchNetworkContext } from './network'
+import { fetchNetworkContext, fetchGenealogyProjection } from './network'
 import { networkContextFixtures } from './__mocks__/network.fixtures'
 
 describe('fetchNetworkContext', () => {
@@ -191,5 +191,80 @@ describe('fetchNetworkContext', () => {
         expect(ctx.networkMetrics).toBeDefined()
       })
     })
+  })
+})
+
+describe('fetchGenealogyProjection', () => {
+  const originalFetch = global.fetch
+  const originalApiUrl = process.env.NEXT_PUBLIC_API_URL
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000'
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+    process.env.NEXT_PUBLIC_API_URL = originalApiUrl
+    jest.resetAllMocks()
+  })
+
+  function mockFetch(body: unknown) {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify(body)),
+    } as unknown as Response)
+    global.fetch = fetchMock as unknown as typeof fetch
+    return fetchMock
+  }
+
+  const minimalProjection = {
+    rootDriver: { id: 'drv-root', name: 'Pedro Paulo', experienceLevel: 'SENIOR', networkLevel: 3, publicSlug: 'pedro-motta', referralCode: 'PMT001' },
+    stats: { totalNodes: 1, totalEdges: 0, maxDepth: 0, appliedDepthLimit: 5 },
+    nodes: [
+      { actorId: 'drv-root', actorType: 'DRIVER', name: 'Pedro Paulo', flowType: 'DRIVER_TO_DRIVER', level: 0, rootDriverId: 'drv-root', parentId: null, publicSlug: 'pedro-motta', referralCode: 'PMT001', networkLevel: 3, isActive: true, createdAt: '2024-01-01T00:00:00.000Z' },
+    ],
+    edges: [],
+    levels: [{ depth: 0, nodeIds: ['drv-root'] }],
+    metrics: { totalDrivers: 1, totalPassengers: 0, totalRelationships: 0, totalD2D: 0, totalD2P: 0, totalP2P: 0, maxDepth: 0 },
+  }
+
+  it('calls GET /drivers/:id/network/genealogy', async () => {
+    const fetchMock = mockFetch(minimalProjection)
+    await fetchGenealogyProjection('drv-root')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const calledUrl = fetchMock.mock.calls[0][0] as string
+    expect(calledUrl).toContain('/drivers/drv-root/network/genealogy')
+    expect(calledUrl).not.toContain('maxDepth')
+  })
+
+  it('appends maxDepth query param when provided', async () => {
+    const fetchMock = mockFetch(minimalProjection)
+    await fetchGenealogyProjection('drv-root', { maxDepth: 3 })
+    const calledUrl = fetchMock.mock.calls[0][0] as string
+    expect(calledUrl).toContain('maxDepth=3')
+  })
+
+  it('returns the projection as-is from the backend', async () => {
+    mockFetch(minimalProjection)
+    const result = await fetchGenealogyProjection('drv-root')
+    expect(result.rootDriver.id).toBe('drv-root')
+    expect(result.nodes).toHaveLength(1)
+    expect(result.edges).toHaveLength(0)
+    expect(result.levels).toHaveLength(1)
+    expect(result.metrics.totalDrivers).toBe(1)
+  })
+
+  it('encodes driverId in the URL', async () => {
+    const fetchMock = mockFetch(minimalProjection)
+    await fetchGenealogyProjection('drv/special id')
+    const calledUrl = fetchMock.mock.calls[0][0] as string
+    expect(calledUrl).not.toContain('drv/special id')
+    expect(calledUrl).toContain('drv%2Fspecial%20id')
+  })
+
+  it('level shape matches { depth, nodeIds }', async () => {
+    mockFetch(minimalProjection)
+    const result = await fetchGenealogyProjection('drv-root')
+    expect(result.levels[0]).toMatchObject({ depth: 0, nodeIds: ['drv-root'] })
   })
 })

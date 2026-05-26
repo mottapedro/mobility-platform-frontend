@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, type FC } from 'react'
-import type { NetworkContext } from '@/types/network-v2'
+import type { NetworkContext, GenealogyProjection } from '@/types/network-v2'
 import { NetworkMetricsBar } from './NetworkMetricsBar'
 import { GenealogySocial } from './GenealogySocial'
 import { OperationalOwnership } from './OperationalOwnership'
 import { LateralNetwork } from './LateralNetwork'
 import { RootDriverCard } from './RootDriverCard'
+import { ProjectionTree } from './ProjectionTree'
 import { useRootDriverContext } from '@/hooks/useRootDriverContext'
 
-export type NetworkSection = 'social' | 'operational' | 'lateral'
+export type NetworkSection = 'social' | 'operational' | 'lateral' | 'tree'
 
 export interface NetworkExperienceProps {
   context: NetworkContext
+  /** Genealogy projection fetched by useGenealogyProjection. Driver flows only. */
+  projection?: GenealogyProjection | null
   /** Initial active section. Defaults to "social". */
   initialSection?: NetworkSection
   className?: string
@@ -22,6 +25,7 @@ const SECTION_LABELS: Record<NetworkSection, string> = {
   social: 'Social',
   operational: 'Operacional',
   lateral: 'Lateral',
+  tree: 'Árvore',
 }
 
 const TabButton: FC<{
@@ -57,6 +61,7 @@ const TabButton: FC<{
  */
 export const NetworkExperience: FC<NetworkExperienceProps> = ({
   context,
+  projection = null,
   initialSection = 'social',
   className = '',
 }) => {
@@ -67,7 +72,7 @@ export const NetworkExperience: FC<NetworkExperienceProps> = ({
 
   const sections: NetworkSection[] = isPassengerFlow
     ? ['social', 'operational', 'lateral']
-    : ['social', 'lateral']
+    : ['social', 'tree', 'lateral']
 
   return (
     <div
@@ -98,6 +103,19 @@ export const NetworkExperience: FC<NetworkExperienceProps> = ({
         <OperationalOwnership
           operationalOwner={genealogy.operationalOwner}
         />
+      )}
+      {active === 'tree' && !isPassengerFlow && (
+        projection
+          ? <ProjectionTree projection={projection} />
+          : (
+              <div
+                data-testid="projection-loading"
+                className="flex flex-col gap-4"
+              >
+                <div className="animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] h-20" />
+                <div className="animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] h-40" />
+              </div>
+            )
       )}
       {active === 'lateral' && <LateralNetwork lateral={genealogy.lateral} />}
     </div>

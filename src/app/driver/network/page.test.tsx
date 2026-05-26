@@ -5,6 +5,9 @@ import { useAuth } from '../../../contexts/AuthContext'
 import type { NetworkContext } from '../../../types/network-v2'
 
 jest.mock('../../../hooks/useNetworkContext')
+jest.mock('../../../hooks/useGenealogyProjection', () => ({
+  useGenealogyProjection: () => ({ projection: null, loading: false, error: null, refresh: jest.fn() }),
+}))
 jest.mock('../../../contexts/AuthContext')
 jest.mock('../../../components/AuthGuard', () => ({
   ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,

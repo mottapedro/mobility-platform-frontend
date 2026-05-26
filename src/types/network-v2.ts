@@ -42,6 +42,76 @@ export interface NetworkPassengerActor extends NetworkActor {
 
 // ─── Genealogy (backend-resolved) ──────────────────────────────────────────
 
+// ─── Genealogy projection (GET /drivers/:id/network/genealogy) ─────────────
+// Flat graph read model returned by BuildGenealogyProjectionService.
+// Frontend consumes as-is — do NOT re-derive business logic from this.
+
+export interface GenealogyProjectionNode {
+  actorId: string
+  actorType: 'DRIVER' | 'PASSENGER'
+  name: string
+  flowType: string
+  level: number
+  rootDriverId: string
+  parentId: string | null
+  publicSlug: string | null
+  referralCode: string | null
+  networkLevel: number
+  isActive?: boolean
+  createdAt: string
+}
+
+export interface GenealogyProjectionEdge {
+  sourceActorId: string
+  targetActorId: string
+  flowType: string
+}
+
+export interface GenealogyProjectionLevel {
+  /** BFS depth of this level (0 = root). */
+  depth: number
+  /** Ordered list of actorIds at this depth. */
+  nodeIds: string[]
+}
+
+export interface GenealogyProjectionStats {
+  totalNodes: number
+  totalEdges: number
+  maxDepth: number
+  appliedDepthLimit: number
+}
+
+export interface GenealogyProjectionMetrics {
+  totalDrivers: number
+  totalPassengers: number
+  totalRelationships: number
+  totalD2D: number
+  totalD2P: number
+  totalP2P: number
+  maxDepth: number
+}
+
+export interface GenealogyProjectionRootDriver {
+  id: string
+  name: string
+  experienceLevel: string | null
+  networkLevel: number
+  publicSlug: string | null
+  referralCode: string | null
+}
+
+/** Full genealogy tree projection returned by GET /drivers/:id/network/genealogy */
+export interface GenealogyProjection {
+  rootDriver: GenealogyProjectionRootDriver
+  stats: GenealogyProjectionStats
+  nodes: GenealogyProjectionNode[]
+  edges: GenealogyProjectionEdge[]
+  levels: GenealogyProjectionLevel[]
+  metrics: GenealogyProjectionMetrics
+}
+
+// ─── Genealogy (backend-resolved) ──────────────────────────────────────────
+
 export interface Genealogy {
   /** The current actor. */
   me: NetworkActor
@@ -54,6 +124,9 @@ export interface Genealogy {
   /** Operational owner — the driver who operationally owns this passenger
    *  (null for drivers, or for orphan passengers awaiting allocation). */
   operationalOwner: NetworkDriverActor | null
+  /** Full flat-graph projection from BuildGenealogyProjectionService.
+   *  Populated by fetchGenealogyProjection(). Absent when not yet loaded. */
+  tree?: GenealogyProjection | null
 }
 
 export interface GenealogyNode {

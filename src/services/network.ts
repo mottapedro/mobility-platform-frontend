@@ -11,6 +11,7 @@ import type {
   ActorType,
   FlowType,
   Genealogy,
+  GenealogyProjection,
   NetworkContext,
   NetworkMetrics,
   NetworkCapabilityContext,
@@ -137,4 +138,23 @@ export async function fetchNetworkContext(
   }
   // Legacy / already-shaped response (backward compat).
   return raw as NetworkContext
+}
+
+/**
+ * Fetch the flat genealogy tree projection for a root driver.
+ *
+ * Backend contract: GET /drivers/:id/network/genealogy?maxDepth={n}
+ * Returns the full BFS-projected graph: nodes / edges / levels / metrics.
+ *
+ * Frontend MUST NOT re-derive business logic from the projection —
+ * render it as-is for tree visualisation.
+ */
+export async function fetchGenealogyProjection(
+  driverId: string,
+  options: { maxDepth?: number } = {},
+): Promise<GenealogyProjection> {
+  const base = `/drivers/${encodeURIComponent(driverId)}/network/genealogy`
+  const url =
+    options.maxDepth !== undefined ? `${base}?maxDepth=${options.maxDepth}` : base
+  return apiRequest<GenealogyProjection>(url)
 }
