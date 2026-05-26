@@ -131,7 +131,9 @@ export interface OnboardingContext {
   flowType: FlowType
   /** Which actor type the new registrant is expected to be. */
   expectedActor: ActorType
-  invite: OnboardingInvite
+  /** Backend must always populate invite on a 200. Typed nullable here
+   *  for defensive rendering — treat null as "not found". */
+  invite: OnboardingInvite | null
   /** Root driver context — when present the registrant joins this driver's
    *  operational network. */
   rootDriver: RootDriverContext | null
