@@ -39,7 +39,10 @@ export default function DriverNetworkPage() {
     <div className="mx-auto max-w-lg">
       {/* Referral share card — operational complement, not part of NetworkContext. */}
       <div className="mb-6">
-        <DriverReferralCard />
+        <DriverReferralCard
+          d2pUrl={context?.inviteUrls?.driverToPassenger}
+          d2dUrl={context?.inviteUrls?.driverToDriver}
+        />
       </div>
 
       {/* Header */}

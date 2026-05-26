@@ -88,6 +88,13 @@ export interface NetworkContext {
   rootDriver: NetworkDriverActor | null
   genealogy: Genealogy
   networkMetrics: NetworkMetrics
+  /** Backend-governed invite URLs for each expansion channel.
+   *  Frontend MUST NOT construct these — consume exactly as returned.
+   *  Absent until the backend publishes GET /drivers/me/invites. */
+  inviteUrls?: {
+    driverToPassenger?: string | null
+    driverToDriver?: string | null
+  } | null
 }
 
 // ─── Onboarding context (GET /onboarding/context) ──────────────────────────
