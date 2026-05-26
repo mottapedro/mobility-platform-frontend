@@ -42,6 +42,7 @@ export default function DriverNetworkPage() {
         <DriverReferralCard
           d2pUrl={context?.inviteUrls?.driverToPassenger}
           d2dUrl={context?.inviteUrls?.driverToDriver}
+          capabilities={context?.capabilities}
         />
       </div>
 

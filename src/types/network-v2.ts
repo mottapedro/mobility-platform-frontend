@@ -76,6 +76,24 @@ export interface NetworkMetrics {
   }
 }
 
+// ─── Capability context (backend-governed) ─────────────────────────────────
+// Frontend MUST NOT infer capabilities. Render exactly what the backend sends.
+// When absent (backend not yet implemented), components fall back to
+// URL-presence heuristic for graceful degradation only.
+
+export interface NetworkCapabilityContext {
+  /** Driver may generate and share passenger invite links. */
+  canInvitePassengers: boolean
+  /** Driver may generate and share driver invite links. */
+  canInviteDrivers: boolean
+  /** Driver is eligible to receive network rewards. */
+  canReceiveRewards: boolean
+  /** Driver may deepen the network (recruit sub-drivers). */
+  canExpandNetwork: boolean
+  /** Domain skill codes active for this driver (e.g. 'COLECIONADOR'). */
+  skillCodes: string[]
+}
+
 // ─── Top-level network context (GET /network/context) ──────────────────────
 
 export interface NetworkContext {
@@ -95,6 +113,10 @@ export interface NetworkContext {
     driverToPassenger?: string | null
     driverToDriver?: string | null
   } | null
+  /** Explicit capability flags for this actor.
+   *  When present, components MUST use these instead of URL-presence inference.
+   *  Absent until the backend implements capability propagation. */
+  capabilities?: NetworkCapabilityContext | null
 }
 
 // ─── Onboarding context (GET /onboarding/context) ──────────────────────────
