@@ -40,6 +40,8 @@ export function useNetworkContext(
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError('Rede não encontrada para este perfil.')
+      } else if (err instanceof ApiError && err.status === 410) {
+        setError('Rede ainda não inicializada. Aguardando ativação pelo backend.')
       } else {
         setError('Não foi possível carregar sua rede agora.')
       }
