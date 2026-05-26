@@ -16,8 +16,8 @@ interface DriverReferralCardProps {
    *  GET /drivers/me/invites is available. */
   d2pUrl?: string | null
   /** D2D invite URL from backend (GET /network/context → inviteUrls.driverToDriver).
-   *  Card renders in disabled/pending state when absent. Frontend MUST NOT
-   *  construct this URL — it depends on backend-governed invite semantics. */
+   *  Falls back to /r/{publicSlug} when absent — temporary until
+   *  GET /drivers/me/invites provides a distinct D2D URL. */
   d2dUrl?: string | null
   /** Explicit capability flags from backend (NetworkContext.capabilities).
    *  When present, these govern render behaviour instead of URL-presence inference.
@@ -40,11 +40,16 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
 
   // Capability resolution: explicit flags win over URL-presence heuristic.
   const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : (!!d2pUrl || !!user.publicSlug)
-  const d2dEnabled = capabilities != null ? capabilities.canInviteDrivers : !!d2dUrl
+  const d2dEnabled = capabilities != null ? capabilities.canInviteDrivers : (!!d2dUrl || !!user.publicSlug)
 
-  // D2P: use backend URL when provided, fall back to /r/{slug}
+  // D2P: backend URL → /r/{slug} fallback
   const resolvedD2pUrl = d2pUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
   const displayD2pUrl = d2pUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
+
+  // D2D: backend URL → /r/{slug} fallback (temporary until GET /drivers/me/invites is ready).
+  // Same slug as D2P for now; backend will provide a distinct D2D URL when implemented.
+  const resolvedD2dUrl = d2dUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
+  const displayD2dUrl = d2dUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
 
   const avatar = avatarLabel(user.name)
 
@@ -69,9 +74,9 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
           eyebrow="Expandir rede · D2D"
           title="Convidar Motoristas"
           description="Amplie sua rede operacional convidando motoristas para a plataforma Aliado."
-          displayUrl={d2dUrl ?? '/convite/motorista'}
-          fullUrl={d2dUrl ?? ''}
-          whatsappText={d2dUrl ? `Faça parte da minha rede operacional Aliado\n${d2dUrl}` : ''}
+          displayUrl={displayD2dUrl ?? '/convite/motorista'}
+          fullUrl={resolvedD2dUrl ?? ''}
+          whatsappText={resolvedD2dUrl ? `Seja um motorista Aliado na minha rede\n${resolvedD2dUrl}` : ''}
           avatarLabel={avatar}
           disabled={!d2dEnabled}
         />
