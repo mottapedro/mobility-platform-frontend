@@ -30,7 +30,7 @@ describe('fetchOnboardingContext', () => {
       const ctx = await fetchOnboardingContext({ slug: 'pedro-motta' })
       expect(ctx).toBe(onboardingContextFixtures.DRIVER_TO_PASSENGER)
       expect(ctx.expectedActor).toBe('passenger')
-      expect(ctx.invite.displayLabel).toBeTruthy()
+      expect(ctx.invite?.displayLabel).toBeTruthy()
     })
 
     it('returns PASSENGER_TO_PASSENGER fixture when slug hints p2p', async () => {
