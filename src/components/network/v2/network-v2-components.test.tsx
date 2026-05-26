@@ -277,10 +277,10 @@ describe('V2 components (network/v2)', () => {
   }
 
   describe('ProjectionTree', () => {
-    it('renders level group headers for each BFS depth', () => {
+    it('renders tree nodes for each BFS depth', () => {
       render(<ProjectionTree projection={projectionFixture} />)
-      expect(screen.getByTestId('level-header-0')).toBeInTheDocument()
-      expect(screen.getByTestId('level-header-1')).toBeInTheDocument()
+      expect(screen.getAllByTestId('tree-node-depth-0')).toHaveLength(1)
+      expect(screen.getAllByTestId('tree-node-depth-1')).toHaveLength(2)
     })
 
     it('renders a row for each node with its display name', () => {

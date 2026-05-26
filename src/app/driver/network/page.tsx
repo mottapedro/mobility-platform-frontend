@@ -68,7 +68,7 @@ export default function DriverNetworkPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#F5ECD8]">Minha Rede</h1>
-          <p className="mt-1 text-sm text-[#9A7D5A]">Genealogia e operação</p>
+          <p className="mt-1 text-sm text-[#9A7D5A]">Painel de influência operacional</p>
         </div>
         {context && !loading && (
           <button
