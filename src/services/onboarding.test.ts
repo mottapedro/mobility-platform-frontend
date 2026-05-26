@@ -30,7 +30,7 @@ describe('fetchOnboardingContext', () => {
       const ctx = await fetchOnboardingContext({ slug: 'pedro-motta' })
       expect(ctx).toBe(onboardingContextFixtures.DRIVER_TO_PASSENGER)
       expect(ctx.expectedActor).toBe('passenger')
-      expect(ctx.invite.displayLabel).toBeTruthy()
+      expect(ctx.invite?.displayLabel).toBeTruthy()
     })
 
     it('returns PASSENGER_TO_PASSENGER fixture when slug hints p2p', async () => {
@@ -57,7 +57,7 @@ describe('fetchOnboardingContext', () => {
       delete process.env.NEXT_PUBLIC_USE_MOCK_NETWORK
     })
 
-    it('calls GET /onboarding/context with slug query param', async () => {
+    it('calls GET /onboarding/context/:slug as path param', async () => {
       const expected = onboardingContextFixtures.DRIVER_TO_PASSENGER
       const fetchMock = jest.fn().mockResolvedValue({
         ok: true,
@@ -69,12 +69,12 @@ describe('fetchOnboardingContext', () => {
 
       expect(fetchMock).toHaveBeenCalledTimes(1)
       const url = fetchMock.mock.calls[0][0] as string
-      expect(url).toContain('/onboarding/context')
-      expect(url).toContain('slug=pedro-motta')
+      expect(url).toContain('/onboarding/context/pedro-motta')
+      expect(url).not.toContain('slug=')
       expect(ctx).toEqual(expected)
     })
 
-    it('calls GET /onboarding/context with token query param', async () => {
+    it('calls GET /onboarding/context?token=... for opaque tokens', async () => {
       const expected = onboardingContextFixtures.DRIVER_TO_DRIVER
       const fetchMock = jest.fn().mockResolvedValue({
         ok: true,
@@ -86,6 +86,7 @@ describe('fetchOnboardingContext', () => {
 
       const url = fetchMock.mock.calls[0][0] as string
       expect(url).toContain('token=abc-123')
+      expect(url).not.toContain('/onboarding/context/abc-123')
     })
   })
 })

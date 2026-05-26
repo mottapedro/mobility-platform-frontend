@@ -47,13 +47,13 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
   // Backend is the source of truth. The frontend NEVER infers flowType,
   // expectedActor, ownership or genealogy from the URL slug or storage.
   const normalizedSlug = normalizeReferralCode(referralSlug)
-  const initialReferralCode = onboarding?.invite.code ?? normalizedSlug
+  const initialReferralCode = onboarding?.invite?.code ?? normalizedSlug
 
   // Allow runtime invalidation when the backend rejects the referral on
   // submit. We never read/write referral state from localStorage.
   const [referralCleared, setReferralCleared] = useState(false)
   const activeReferralCode = referralCleared ? '' : initialReferralCode
-  const inviteLabel = referralCleared ? '' : onboarding?.invite.displayLabel ?? ''
+  const inviteLabel = referralCleared ? '' : onboarding?.invite?.displayLabel ?? ''
   const inviteActive = activeReferralCode.length > 0
 
   // When the backend governs the onboarding context, expectedActor locks

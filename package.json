@@ -40,13 +40,13 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^8.57.0",
+    "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "next-router-mock": "^1.0.5",
     "tailwindcss": "^4",
-    "ts-jest": "^29.4.11",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^6"
   }

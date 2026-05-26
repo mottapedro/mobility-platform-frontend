@@ -24,7 +24,9 @@ async function loadOnboarding(slug: string): Promise<OnboardingContext | null> {
   try {
     return await fetchOnboardingContext({ slug })
   } catch (err) {
-    if (err instanceof ApiError && err.status === 404) return null
+    // Treat any backend error (404, 500, network) as "not found" — render
+    // NotFoundView rather than crashing the Server Component.
+    if (err instanceof ApiError) return null
     throw err
   }
 }
@@ -71,7 +73,8 @@ export default async function DriverReferralLandingPage(props: DriverReferralLan
   const originPassengerId = searchParams.originPassengerId
 
   const onboarding = await loadOnboarding(slug)
-  if (!onboarding) {
+  // Backend must always return invite; if absent, treat as not-found
+  if (!onboarding || !onboarding.invite) {
     return <NotFoundView slug={slug} originPassengerId={originPassengerId} />
   }
 

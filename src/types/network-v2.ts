@@ -88,6 +88,13 @@ export interface NetworkContext {
   rootDriver: NetworkDriverActor | null
   genealogy: Genealogy
   networkMetrics: NetworkMetrics
+  /** Backend-governed invite URLs for each expansion channel.
+   *  Frontend MUST NOT construct these — consume exactly as returned.
+   *  Absent until the backend publishes GET /drivers/me/invites. */
+  inviteUrls?: {
+    driverToPassenger?: string | null
+    driverToDriver?: string | null
+  } | null
 }
 
 // ─── Onboarding context (GET /onboarding/context) ──────────────────────────
@@ -124,7 +131,9 @@ export interface OnboardingContext {
   flowType: FlowType
   /** Which actor type the new registrant is expected to be. */
   expectedActor: ActorType
-  invite: OnboardingInvite
+  /** Backend must always populate invite on a 200. Typed nullable here
+   *  for defensive rendering — treat null as "not found". */
+  invite: OnboardingInvite | null
   /** Root driver context — when present the registrant joins this driver's
    *  operational network. */
   rootDriver: RootDriverContext | null

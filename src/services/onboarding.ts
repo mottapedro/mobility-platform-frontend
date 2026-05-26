@@ -22,7 +22,10 @@ export interface FetchOnboardingContextParams {
 /**
  * Fetch the onboarding context.
  *
- * Backend contract: GET /onboarding/context?slug=... OR ?token=...
+ * Backend contract:
+ *   - Public slug (resource identity): GET /onboarding/context/:slug
+ *   - Opaque token (deep link):        GET /onboarding/context?token=...
+ *
  * Auth: anonymous (this is the pre-registration step).
  *
  * At least one of `slug` or `token` must be provided.
@@ -36,8 +39,8 @@ export async function fetchOnboardingContext(
   if (shouldUseMock()) {
     return Promise.resolve(pickOnboardingFixtureForSlugOrToken(params))
   }
-  const qs = new URLSearchParams()
-  if (params.slug) qs.set('slug', params.slug)
-  if (params.token) qs.set('token', params.token)
-  return apiRequest<OnboardingContext>(`/onboarding/context?${qs.toString()}`)
+  if (params.slug) {
+    return apiRequest<OnboardingContext>(`/onboarding/context/${encodeURIComponent(params.slug)}`)
+  }
+  return apiRequest<OnboardingContext>(`/onboarding/context?token=${encodeURIComponent(params.token!)}`)
 }
