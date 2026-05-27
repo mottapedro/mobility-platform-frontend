@@ -47,17 +47,15 @@ function ReferralMeta({ referral }: { referral: PassengerNetworkReferral }) {
 function mapPassengerNode(
   node: PassengerNetworkHierarchy['me'] | NonNullable<PassengerNetworkHierarchy['referredBy']>,
   referralsById: Map<string, PassengerNetworkReferral>,
-  fallbackDepth = 0,
 ): NetworkNode {
   const maybeReferrals = 'referrals' in node && Array.isArray(node.referrals) ? node.referrals : []
   const referral = referralsById.get(node.id)
-  const depth = node.networkLevel ?? fallbackDepth
 
   return {
     id: node.id,
     name: node.name,
-    depth,
-    referrals: maybeReferrals.map((child) => mapPassengerNode(child, referralsById, depth + 1)),
+    depth: Number(node.networkLevel ?? 0),
+    referrals: maybeReferrals.map((child) => mapPassengerNode(child, referralsById)),
     meta: referral ? <ReferralMeta referral={referral} /> : null,
   }
 }
@@ -169,9 +167,9 @@ export function PassengerNetworkTree({
     }
 
     return {
-      me: mapPassengerNode(hierarchy.me, referralsById, 0),
-      referredBy: hierarchy.referredBy ? mapPassengerNode(hierarchy.referredBy, referralsById, -1) : null,
-      referrals: hierarchy.referrals.map((node) => mapPassengerNode(node, referralsById, node.networkLevel ?? 1)),
+      me: mapPassengerNode(hierarchy.me, referralsById),
+      referredBy: hierarchy.referredBy ? mapPassengerNode(hierarchy.referredBy, referralsById) : null,
+      referrals: hierarchy.referrals.map((node) => mapPassengerNode(node, referralsById)),
       totalItems: hierarchy.totalPassengers,
       maxDepth: hierarchy.maxDepth,
     }
