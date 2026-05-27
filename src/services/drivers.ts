@@ -1,6 +1,7 @@
 import { API_URL } from '../config/api'
 import { apiRequest } from './api'
 import type { DriverNetwork, DriverNetworkHierarchy, DriverNetworkPassenger, DriverOffer, DriverRide } from '../types'
+import { assertDriverId } from '../utils/driverId'
 
 export interface DriverSummary {
   id: string
@@ -133,11 +134,13 @@ export async function getDriverByReferralSlug(slug: string): Promise<DriverRefer
 }
 
 export async function getDriverOffers(driverId: string): Promise<DriverOffer[]> {
-  return apiRequest<DriverOffer[]>(`/drivers/${driverId}/offers`)
+  const safeDriverId = assertDriverId(driverId)
+  return apiRequest<DriverOffer[]>(`/drivers/${safeDriverId}/offers`)
 }
 
 export async function getDriverRides(driverId: string): Promise<DriverRide[]> {
-  return apiRequest<DriverRide[]>(`/drivers/${driverId}/rides`)
+  const safeDriverId = assertDriverId(driverId)
+  return apiRequest<DriverRide[]>(`/drivers/${safeDriverId}/rides`)
 }
 
 /**
@@ -173,7 +176,8 @@ function normalizeDriverNetwork(raw: unknown): DriverNetwork {
 }
 
 export async function getDriverNetwork(driverId: string): Promise<DriverNetwork> {
-  const raw = await apiRequest<unknown>(`/drivers/${driverId}/network`)
+  const safeDriverId = assertDriverId(driverId)
+  const raw = await apiRequest<unknown>(`/drivers/${safeDriverId}/network`)
   const normalized = normalizeDriverNetwork(raw)
   if (process.env.NODE_ENV !== 'production') {
     console.debug('[getDriverNetwork] raw:', raw, '→ normalized:', normalized)
@@ -182,5 +186,6 @@ export async function getDriverNetwork(driverId: string): Promise<DriverNetwork>
 }
 
 export async function getDriverNetworkHierarchy(driverId: string): Promise<DriverNetworkHierarchy> {
-  return apiRequest<DriverNetworkHierarchy>(`/drivers/${driverId}/network/hierarchy`)
+  const safeDriverId = assertDriverId(driverId)
+  return apiRequest<DriverNetworkHierarchy>(`/drivers/${safeDriverId}/network/hierarchy`)
 }

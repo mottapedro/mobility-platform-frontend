@@ -6,26 +6,34 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useOffers } from '../../../hooks/useOffers'
 import { respondOffer } from '../../../services/rides'
 import { Countdown } from '../../../components/driver/Countdown'
+import { useOperationalDomain } from '../../../contexts/domains/OperationalDomainProvider'
 import type { DriverOffer, RideContext, RegionalContext } from '../../../types'
+import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
 export default function DriverOffersPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { activation } = useOperationalDomain()
   const [driverId, setDriverId] = useState<string | null>(null)
   const [responding, setResponding] = useState<string | null>(null)
   const [respondError, setRespondError] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    const id =
-      user?.driverId ??
-      localStorage.getItem('driverId') ??
-      null
-    console.log('[DriverOffersPage] driverId resolved:', id, '| user:', user)
+    const id = resolveDriverId(user?.driverId, readStoredDriverId())
+    if (!id && process.env.NODE_ENV !== 'production') {
+      console.debug({
+        scope: 'offers',
+        event: 'offers_context_disabled',
+        route: '/driver/offers',
+      })
+    }
     setDriverId(id)
   }, [user])
 
-  const { offers, loading, error } = useOffers(driverId)
+  const { offers, loading, error } = useOffers(driverId, {
+    enabled: activation.enabled,
+  })
 
   async function handleRespond(offerId: string, accept: boolean) {
     setResponding(offerId)

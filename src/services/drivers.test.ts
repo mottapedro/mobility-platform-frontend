@@ -2,10 +2,20 @@ import {
   buildDriverSlug,
   findDriverByReferralSlug,
   formatDriverPhone,
+  getDriverOffers,
+  getDriverRides,
   getRegionLabelFromSlug,
   toDriverReferralProfile,
   type DriverSummary,
 } from './drivers'
+
+jest.mock('./api', () => ({
+  apiRequest: jest.fn(),
+}))
+
+import { apiRequest } from './api'
+
+const mockApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>
 
 describe('drivers referral helpers', () => {
   const drivers: DriverSummary[] = [
@@ -34,5 +44,29 @@ describe('drivers referral helpers', () => {
   it('formats phone numbers and unknown regions safely', () => {
     expect(formatDriverPhone('21900000001')).toBe('(21) 90000-0001')
     expect(getRegionLabelFromSlug('pedro-motta')).toBe('Atendimento sob consulta')
+  })
+})
+
+describe('driver scoped service guards', () => {
+  beforeEach(() => {
+    mockApiRequest.mockReset()
+  })
+
+  it('throws when getDriverOffers receives invalid driverId', async () => {
+    await expect(getDriverOffers('undefined')).rejects.toThrow('driverId ausente')
+    expect(mockApiRequest).not.toHaveBeenCalled()
+  })
+
+  it('throws when getDriverRides receives invalid driverId', async () => {
+    await expect(getDriverRides('   ')).rejects.toThrow('driverId ausente')
+    expect(mockApiRequest).not.toHaveBeenCalled()
+  })
+
+  it('uses sanitized id in getDriverOffers endpoint', async () => {
+    mockApiRequest.mockResolvedValue([])
+
+    await getDriverOffers(' drv_1 ')
+
+    expect(mockApiRequest).toHaveBeenCalledWith('/drivers/drv_1/offers')
   })
 })

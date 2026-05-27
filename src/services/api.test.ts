@@ -116,4 +116,13 @@ describe('api.get — auto token injection from localStorage', () => {
       }),
     )
   })
+
+  it('does not send x-driver-id when localStorage has an invalid driverId', async () => {
+    localStorage.setItem('driverId', 'undefined')
+
+    await api.get('/drivers/d1/network')
+
+    const callHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers
+    expect(callHeaders).not.toHaveProperty('x-driver-id')
+  })
 })
