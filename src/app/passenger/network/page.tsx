@@ -12,6 +12,7 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { NetworkExperience } from '../../../components/network/v2/NetworkExperience'
 import { PassengerReferralCard } from '../../../components/passenger/PassengerReferralCard'
+import { useRelationshipDomain } from '../../../contexts/domains/RelationshipDomainProvider'
 
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] ${className}`} />
@@ -20,6 +21,7 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
 export default function PassengerNetworkPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { activation } = useRelationshipDomain()
   const [passengerId, setPassengerId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export default function PassengerNetworkPage() {
   const { context, loading, error, refresh } = useNetworkContext({
     actorId: passengerId,
     actorType: 'passenger',
+    enabled: activation.enabled,
   })
 
   // Referral code from auth payload (BE-issued). NetworkContext currently

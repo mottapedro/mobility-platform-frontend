@@ -13,6 +13,7 @@ import type { ActorType, NetworkContext } from '../types/network-v2'
 interface UseNetworkContextParams {
   actorId: string | null
   actorType: ActorType | null
+  enabled?: boolean
 }
 
 interface UseNetworkContextResult {
@@ -25,13 +26,16 @@ interface UseNetworkContextResult {
 export function useNetworkContext(
   params: UseNetworkContextParams,
 ): UseNetworkContextResult {
-  const { actorId, actorType } = params
+  const { actorId, actorType, enabled = true } = params
   const [context, setContext] = useState<NetworkContext | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!actorId || !actorType) return
+    if (!enabled || !actorId || !actorType) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -48,19 +52,25 @@ export function useNetworkContext(
     } finally {
       setLoading(false)
     }
-  }, [actorId, actorType])
+  }, [actorId, actorType, enabled])
 
   useEffect(() => {
+    if (!enabled) {
+      setContext(null)
+      setError(null)
+      setLoading(false)
+      return
+    }
     load()
-  }, [load])
+  }, [enabled, load])
 
   // Re-fetch on window focus so the actor sees newly-joined network members.
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (!enabled || typeof window === 'undefined') return
     const onFocus = () => { load() }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
-  }, [load])
+  }, [enabled, load])
 
   return { context, loading, error, refresh: load }
 }

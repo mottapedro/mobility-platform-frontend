@@ -13,6 +13,7 @@ import type { GenealogyProjection } from '../types/network-v2'
 interface UseGenealogyProjectionParams {
   driverId: string | null
   maxDepth?: number
+  enabled?: boolean
 }
 
 interface UseGenealogyProjectionResult {
@@ -25,13 +26,16 @@ interface UseGenealogyProjectionResult {
 export function useGenealogyProjection(
   params: UseGenealogyProjectionParams,
 ): UseGenealogyProjectionResult {
-  const { driverId, maxDepth } = params
+  const { driverId, maxDepth, enabled = true } = params
   const [projection, setProjection] = useState<GenealogyProjection | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!driverId) return
+    if (!enabled || !driverId) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -46,11 +50,17 @@ export function useGenealogyProjection(
     } finally {
       setLoading(false)
     }
-  }, [driverId, maxDepth])
+  }, [driverId, enabled, maxDepth])
 
   useEffect(() => {
+    if (!enabled) {
+      setProjection(null)
+      setError(null)
+      setLoading(false)
+      return
+    }
     load()
-  }, [load])
+  }, [enabled, load])
 
   return { projection, loading, error, refresh: load }
 }

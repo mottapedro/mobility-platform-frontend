@@ -1,43 +1,13 @@
 ﻿'use client'
 
-import { useEffect, useState } from 'react'
-import { useAuth } from '../../../contexts/AuthContext'
-import { useNetworkContext } from '../../../hooks/useNetworkContext'
+import { useEconomicDomain } from '../../../contexts/domains/EconomicDomainProvider'
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 export default function DriverGanhosPage() {
-  const { user } = useAuth()
-  const [driverId, setDriverId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('driverId')
-  })
-
-  useEffect(() => {
-    const id =
-      user?.driverId ??
-      (typeof window !== 'undefined' ? localStorage.getItem('driverId') : null) ??
-      null
-    setDriverId(id)
-  }, [user])
-
-  const { context, loading, error } = useNetworkContext({
-    actorId: driverId,
-    actorType: 'driver',
-  })
-
-  const metrics = context?.networkMetrics ?? null
-  // totalActors = drivers + passengers; activeCount = drivers only.
-  // passengers = totalActors − activeCount.
-  const stats = metrics
-    ? {
-        passengers: (metrics.totalActors ?? 0) - (metrics.activeCount ?? 0),
-        rides: metrics.ridesFromNetwork ?? 0,
-        revenue: metrics.estimatedRevenue ?? 0,
-      }
-    : null
+  const { activation, snapshot: stats, loading, error } = useEconomicDomain()
 
   return (
     <div className="mx-auto max-w-lg">
@@ -95,9 +65,13 @@ export default function DriverGanhosPage() {
       {!loading && !stats && !error && (
         <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
           <p className="mb-2 text-3xl">💰</p>
-          <p className="font-semibold text-[#F5ECD8]">Nenhum dado ainda</p>
+          <p className="font-semibold text-[#F5ECD8]">
+            {activation.enabled ? 'Nenhum dado ainda' : 'Ativando módulo econômico'}
+          </p>
           <p className="mt-1 text-sm text-[#9A7D5A]">
-            Seus ganhos aparecerão aqui conforme sua rede cresce.
+            {activation.enabled
+              ? 'Seus ganhos aparecerão aqui conforme sua rede cresce.'
+              : 'Aguardando identidade e ciclo de ativação para carregar seus ganhos.'}
           </p>
         </div>
       )}
