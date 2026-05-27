@@ -10,6 +10,7 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   modulePathIgnorePatterns: ['<rootDir>/next.config.ts'],
+  testPathIgnorePatterns: ['<rootDir>/e2e/'],
 }
 
 export default createJestConfig(config)

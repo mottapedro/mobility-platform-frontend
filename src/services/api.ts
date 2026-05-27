@@ -1,4 +1,5 @@
 import { API_URL } from '../config/api'
+import { sanitizeDriverId } from '../utils/driverId'
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -21,8 +22,9 @@ export async function apiRequest<T>(
   const token =
     options.token ??
     (typeof window !== 'undefined' ? (localStorage.getItem('aliado:token') ?? undefined) : undefined)
-  const driverId =
-    typeof window !== 'undefined' ? (localStorage.getItem('driverId') ?? undefined) : undefined
+  const driverId = sanitizeDriverId(
+    typeof window !== 'undefined' ? localStorage.getItem('driverId') : null,
+  )
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     method,

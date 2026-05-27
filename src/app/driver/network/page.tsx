@@ -13,6 +13,8 @@ import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { useGenealogyProjection } from '../../../hooks/useGenealogyProjection'
 import { NetworkExperience } from '../../../components/network/v2/NetworkExperience'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
+import { useRelationshipDomain } from '../../../contexts/domains/RelationshipDomainProvider'
+import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] ${className}`} />
@@ -21,27 +23,28 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
 export default function DriverNetworkPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { activation } = useRelationshipDomain()
   // Lazy initialiser reads from localStorage on first render so useNetworkContext
   // fires immediately with a real actorId instead of null.
   const [driverId, setDriverId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('driverId')
+    return readStoredDriverId()
   })
 
   useEffect(() => {
-    const id =
-      user?.driverId ??
-      (typeof window !== 'undefined' ? localStorage.getItem('driverId') : null) ??
-      null
+    const id = resolveDriverId(user?.driverId, readStoredDriverId())
     setDriverId(id)
   }, [user])
 
   const { context, loading, error, refresh } = useNetworkContext({
     actorId: driverId,
     actorType: 'driver',
+    enabled: activation.enabled,
   })
 
-  const { projection } = useGenealogyProjection({ driverId })
+  const { projection } = useGenealogyProjection({
+    driverId,
+    enabled: activation.enabled,
+  })
 
   // Augment context with genealogy projection data when both are available.
   // Creates a new object — never mutates hook state.

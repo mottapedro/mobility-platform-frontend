@@ -59,6 +59,11 @@ export interface GenealogyProjectionNode {
   networkLevel: number
   isActive?: boolean
   createdAt: string
+  territory?: {
+    region?: string | null
+    city?: string | null
+    operationalZone?: string | null
+  } | null
 }
 
 export interface GenealogyProjectionEdge {
@@ -108,6 +113,56 @@ export interface GenealogyProjection {
   edges: GenealogyProjectionEdge[]
   levels: GenealogyProjectionLevel[]
   metrics: GenealogyProjectionMetrics
+}
+
+// ─── Executive Network View Model (frontend-only) ─────────────────────────
+// Built by buildExecutiveTree() from GenealogyProjection.
+// NEVER sent by the backend — this is a derived presentation layer type.
+
+export type InfluenceTier =
+  | 'ROOT'
+  | 'ELITE'
+  | 'HUB'
+  | 'EXPANSION'
+  | 'OPERATIONAL'
+  | 'BEGINNER'
+  | 'CLIENT'
+
+export type NodeTier = 'root' | 'leader' | 'operator' | 'client'
+
+/**
+ * Frontend view-model built by buildExecutiveTree().
+ * Carries derived tier, influence classification, recursive children,
+ * and stub metric slots that populate automatically when the backend ships
+ * per-node metrics (Phase 3).
+ */
+export interface ExecutiveGenealogyNode {
+  actorId: string
+  actorType: 'DRIVER' | 'PASSENGER'
+  name: string
+  level: number
+  flowType: string
+  parentId: string | null
+  tier: NodeTier
+  isHub: boolean
+  influenceTier: InfluenceTier
+  children: ExecutiveGenealogyNode[]
+  metrics: {
+    activePassengers: number
+    activeDrivers: number
+    completedRides: number
+    estimatedRevenueCents: number
+    networkDepth: number
+  }
+  ownership?: {
+    rootDriverId?: string
+    influenceScore?: number
+  }
+  territory?: {
+    region?: string | null
+    city?: string | null
+    operationalZone?: string | null
+  } | null
 }
 
 // ─── Genealogy (backend-resolved) ──────────────────────────────────────────

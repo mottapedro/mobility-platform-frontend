@@ -2,52 +2,96 @@
 
 import type { FC } from 'react'
 import type { NetworkActor } from '@/types/network-v2'
-import { Avatar, Card, EmptyState, SectionTitle } from '@/design-system'
+import { Avatar, EmptyState, SectionTitle } from '@/design-system'
+import { ClusterGroup } from './ClusterGroup'
 
 export interface LateralNetworkProps {
   lateral: NetworkActor[]
   className?: string
 }
 
+// ─── Actor row ────────────────────────────────────────────────────────────
+
+const LateralActorRow: FC<{ actor: NetworkActor; isDriver: boolean }> = ({
+  actor,
+  isDriver,
+}) => {
+  const fallback = actor.name?.[0]?.toUpperCase() ?? '?'
+  return (
+    <div
+      data-testid="lateral-actor"
+      className={[
+        'flex items-center gap-3 rounded-xl border px-3 py-2',
+        isDriver
+          ? 'border-[#2E1A08] bg-[#0F0903]'
+          : 'border-[#1E1208] bg-[#0B0600]',
+      ].join(' ')}
+    >
+      <Avatar size={isDriver ? 36 : 30} fallback={fallback} alt={actor.name} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className={`truncate text-sm font-medium ${isDriver ? 'text-[#F5ECD8]' : 'text-[#C8A87A]'}`}>
+          {actor.name}
+        </span>
+        <span className="text-xs text-[#9A7D5A]">
+          {isDriver ? 'Motorista' : 'Passageiro'}
+          {actor.region ? ` · ${actor.region}` : ''}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────
+
 /**
  * ALIADO Nacional V2 — lateral / sibling actors view.
- * Renders peers sitting under the same parent in the genealogy.
+ * Groups peers by actor type using ClusterGroup containers.
  */
 export const LateralNetwork: FC<LateralNetworkProps> = ({
   lateral,
   className = '',
 }) => {
-  const hasLateral = lateral.length > 0
+  const driverLateral    = lateral.filter(a => a.actorType === 'driver')
+  const passengerLateral = lateral.filter(a => a.actorType === 'passenger')
+  const hasLateral       = lateral.length > 0
+
   return (
     <section
       data-testid="lateral-network"
-      className={`flex flex-col gap-3 ${className}`}
+      className={`flex flex-col gap-4 ${className}`}
     >
       <SectionTitle>Rede lateral</SectionTitle>
+
       {hasLateral ? (
-        <Card className="divide-y divide-[#2E1A08] px-4">
-          {lateral.map(actor => {
-            const fallback = actor.name?.[0]?.toUpperCase() ?? '?'
-            return (
-              <div
-                key={actor.id}
-                className="flex items-center gap-3 py-3"
-                data-testid="lateral-actor"
-              >
-                <Avatar size={36} fallback={fallback} alt={actor.name} />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-semibold text-[#F5ECD8]">
-                    {actor.name}
-                  </span>
-                  <span className="text-xs text-[#9A7D5A]">
-                    {actor.actorType === 'driver' ? 'Motorista' : 'Passageiro'}
-                    {actor.region ? ` · ${actor.region}` : ''}
-                  </span>
-                </div>
+        <div className="flex flex-col gap-5">
+          {driverLateral.length > 0 && (
+            <ClusterGroup
+              variant="driver"
+              count={driverLateral.length}
+              label="MOTORISTAS LATERAIS"
+            >
+              <div className="flex flex-col gap-2">
+                {driverLateral.map(actor => (
+                  <LateralActorRow key={actor.id} actor={actor} isDriver />
+                ))}
               </div>
-            )
-          })}
-        </Card>
+            </ClusterGroup>
+          )}
+
+          {passengerLateral.length > 0 && (
+            <ClusterGroup
+              variant="passenger"
+              count={passengerLateral.length}
+              label="PASSAGEIROS LATERAIS"
+            >
+              <div className="flex flex-col gap-2">
+                {passengerLateral.map(actor => (
+                  <LateralActorRow key={actor.id} actor={actor} isDriver={false} />
+                ))}
+              </div>
+            </ClusterGroup>
+          )}
+        </div>
       ) : (
         <EmptyState
           title="Nenhum par lateral"

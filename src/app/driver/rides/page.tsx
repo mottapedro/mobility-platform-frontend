@@ -5,16 +5,14 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverRides } from '../../../hooks/useDriverRides'
 import { updateRide } from '../../../services/rides'
 import type { DriverRide, RideContext } from '../../../types'
+import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
 export default function DriverRidesPage() {
   const { user } = useAuth()
   const [driverId, setDriverId] = useState<string | null>(null)
 
   useEffect(() => {
-    const id =
-      user?.driverId ??
-      (typeof window !== 'undefined' ? localStorage.getItem('driverId') : null) ??
-      null
+    const id = resolveDriverId(user?.driverId, readStoredDriverId())
     setDriverId(id)
   }, [user])
 

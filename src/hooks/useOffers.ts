@@ -4,29 +4,49 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getDriverOffers } from '../services/drivers'
 import { ApiError } from '../services/api'
 import type { DriverOffer } from '../types'
+import { sanitizeDriverId } from '../utils/driverId'
 
 interface UseOffersResult {
   offers: DriverOffer[]
   loading: boolean
   error: string | null
-  refresh: () => void
+  refresh: () => Promise<boolean>
 }
 
-export function useOffers(driverId: string | null): UseOffersResult {
+export function useOffers(
+  driverId: string | null,
+  options?: { enabled?: boolean },
+): UseOffersResult {
   const [offers, setOffers] = useState<DriverOffer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const safeDriverId = sanitizeDriverId(driverId)
+  const enabled = options?.enabled ?? true
+
+  const debug = useCallback((event: string, extra?: Record<string, unknown>) => {
+    if (process.env.NODE_ENV === 'production') return
+    console.debug({
+      scope: 'offers',
+      event,
+      ...extra,
+    })
+  }, [])
 
   const fetchOffers = useCallback(async () => {
-    if (!driverId) return
+    if (!enabled) {
+      debug('offers_fetch_skipped', { reason: 'domain_disabled' })
+      setLoading(false)
+      return false
+    }
+    if (!safeDriverId) {
+      debug('offers_fetch_skipped', { reason: 'missing_or_invalid_driver_id' })
+      setLoading(false)
+      return false
+    }
     try {
-      const data = await getDriverOffers(driverId)
-      console.log('[useOffers] driverId:', driverId)
-      console.log('[useOffers] response:', data)
-      data.forEach((o) =>
-        console.log(`  offer ${o.id} | status: ${o.status} | expiresAt: ${o.expiresAt}`),
-      )
+      const data = await getDriverOffers(safeDriverId)
+      debug('offers_fetch_succeeded', { count: data.length })
       setOffers(data)
       setError(null)
       return true // success
@@ -46,17 +66,31 @@ export function useOffers(driverId: string | null): UseOffersResult {
         }
         setError('Perfil de motorista não encontrado. Faça logout e login novamente.')
       } else {
-        console.error('[useOffers] fetch error:', err)
+        debug('offers_fetch_failed', {
+          reason: 'api_error',
+          message: err instanceof Error ? err.message : 'unknown_error',
+        })
         setError('Erro ao carregar ofertas. Verifique se o backend está rodando.')
       }
       return false // failure
     } finally {
       setLoading(false)
     }
-  }, [driverId])
+  }, [debug, enabled, safeDriverId])
 
   useEffect(() => {
-    if (!driverId) return
+    if (!enabled) {
+      debug('offers_context_disabled', { reason: 'domain_disabled' })
+      setOffers([])
+      setError(null)
+      setLoading(false)
+      return
+    }
+
+    if (!safeDriverId) {
+      debug('offers_context_disabled', { reason: 'missing_or_invalid_driver_id' })
+      return
+    }
 
     setLoading(true)
     // Only start polling after a successful first fetch
@@ -68,7 +102,7 @@ export function useOffers(driverId: string | null): UseOffersResult {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [driverId, fetchOffers])
+  }, [debug, enabled, fetchOffers, safeDriverId])
 
   return { offers, loading, error, refresh: fetchOffers }
 }

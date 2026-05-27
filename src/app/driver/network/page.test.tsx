@@ -1,12 +1,17 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import DriverNetworkPage from './page'
 import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { useAuth } from '../../../contexts/AuthContext'
 import type { NetworkContext } from '../../../types/network-v2'
+import { getDriverOffers, getDriverRides } from '../../../services/drivers'
 
 jest.mock('../../../hooks/useNetworkContext')
 jest.mock('../../../hooks/useGenealogyProjection', () => ({
   useGenealogyProjection: () => ({ projection: null, loading: false, error: null, refresh: jest.fn() }),
+}))
+jest.mock('../../../services/drivers', () => ({
+  getDriverOffers: jest.fn(),
+  getDriverRides: jest.fn(),
 }))
 jest.mock('../../../contexts/AuthContext')
 jest.mock('../../../components/AuthGuard', () => ({
@@ -26,6 +31,8 @@ jest.mock('next/navigation', () => ({
 
 const mockUseNetworkContext = useNetworkContext as jest.MockedFunction<typeof useNetworkContext>
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>
+const mockGetDriverOffers = getDriverOffers as jest.MockedFunction<typeof getDriverOffers>
+const mockGetDriverRides = getDriverRides as jest.MockedFunction<typeof getDriverRides>
 
 const baseAuth = {
   user: { id: 'u1', name: 'Pedro', email: 'p@p.com', role: 'driver' as const, driverId: 'driver-1' },
@@ -73,9 +80,23 @@ const d2dContext: NetworkContext = {
   },
 }
 
+const d2pContext: NetworkContext = {
+  ...d2dContext,
+  flowType: 'DRIVER_TO_PASSENGER',
+  targetActorExpected: 'passenger',
+}
+
 describe('DriverNetworkPage (V2)', () => {
   beforeEach(() => {
+    jest.useFakeTimers()
     mockUseAuth.mockReturnValue(baseAuth)
+    mockGetDriverOffers.mockReset()
+    mockGetDriverRides.mockReset()
+  })
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers()
+    jest.useRealTimers()
   })
 
   it('renders NetworkExperience with backend-governed context', () => {
@@ -132,5 +153,53 @@ describe('DriverNetworkPage (V2)', () => {
 
     render(<DriverNetworkPage />)
     expect(screen.getByText(/Perfil de motorista não encontrado/i)).toBeInTheDocument()
+  })
+
+  it('does not call offers or rides services while switching driver network tabs', async () => {
+    mockUseNetworkContext.mockReturnValue({
+      context: d2dContext,
+      loading: false,
+      error: null,
+      refresh: jest.fn(),
+    })
+
+    render(<DriverNetworkPage />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('network-experience')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Árvore' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lateral' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Social' }))
+
+    jest.advanceTimersByTime(5000)
+
+    expect(mockGetDriverOffers).not.toHaveBeenCalled()
+    expect(mockGetDriverRides).not.toHaveBeenCalled()
+  })
+
+  it('does not call offers or rides services while switching passenger network tabs', async () => {
+    mockUseNetworkContext.mockReturnValue({
+      context: d2pContext,
+      loading: false,
+      error: null,
+      refresh: jest.fn(),
+    })
+
+    render(<DriverNetworkPage />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('network-experience')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Operacional' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lateral' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Social' }))
+
+    jest.advanceTimersByTime(5000)
+
+    expect(mockGetDriverOffers).not.toHaveBeenCalled()
+    expect(mockGetDriverRides).not.toHaveBeenCalled()
   })
 })
