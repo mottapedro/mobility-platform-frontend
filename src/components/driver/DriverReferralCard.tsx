@@ -16,8 +16,7 @@ interface DriverReferralCardProps {
    *  GET /drivers/me/invites is available. */
   d2pUrl?: string | null
   /** D2D invite URL from backend (GET /network/context → inviteUrls.driverToDriver).
-   *  Falls back to /r/{publicSlug} when absent — temporary until
-   *  GET /drivers/me/invites provides a distinct D2D URL. */
+   *  Never falls back to /r/{publicSlug}. */
   d2dUrl?: string | null
   /** Explicit capability flags from backend (NetworkContext.capabilities).
    *  When present, these govern render behaviour instead of URL-presence inference.
@@ -52,9 +51,8 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
 
   // Capability resolution: explicit flags win over heuristics.
   const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : !!resolvedD2pUrl
-  const d2dEnabled = capabilities != null
-    ? capabilities.canInviteDrivers && !!resolvedD2dUrl
-    : !!resolvedD2dUrl
+  const shouldRenderD2dCard = capabilities != null ? capabilities.canInviteDrivers : true
+  const d2dEnabled = shouldRenderD2dCard && !!resolvedD2dUrl
 
   const avatar = avatarLabel(user.name)
 
@@ -74,18 +72,20 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
         </div>
       )}
 
-      <div data-testid="driver-referral-d2d">
-        <ReferralLinkCard
-          eyebrow="Expandir rede · D2D"
-          title="Convidar Motoristas"
-          description="Amplie sua rede operacional convidando motoristas para a plataforma Aliado."
-          displayUrl={displayD2dUrl ?? '/convite/motorista'}
-          fullUrl={resolvedD2dUrl ?? ''}
-          whatsappText={resolvedD2dUrl ? `Seja um motorista Aliado na minha rede\n${resolvedD2dUrl}` : ''}
-          avatarLabel={avatar}
-          disabled={!d2dEnabled}
-        />
-      </div>
+      {shouldRenderD2dCard && (
+        <div data-testid="driver-referral-d2d">
+          <ReferralLinkCard
+            eyebrow="Expandir rede · D2D"
+            title="Convidar Motoristas"
+            description="Amplie sua rede operacional convidando motoristas para a plataforma Aliado."
+            displayUrl={displayD2dUrl ?? '/convite/motorista'}
+            fullUrl={resolvedD2dUrl ?? ''}
+            whatsappText={resolvedD2dUrl ? `Seja um motorista Aliado na minha rede\n${resolvedD2dUrl}` : ''}
+            avatarLabel={avatar}
+            disabled={!d2dEnabled}
+          />
+        </div>
+      )}
     </div>
   )
 }

@@ -128,7 +128,7 @@ describe('capabilities — backend governa quando presente', () => {
   it('desabilita D2D quando capabilities.canInviteDrivers = false (mesmo com publicSlug)', () => {
     setupAuth()
     render(<DriverReferralCard capabilities={caps({ canInviteDrivers: false })} />)
-    expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'true')
+    expect(screen.queryByTestId('referral-card-d2d')).not.toBeInTheDocument()
   })
 
   it('mantém D2D desabilitado quando capabilities.canInviteDrivers = true mas sem d2dUrl', () => {
