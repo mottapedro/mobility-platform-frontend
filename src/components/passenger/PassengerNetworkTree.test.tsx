@@ -25,6 +25,52 @@ const hierarchyWithReferral: PassengerNetworkHierarchy = {
   maxDepth: 1,
 }
 
+const hierarchyWithExplicitLevels: PassengerNetworkHierarchy = {
+  me: {
+    id: PASSENGER_ID,
+    name: PASSENGER_NAME,
+    referralCode: 'alice-teste',
+    networkLevel: 0,
+    referrals: [
+      {
+        id: 'ref-2',
+        name: 'Carol N2',
+        referralCode: null,
+        networkLevel: 2,
+        referrals: [
+          {
+            id: 'ref-3',
+            name: 'Diego N3',
+            referralCode: null,
+            networkLevel: 3,
+            referrals: [],
+          },
+        ],
+      },
+    ],
+  },
+  referredBy: null,
+  referrals: [
+    {
+      id: 'ref-2',
+      name: 'Carol N2',
+      referralCode: null,
+      networkLevel: 2,
+      referrals: [
+        {
+          id: 'ref-3',
+          name: 'Diego N3',
+          referralCode: null,
+          networkLevel: 3,
+          referrals: [],
+        },
+      ],
+    },
+  ],
+  totalPassengers: 2,
+  maxDepth: 3,
+}
+
 const mockNetwork: PassengerNetwork = {
   totalReferrals: 0,
   activeReferrals: 0,
@@ -92,6 +138,24 @@ describe('PassengerNetworkTree — empty state', () => {
 
     expect(screen.queryByTestId('passenger-empty-state')).not.toBeInTheDocument()
     expect(screen.getByText('Bob Referido')).toBeInTheDocument()
+  })
+
+  it('uses backend networkLevel values for depth badges', () => {
+    render(
+      <PassengerNetworkTree
+        passengerId={PASSENGER_ID}
+        passengerName={PASSENGER_NAME}
+        network={mockNetwork}
+        hierarchy={hierarchyWithExplicitLevels}
+        loading={false}
+        error={null}
+      />,
+    )
+
+    expect(screen.getByText('Carol N2')).toBeInTheDocument()
+    expect(screen.getByText('Diego N3')).toBeInTheDocument()
+    expect(screen.getByText('nível 2')).toBeInTheDocument()
+    expect(screen.getByText('nível 3')).toBeInTheDocument()
   })
 
   it('shows error state on failed fetch (real HTTP error)', () => {

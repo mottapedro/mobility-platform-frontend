@@ -49,11 +49,9 @@ export default function DriverOffersPage() {
     }
   }
 
-  const now = new Date()
   const pendingOffers = offers.filter(
     (o) =>
       o.status === 'PENDING' &&
-      new Date(o.expiresAt) > now &&
       !dismissed.has(o.id),
   )
 
@@ -65,7 +63,7 @@ export default function DriverOffersPage() {
           <div>
             <h1 className="text-2xl font-bold text-[#F5ECD8]">Ofertas</h1>
             <p className="mt-1 text-sm text-[#9A7D5A]">
-              Painel do motorista · atualizando a cada 2s
+              Painel do motorista · atualizando a cada 1s
             </p>
           </div>
           <div className="flex items-center gap-2">

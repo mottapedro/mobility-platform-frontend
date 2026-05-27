@@ -53,8 +53,9 @@ const driverToDriverGenealogy: Genealogy = {
     {
       actor: driverChild('drv-d1', 'Maria Souza', 'maria-souza'),
       depth: 1,
+      absoluteDepth: 2,
       children: [
-        { actor: driverChild('drv-d2', 'Ana Lima', 'ana-lima'), depth: 2, children: [] },
+        { actor: driverChild('drv-d2', 'Ana Lima', 'ana-lima'), depth: 2, absoluteDepth: 3, children: [] },
       ],
     },
   ],
@@ -77,8 +78,9 @@ const passengerToPassengerGenealogy: Genealogy = {
     {
       actor: passenger('psg-d1', 'Felipe Reis'),
       depth: 1,
+      absoluteDepth: 2,
       children: [
-        { actor: passenger('psg-d2', 'Carla Nunes'), depth: 2, children: [] },
+        { actor: passenger('psg-d2', 'Carla Nunes'), depth: 2, absoluteDepth: 3, children: [] },
       ],
     },
   ],

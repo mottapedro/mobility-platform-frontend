@@ -16,8 +16,7 @@ interface DriverReferralCardProps {
    *  GET /drivers/me/invites is available. */
   d2pUrl?: string | null
   /** D2D invite URL from backend (GET /network/context → inviteUrls.driverToDriver).
-   *  Falls back to /r/{publicSlug} when absent — temporary until
-   *  GET /drivers/me/invites provides a distinct D2D URL. */
+   *  Never falls back to /r/{publicSlug}. */
   d2dUrl?: string | null
   /** Explicit capability flags from backend (NetworkContext.capabilities).
    *  When present, these govern render behaviour instead of URL-presence inference.
@@ -37,19 +36,23 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
   if (!user.publicSlug && !d2pUrl) return null
 
   const origin = mounted ? window.location.origin : ''
+  const normalizedD2pUrl = d2pUrl?.trim() || null
+  const normalizedD2dUrl = d2dUrl?.trim() || null
 
-  // Capability resolution: explicit flags win over URL-presence heuristic.
-  const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : (!!d2pUrl || !!user.publicSlug)
-  const d2dEnabled = capabilities != null ? capabilities.canInviteDrivers : (!!d2dUrl || !!user.publicSlug)
+  // D2P: backend URL → /r/{slug} fallback.
+  const resolvedD2pUrl = normalizedD2pUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
+  const displayD2pUrl = normalizedD2pUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
 
-  // D2P: backend URL → /r/{slug} fallback
-  const resolvedD2pUrl = d2pUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
-  const displayD2pUrl = d2pUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
+  // D2D: backend URL only. Never reuse D2P/public slug as D2D fallback.
+  // This avoids sharing passenger invite links as driver invites.
+  const hasDistinctD2dUrl = !!normalizedD2dUrl && normalizedD2dUrl !== resolvedD2pUrl
+  const resolvedD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : null
+  const displayD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : null
 
-  // D2D: backend URL → /r/{slug} fallback (temporary until GET /drivers/me/invites is ready).
-  // Same slug as D2P for now; backend will provide a distinct D2D URL when implemented.
-  const resolvedD2dUrl = d2dUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
-  const displayD2dUrl = d2dUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
+  // Capability resolution: explicit flags win over heuristics.
+  const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : !!resolvedD2pUrl
+  const shouldRenderD2dCard = capabilities != null ? capabilities.canInviteDrivers : true
+  const d2dEnabled = shouldRenderD2dCard && !!resolvedD2dUrl
 
   const avatar = avatarLabel(user.name)
 
@@ -69,18 +72,20 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
         </div>
       )}
 
-      <div data-testid="driver-referral-d2d">
-        <ReferralLinkCard
-          eyebrow="Expandir rede · D2D"
-          title="Convidar Motoristas"
-          description="Amplie sua rede operacional convidando motoristas para a plataforma Aliado."
-          displayUrl={displayD2dUrl ?? '/convite/motorista'}
-          fullUrl={resolvedD2dUrl ?? ''}
-          whatsappText={resolvedD2dUrl ? `Seja um motorista Aliado na minha rede\n${resolvedD2dUrl}` : ''}
-          avatarLabel={avatar}
-          disabled={!d2dEnabled}
-        />
-      </div>
+      {shouldRenderD2dCard && (
+        <div data-testid="driver-referral-d2d">
+          <ReferralLinkCard
+            eyebrow="Expandir rede · D2D"
+            title="Convidar Motoristas"
+            description="Amplie sua rede operacional convidando motoristas para a plataforma Aliado."
+            displayUrl={displayD2dUrl ?? '/convite/motorista'}
+            fullUrl={resolvedD2dUrl ?? ''}
+            whatsappText={resolvedD2dUrl ? `Seja um motorista Aliado na minha rede\n${resolvedD2dUrl}` : ''}
+            avatarLabel={avatar}
+            disabled={!d2dEnabled}
+          />
+        </div>
+      )}
     </div>
   )
 }

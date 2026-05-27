@@ -65,6 +65,10 @@ interface BackendNetworkContextV2 {
     settledRevenueShareCents?: number
   } | null
   capabilities?: NetworkCapabilityContext | null
+  inviteUrls?: {
+    driverToPassenger?: string | null
+    driverToDriver?: string | null
+  } | null
 }
 
 function isBackendV2Shape(raw: unknown): raw is BackendNetworkContextV2 {
@@ -108,6 +112,7 @@ function adaptBackendV2(raw: BackendNetworkContextV2): NetworkContext {
     rootDriver: null, // rootDriverId available but full actor object not yet returned
     genealogy,
     networkMetrics,
+    inviteUrls: raw.inviteUrls ?? null,
     capabilities: raw.capabilities ?? null,
   }
 }

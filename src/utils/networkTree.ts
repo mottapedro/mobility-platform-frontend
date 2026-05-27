@@ -96,6 +96,7 @@ function mapProjectionNode(
     actorType: node.actorType,
     name: node.name,
     level: node.level,
+    absoluteDepth: node.absoluteDepth,
     flowType: node.flowType,
     parentId: node.parentId,
     tier: resolveNodeTier(node),

@@ -85,6 +85,7 @@ function projNode(
     publicSlug: null,
     referralCode: null,
     networkLevel: 1,
+    absoluteDepth: 1,
     isActive: true,
     createdAt: '2026-01-01T00:00:00Z',
     ...overrides,
@@ -131,9 +132,9 @@ const projectionFixture: GenealogyProjection = {
   rootDriver: { id: 'drv-root', name: 'Pedro Motta', experienceLevel: null, networkLevel: 1, publicSlug: 'pedro-motta', referralCode: 'pedro-code' },
   stats: { totalNodes: 3, totalEdges: 2, maxDepth: 2, appliedDepthLimit: 5 },
   nodes: [
-    { actorId: 'drv-root', actorType: 'DRIVER', name: 'Pedro Motta', level: 0, parentId: null, networkLevel: 1, flowType: 'DRIVER_TO_DRIVER', rootDriverId: 'drv-root', publicSlug: 'pedro-motta', referralCode: 'pedro-code', isActive: true, createdAt: '2026-01-01T00:00:00Z' },
-    { actorId: 'drv-a', actorType: 'DRIVER', name: 'Alice Ferreira', level: 1, parentId: 'drv-root', networkLevel: 2, flowType: 'DRIVER_TO_DRIVER', rootDriverId: 'drv-root', publicSlug: 'alice', referralCode: null, isActive: true, createdAt: '2026-01-02T00:00:00Z' },
-    { actorId: 'psg-b', actorType: 'PASSENGER', name: 'Bob Alves', level: 1, parentId: 'drv-root', networkLevel: 1, flowType: 'DRIVER_TO_PASSENGER', rootDriverId: 'drv-root', publicSlug: null, referralCode: null, isActive: true, createdAt: '2026-01-03T00:00:00Z' },
+    { actorId: 'drv-root', actorType: 'DRIVER', name: 'Pedro Motta', level: 0, absoluteDepth: 0, parentId: null, networkLevel: 1, flowType: 'DRIVER_TO_DRIVER', rootDriverId: 'drv-root', publicSlug: 'pedro-motta', referralCode: 'pedro-code', isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+    { actorId: 'drv-a', actorType: 'DRIVER', name: 'Alice Ferreira', level: 1, absoluteDepth: 1, parentId: 'drv-root', networkLevel: 2, flowType: 'DRIVER_TO_DRIVER', rootDriverId: 'drv-root', publicSlug: 'alice', referralCode: null, isActive: true, createdAt: '2026-01-02T00:00:00Z' },
+    { actorId: 'psg-b', actorType: 'PASSENGER', name: 'Bob Alves', level: 1, absoluteDepth: 1, parentId: 'drv-root', networkLevel: 1, flowType: 'DRIVER_TO_PASSENGER', rootDriverId: 'drv-root', publicSlug: null, referralCode: null, isActive: true, createdAt: '2026-01-03T00:00:00Z' },
   ],
   edges: [
     { sourceActorId: 'drv-root', targetActorId: 'drv-a', flowType: 'DRIVER_TO_DRIVER' },
@@ -186,5 +187,15 @@ describe('buildExecutiveTree', () => {
     expect(root.metrics.completedRides).toBe(0)
     expect(root.metrics.activePassengers).toBe(0)
     expect(root.children[0].metrics.estimatedRevenueCents).toBe(0)
+  })
+
+  it('passes absoluteDepth through without recalculation', () => {
+    const [root] = buildExecutiveTree(projectionFixture)
+    const alice = root.children.find(c => c.actorId === 'drv-a')!
+    const bob = root.children.find(c => c.actorId === 'psg-b')!
+
+    expect(root.absoluteDepth).toBe(0)
+    expect(alice.absoluteDepth).toBe(1)
+    expect(bob.absoluteDepth).toBe(1)
   })
 })

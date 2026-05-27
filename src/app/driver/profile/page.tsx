@@ -4,15 +4,29 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
+import { useNetworkContext } from '../../../hooks/useNetworkContext'
+import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
 export default function DriverProfilePage() {
   const router = useRouter()
   const { user, logout } = useAuth()
   const [hasAssistedTransport, setHasAssistedTransport] = useState(false)
+  const [driverId, setDriverId] = useState<string | null>(() => readStoredDriverId())
+
+  const { context } = useNetworkContext({
+    actorId: driverId,
+    actorType: 'driver',
+    enabled: !!driverId,
+  })
 
   useEffect(() => {
     setHasAssistedTransport(localStorage.getItem('aliado:assistedTransport') === 'true')
   }, [])
+
+  useEffect(() => {
+    const id = resolveDriverId(user?.driverId, readStoredDriverId())
+    setDriverId(id)
+  }, [user])
 
   const initials = user?.name
     ? user.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
@@ -41,7 +55,11 @@ export default function DriverProfilePage() {
 
       {/* Referral card */}
       <div className="mb-6">
-        <DriverReferralCard />
+        <DriverReferralCard
+          d2pUrl={context?.inviteUrls?.driverToPassenger}
+          d2dUrl={context?.inviteUrls?.driverToDriver}
+          capabilities={context?.capabilities}
+        />
       </div>
 
       {/* Especialidades */}
