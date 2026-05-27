@@ -4,13 +4,20 @@
 :root {
   --aliado-bg:           #0D0700;
   --aliado-card:         #1A0E04;
+  --aliado-card-soft:    #120A03;
+  --aliado-card-sub:     #0F0903;
+  --aliado-card-subtle:  #0B0600;
   --aliado-card-deep:    #140A02;
   --aliado-border:       #2E1A08;
+  --aliado-border-soft:  #1E1208;
   --aliado-orange:       #F28C28;
   --aliado-orange-dark:  #C96E10;
   --aliado-orange-glow:  rgba(242,140,40,0.18);
   --aliado-text:         #F5ECD8;
+  --aliado-text-soft:    #C8A87A;
   --aliado-sub:          #9A7D5A;
+  --aliado-sub-soft:     #6B5A3E;
+  --aliado-muted-deep:   #3D2B10;
   --aliado-muted:        #5A3F22;
   --aliado-input:        #150B02;
   --aliado-success:      #3DB87A;
@@ -21,13 +28,54 @@
   --font-sans:            var(--font-dm-sans);
   --color-aliado-bg:      var(--aliado-bg);
   --color-aliado-card:    var(--aliado-card);
+  --color-aliado-card-soft: var(--aliado-card-soft);
+  --color-aliado-card-sub: var(--aliado-card-sub);
+  --color-aliado-card-subtle: var(--aliado-card-subtle);
   --color-aliado-border:  var(--aliado-border);
+  --color-aliado-border-soft: var(--aliado-border-soft);
   --color-aliado-orange:  var(--aliado-orange);
   --color-aliado-text:    var(--aliado-text);
+  --color-aliado-text-soft: var(--aliado-text-soft);
   --color-aliado-sub:     var(--aliado-sub);
+  --color-aliado-sub-soft: var(--aliado-sub-soft);
+  --color-aliado-muted-deep: var(--aliado-muted-deep);
   --color-aliado-muted:   var(--aliado-muted);
   --color-aliado-success: var(--aliado-success);
   --color-aliado-error:   var(--aliado-error);
+}
+
+@layer utilities {
+  .scheme-dark {
+    color-scheme: dark;
+  }
+
+  .network-card {
+    @apply rounded-2xl border border-aliado-border bg-aliado-card;
+  }
+
+  .projection-section {
+    @apply rounded-2xl border border-aliado-border bg-aliado-card;
+  }
+
+  .executive-node {
+    @apply rounded-xl border border-aliado-border bg-aliado-card-sub;
+  }
+
+  .social-node {
+    @apply rounded-xl border border-aliado-border bg-aliado-card-sub;
+  }
+
+  .influence-badge {
+    @apply rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide;
+  }
+
+  .operational-panel {
+    @apply rounded-2xl border border-aliado-border bg-aliado-card;
+  }
+
+  .lineage-panel {
+    @apply rounded-xl border border-aliado-orange/20 bg-aliado-card;
+  }
 }
 
 body {

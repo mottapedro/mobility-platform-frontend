@@ -10,6 +10,7 @@ import type { ExecutiveGenealogyNode } from '@/types/network-v2'
 import { Avatar } from '@/design-system'
 import { NetworkInfluenceBadge } from './NetworkInfluenceBadge'
 import { NodeMetricsPanel } from './NodeMetricsPanel'
+import { NETWORK_PASSENGER_NODE } from './styles'
 
 // ─── Component ────────────────────────────────────────────────────────────
 
@@ -40,10 +41,9 @@ export const PassengerNodeCard: FC<PassengerNodeCardProps> = ({
           if (isInteractive && (e.key === 'Enter' || e.key === ' ')) setExpanded(v => !v)
         }}
         className={[
-          'flex items-center gap-2.5 rounded-xl border px-3 py-2 min-h-12',
-          'border-[#1E1208] bg-[#0B0600]',
+          NETWORK_PASSENGER_NODE.wrapper,
           isInteractive
-            ? 'cursor-pointer hover:border-[#2E1A08] transition-colors duration-150'
+            ? NETWORK_PASSENGER_NODE.interactive
             : '',
           className,
         ].join(' ')}
@@ -53,12 +53,12 @@ export const PassengerNodeCard: FC<PassengerNodeCardProps> = ({
 
         {/* Name + type label */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-medium text-[#C8A87A]">{node.name}</span>
+          <span className={NETWORK_PASSENGER_NODE.name}>{node.name}</span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-[#6B5A3E]">
+            <span className={NETWORK_PASSENGER_NODE.type}>
               PASSAGEIRO
             </span>
-            <span className="text-[10px] text-[#3D2B10]">· Nível {node.level}</span>
+            <span className={NETWORK_PASSENGER_NODE.level}>· Nível {node.level}</span>
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export const PassengerNodeCard: FC<PassengerNodeCardProps> = ({
         {isInteractive && (
           <span
             aria-hidden="true"
-            className={`text-[10px] text-[#3D2B10] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+            className={`${NETWORK_PASSENGER_NODE.chevron} ${expanded ? 'rotate-180' : ''}`}
           >
             ▾
           </span>

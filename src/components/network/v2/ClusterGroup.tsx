@@ -5,18 +5,9 @@
 // Used inside ProjectionTree (hierarchy mode) and LateralNetwork.
 // ─────────────────────────────────────────────────────────────────────────
 import type { FC, ReactNode } from 'react'
+import { NETWORK_CLUSTER_STYLES, type NetworkClusterVariant } from './styles'
 
-export type ClusterVariant = 'hub' | 'driver' | 'passenger' | 'indirect'
-
-const CLUSTER_STYLES: Record<
-  ClusterVariant,
-  { defaultLabel: string; dot: string; border: string; text: string }
-> = {
-  hub:       { defaultLabel: 'HUBS OPERACIONAIS', dot: 'bg-[#3DB87A]',    border: 'border-[#3DB87A]/20', text: 'text-[#3DB87A]' },
-  driver:    { defaultLabel: 'REDE D2D',          dot: 'bg-[#F28C28]',    border: 'border-[#F28C28]/15', text: 'text-[#F28C28]/70' },
-  passenger: { defaultLabel: 'EXPANSÃO D2P',      dot: 'bg-[#9A7D5A]',    border: 'border-[#9A7D5A]/20', text: 'text-[#9A7D5A]' },
-  indirect:  { defaultLabel: 'REDE INDIRETA',     dot: 'bg-[#5A3F22]',    border: 'border-[#5A3F22]/20', text: 'text-[#5A3F22]' },
-}
+export type ClusterVariant = NetworkClusterVariant
 
 export interface ClusterGroupProps {
   variant: ClusterVariant
@@ -33,7 +24,7 @@ export const ClusterGroup: FC<ClusterGroupProps> = ({
   children,
   className = '',
 }) => {
-  const style = CLUSTER_STYLES[variant]
+  const style = NETWORK_CLUSTER_STYLES[variant]
   const displayLabel = label ?? style.defaultLabel
 
   return (

@@ -43,7 +43,7 @@ function NotFoundView({ slug, originPassengerId }: { slug: string; originPasseng
         originPassengerId={originPassengerId}
       />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center">
-        <div className="rounded-[2rem] border border-white/10 bg-[#1f140f]/90 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur">
+        <div className="rounded-4xl border border-white/10 bg-[#1f140f]/90 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#F28C28]/75">
             Convite Aliado
           </p>
@@ -101,7 +101,7 @@ export default async function DriverReferralLandingPage(props: DriverReferralLan
         name={invite.inviter.name}
       />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center gap-5">
-        <div className="rounded-[2rem] border border-white/10 bg-[#1f140f]/90 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur">
+        <div className="rounded-4xl border border-white/10 bg-[#1f140f]/90 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#F28C28]/75">
             Convite Aliado · {onboarding.flowType.replace(/_/g, ' ')}
           </p>
@@ -122,7 +122,7 @@ export default async function DriverReferralLandingPage(props: DriverReferralLan
         </div>
 
         {rootDriver && (
-          <RootDriverCard rootDriver={rootDriver} className="!bg-[#1f140f]/90" />
+          <RootDriverCard rootDriver={rootDriver} className="bg-[#1f140f]/90!" />
         )}
       </div>
     </main>

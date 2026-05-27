@@ -5,6 +5,7 @@
 // Used by ProjectionTree (level view) and GenealogySocial (descendants).
 // ─────────────────────────────────────────────────────────────────────────
 import type { FC, ReactNode } from 'react'
+import { NETWORK_LEVEL_GROUP } from './styles'
 
 export interface LevelGroupSectionProps {
   level: number
@@ -31,15 +32,15 @@ export const LevelGroupSection: FC<LevelGroupSectionProps> = ({
     <div className={`flex flex-col gap-3 ${className}`}>
       {/* Centered pill header with glow flanks */}
       <div className="relative flex items-center gap-3">
-        <div className="h-px flex-1 bg-linear-to-r from-transparent to-[#F28C28]/20" />
-        <div className="flex shrink-0 items-center gap-2 rounded-full border border-[#F28C28]/15 bg-[#1A0E04] px-3 py-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#F28C28]/70">
+        <div className={NETWORK_LEVEL_GROUP.flankLeft} />
+        <div className={NETWORK_LEVEL_GROUP.pill}>
+          <span className={NETWORK_LEVEL_GROUP.title}>
             Nível {level}
           </span>
-          <span className="text-[#3D2B10]">·</span>
-          <span className="text-[10px] text-[#5A3F22]">{parts.join(' · ')}</span>
+          <span className={NETWORK_LEVEL_GROUP.divider}>·</span>
+          <span className={NETWORK_LEVEL_GROUP.meta}>{parts.join(' · ')}</span>
         </div>
-        <div className="h-px flex-1 bg-linear-to-l from-transparent to-[#F28C28]/20" />
+        <div className={NETWORK_LEVEL_GROUP.flankRight} />
       </div>
 
       {children}
