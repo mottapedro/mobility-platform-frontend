@@ -41,10 +41,14 @@ export default function DriverNetworkPage() {
     enabled: activation.enabled,
   })
 
-  const { projection } = useGenealogyProjection({
+  const { projection, refresh: refreshProjection } = useGenealogyProjection({
     driverId,
     enabled: activation.enabled,
   })
+
+  async function refreshAll() {
+    await Promise.all([refresh(), refreshProjection()])
+  }
 
   // Augment context with genealogy projection data when both are available.
   // Creates a new object — never mutates hook state.
@@ -76,7 +80,7 @@ export default function DriverNetworkPage() {
         {context && !loading && (
           <button
             type="button"
-            onClick={refresh}
+            onClick={refreshAll}
             className="rounded-xl border border-[#2E1A08] px-3 py-1.5 text-xs font-semibold text-[#9A7D5A] transition-colors hover:border-[#F28C28]/40 hover:text-[#F28C28]"
           >
             Atualizar
@@ -109,7 +113,7 @@ export default function DriverNetworkPage() {
           <span>{error}</span>
           <button
             type="button"
-            onClick={refresh}
+            onClick={refreshAll}
             className="ml-4 rounded-lg border border-[#E05050]/30 px-2 py-0.5 text-xs font-semibold text-[#E05050] hover:bg-[#E05050]/10"
           >
             Tentar novamente

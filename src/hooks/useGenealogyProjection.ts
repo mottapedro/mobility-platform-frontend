@@ -62,5 +62,13 @@ export function useGenealogyProjection(
     load()
   }, [enabled, load])
 
+  // Keep projection in sync with context-oriented views after tab focus changes.
+  useEffect(() => {
+    if (!enabled || typeof window === 'undefined') return
+    const onFocus = () => { load() }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [enabled, load])
+
   return { projection, loading, error, refresh: load }
 }
