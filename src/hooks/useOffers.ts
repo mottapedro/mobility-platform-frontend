@@ -13,6 +13,8 @@ interface UseOffersResult {
   refresh: () => Promise<boolean>
 }
 
+const OFFERS_POLL_MS = 1000
+
 export function useOffers(
   driverId: string | null,
   options?: { enabled?: boolean },
@@ -96,7 +98,7 @@ export function useOffers(
     // Only start polling after a successful first fetch
     fetchOffers().then((ok) => {
       if (!ok) return
-      intervalRef.current = setInterval(fetchOffers, 2000)
+      intervalRef.current = setInterval(fetchOffers, OFFERS_POLL_MS)
     })
 
     return () => {
