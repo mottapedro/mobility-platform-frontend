@@ -59,7 +59,12 @@ export function ReferralLinkCard({
       </div>
 
       <div className="mt-4 flex items-center gap-2 rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-3 py-2.5">
-        <p className="min-w-0 flex-1 truncate font-mono text-sm text-[#2E1A08]0">{displayUrl}</p>
+        <p
+          title={fullUrl || displayUrl}
+          className="min-w-0 flex-1 break-all font-mono text-sm text-[#F5ECD8]/80"
+        >
+          {displayUrl}
+        </p>
         <button
           type="button"
           onClick={handleCopy}
