@@ -104,6 +104,10 @@ describe('fetchNetworkContext', () => {
         canExpandNetwork: true,
         skillCodes: [],
       },
+      inviteUrls: {
+        driverToPassenger: 'https://aliado.app/invite/passenger/pedro-motta',
+        driverToDriver: 'https://aliado.app/invite/driver/pedro-motta',
+      },
     }
 
     describe('backend V2 shape adaptation (state field present)', () => {
@@ -129,6 +133,18 @@ describe('fetchNetworkContext', () => {
         mockFetch(baseBackendV2)
         const ctx = await fetchNetworkContext({ actorId: 'drv-pedro', actorType: 'driver' })
         expect(ctx.capabilities).toEqual(baseBackendV2.capabilities)
+      })
+
+      it('passes inviteUrls through unchanged', async () => {
+        mockFetch(baseBackendV2)
+        const ctx = await fetchNetworkContext({ actorId: 'drv-pedro', actorType: 'driver' })
+        expect(ctx.inviteUrls).toEqual(baseBackendV2.inviteUrls)
+      })
+
+      it('maps missing inviteUrls to null', async () => {
+        mockFetch({ ...baseBackendV2, inviteUrls: undefined })
+        const ctx = await fetchNetworkContext({ actorId: 'drv-pedro', actorType: 'driver' })
+        expect(ctx.inviteUrls).toBeNull()
       })
 
       it('maps ownership → networkMetrics.totalActors (drivers + passengers)', async () => {

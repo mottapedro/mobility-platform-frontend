@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { useOffers } from './useOffers'
 
 jest.mock('../services/drivers', () => ({
@@ -35,6 +35,7 @@ describe('useOffers', () => {
 
   it('fetches and starts polling when driverId is valid', async () => {
     mockGetDriverOffers.mockResolvedValue([])
+    const setIntervalSpy = jest.spyOn(global, 'setInterval')
 
     renderHook(() => useOffers('drv_123'))
 
@@ -42,10 +43,14 @@ describe('useOffers', () => {
       expect(mockGetDriverOffers).toHaveBeenCalledTimes(1)
     })
 
-    jest.advanceTimersByTime(2100)
+    const pollMs = Number(setIntervalSpy.mock.calls[0]?.[1] ?? 0)
+    expect(pollMs).toBeGreaterThan(0)
 
-    await waitFor(() => {
-      expect(mockGetDriverOffers).toHaveBeenCalledTimes(2)
+    await act(async () => {
+      jest.advanceTimersByTime(pollMs + 100)
     })
+
+    expect(mockGetDriverOffers).toHaveBeenCalledTimes(2)
+    setIntervalSpy.mockRestore()
   })
 })
