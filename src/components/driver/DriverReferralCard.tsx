@@ -37,19 +37,24 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
   if (!user.publicSlug && !d2pUrl) return null
 
   const origin = mounted ? window.location.origin : ''
+  const normalizedD2pUrl = d2pUrl?.trim() || null
+  const normalizedD2dUrl = d2dUrl?.trim() || null
 
-  // Capability resolution: explicit flags win over URL-presence heuristic.
-  const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : (!!d2pUrl || !!user.publicSlug)
-  const d2dEnabled = capabilities != null ? capabilities.canInviteDrivers : (!!d2dUrl || !!user.publicSlug)
+  // D2P: backend URL → /r/{slug} fallback.
+  const resolvedD2pUrl = normalizedD2pUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
+  const displayD2pUrl = normalizedD2pUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
 
-  // D2P: backend URL → /r/{slug} fallback
-  const resolvedD2pUrl = d2pUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
-  const displayD2pUrl = d2pUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
+  // D2D: backend URL only. Never reuse D2P/public slug as D2D fallback.
+  // This avoids sharing passenger invite links as driver invites.
+  const hasDistinctD2dUrl = !!normalizedD2dUrl && normalizedD2dUrl !== resolvedD2pUrl
+  const resolvedD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : null
+  const displayD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : null
 
-  // D2D: backend URL → /r/{slug} fallback (temporary until GET /drivers/me/invites is ready).
-  // Same slug as D2P for now; backend will provide a distinct D2D URL when implemented.
-  const resolvedD2dUrl = d2dUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
-  const displayD2dUrl = d2dUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
+  // Capability resolution: explicit flags win over heuristics.
+  const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : !!resolvedD2pUrl
+  const d2dEnabled = capabilities != null
+    ? capabilities.canInviteDrivers && !!resolvedD2dUrl
+    : !!resolvedD2dUrl
 
   const avatar = avatarLabel(user.name)
 

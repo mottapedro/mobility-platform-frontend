@@ -55,26 +55,25 @@ beforeEach(() => {
   Object.keys(capturedProps).forEach((k) => delete capturedProps[k])
 })
 
-// ─── D2D fallback via publicSlug ────────────────────────────────────────────
+// ─── D2D fallback seguro (sem reuse de D2P/publicSlug) ─────────────────────
 
-describe('D2D — fallback via publicSlug (backend 410 / sem dados)', () => {
-  it('ativa o card D2D quando d2dUrl ausente mas publicSlug existe', () => {
+describe('D2D — fallback seguro quando backend não envia URL', () => {
+  it('desabilita o card D2D quando d2dUrl ausente mesmo com publicSlug', () => {
     setupAuth()
     render(<DriverReferralCard />)
-    // d2dEnabled = capabilities null → !!d2dUrl || !!publicSlug = true
-    expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'false')
+    expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'true')
   })
 
-  it('usa /r/{slug} como displayUrl no fallback D2D', () => {
+  it('usa placeholder quando d2dUrl não está disponível', () => {
     setupAuth()
     render(<DriverReferralCard />)
-    expect(capturedProps['d2d']?.displayUrl).toBe('/r/pedro-motta')
+    expect(capturedProps['d2d']?.displayUrl).toBe('/convite/motorista')
   })
 
-  it('inclui URL completa no texto WhatsApp do fallback D2D', () => {
+  it('não envia texto WhatsApp sem d2dUrl válida', () => {
     setupAuth()
     render(<DriverReferralCard />)
-    expect(capturedProps['d2d']?.whatsappText).toContain('/r/pedro-motta')
+    expect(capturedProps['d2d']?.whatsappText).toBe('')
   })
 })
 
@@ -106,6 +105,12 @@ describe('D2D — URL explícita do backend', () => {
     render(<DriverReferralCard d2dUrl="https://aliado.com/d2d/xyz" d2pUrl="https://aliado.com/d2p" />)
     expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'false')
   })
+
+  it('desabilita D2D quando backend envia mesma URL de D2P', () => {
+    setupAuth()
+    render(<DriverReferralCard d2pUrl="https://aliado.com/invite/x" d2dUrl="https://aliado.com/invite/x" />)
+    expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'true')
+  })
 })
 
 // ─── Capabilities governam quando presentes ───────────────────────────────────
@@ -126,10 +131,10 @@ describe('capabilities — backend governa quando presente', () => {
     expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'true')
   })
 
-  it('ativa D2D quando capabilities.canInviteDrivers = true (mesmo sem d2dUrl)', () => {
+  it('mantém D2D desabilitado quando capabilities.canInviteDrivers = true mas sem d2dUrl', () => {
     setupAuth({ publicSlug: undefined })
     render(<DriverReferralCard capabilities={caps({ canInviteDrivers: true })} d2pUrl="https://aliado.com/d2p" />)
-    expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'false')
+    expect(screen.getByTestId('referral-card-d2d')).toHaveAttribute('data-disabled', 'true')
   })
 
   it('desabilita D2P quando capabilities.canInvitePassengers = false', () => {
