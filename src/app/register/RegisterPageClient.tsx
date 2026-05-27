@@ -243,7 +243,7 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
                   <select
                     value={experienceLevel}
                     onChange={e => setExperienceLevel(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 [color-scheme:dark] mt-1"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 scheme-dark mt-1"
                   >
                     {[['INICIANTE', 'Iniciante'], ['INTERMEDIARIO', 'Intermediário'], ['PROFISSIONAL', 'Profissional'], ['ELITE', 'Elite']].map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
@@ -304,7 +304,7 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
                     <select
                       value={vehicleCategory}
                       onChange={e => setVehicleCategory(e.target.value)}
-                      className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 [color-scheme:dark]"
+                      className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-500 scheme-dark"
                     >
                       <option value="CONFORTO">Conforto</option>
                       <option value="EXECUTIVO">Executivo</option>

@@ -209,7 +209,7 @@ export default function PassengerCreatePage() {
             type="datetime-local"
             value={scheduledAt}
             onChange={(e) => setScheduledAt(e.target.value)}
-            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] outline-none focus:border-[#F28C28]/60 transition-colors [color-scheme:dark]"
+            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] outline-none focus:border-[#F28C28]/60 transition-colors scheme-dark"
           />
         </div>
 
