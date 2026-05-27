@@ -99,7 +99,35 @@ describe('V2 components (network/v2)', () => {
       expect(screen.getByText('João Silva')).toBeInTheDocument() // me
       expect(screen.getByText('Maria Souza')).toBeInTheDocument() // depth 1
       expect(screen.getByText('Ana Lima')).toBeInTheDocument() // depth 2
+      expect(screen.getByText('Nível 1')).toBeInTheDocument()
+      expect(screen.getByText('Nível 2')).toBeInTheDocument()
       expect(screen.getByText('você')).toBeInTheDocument()
+    })
+
+    it('keeps descendant labels relative even when absoluteDepth is present', () => {
+      const genealogy = {
+        ...networkContextFixtures.DRIVER_TO_DRIVER.genealogy,
+        descendants: [
+          {
+            actor: networkContextFixtures.DRIVER_TO_DRIVER.genealogy.descendants[0].actor,
+            depth: 1,
+            absoluteDepth: 2,
+            children: [
+              {
+                actor: networkContextFixtures.DRIVER_TO_DRIVER.genealogy.descendants[0].children[0].actor,
+                depth: 2,
+                absoluteDepth: 3,
+                children: [],
+              },
+            ],
+          },
+        ],
+      }
+
+      render(<GenealogySocial genealogy={genealogy} />)
+
+      expect(screen.getByText('Nível 1')).toBeInTheDocument()
+      expect(screen.getByText('Nível 2')).toBeInTheDocument()
     })
 
     it('shows empty-state when descendants are empty', () => {
@@ -223,6 +251,7 @@ describe('V2 components (network/v2)', () => {
         name: 'Pedro Motta',
         flowType: 'DRIVER_TO_DRIVER',
         level: 0,
+        absoluteDepth: 0,
         rootDriverId: 'drv-root',
         parentId: null,
         publicSlug: 'pedro-motta',
@@ -236,6 +265,7 @@ describe('V2 components (network/v2)', () => {
         name: 'Alice Ferreira',
         flowType: 'DRIVER_TO_DRIVER',
         level: 1,
+        absoluteDepth: 1,
         rootDriverId: 'drv-root',
         parentId: 'drv-root',
         publicSlug: null,
@@ -249,6 +279,7 @@ describe('V2 components (network/v2)', () => {
         name: 'Bob Alves',
         flowType: 'DRIVER_TO_PASSENGER',
         level: 1,
+        absoluteDepth: 1,
         rootDriverId: 'drv-root',
         parentId: 'drv-root',
         publicSlug: null,

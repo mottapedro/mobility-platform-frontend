@@ -48,6 +48,16 @@ function flattenByLevel(
   return map
 }
 
+function buildNodesById(nodes: ExecutiveGenealogyNode[]): Map<string, ExecutiveGenealogyNode> {
+  const byId = new Map<string, ExecutiveGenealogyNode>()
+  function walk(node: ExecutiveGenealogyNode) {
+    byId.set(node.actorId, node)
+    node.children.forEach(walk)
+  }
+  nodes.forEach(walk)
+  return byId
+}
+
 // ─── MetricPill ───────────────────────────────────────────────────────────
 
 const MetricPill: FC<{ label: string; value: string | number }> = ({
@@ -189,10 +199,27 @@ export const ProjectionTree: FC<ProjectionTreeProps> = ({
   const levelModeRows =
     viewMode === 'level'
       ? (() => {
+          const nodesById = buildNodesById(executiveRoots)
+
+          // Prefer backend-provided level buckets and ordering to avoid
+          // client-side re-grouping/re-ordering of the canonical projection.
+          if (projection.levels.length > 0) {
+            return projection.levels.map(({ depth, nodeIds }) => {
+              const ns = nodeIds
+                .map((id) => nodesById.get(id))
+                .filter((node): node is ExecutiveGenealogyNode => !!node)
+              return {
+                level: depth,
+                nodes: ns,
+                drivers:    ns.filter(n => n.actorType === 'DRIVER').length,
+                passengers: ns.filter(n => n.actorType === 'PASSENGER').length,
+              }
+            })
+          }
+
+          // Backward-compat fallback while backend levels are unavailable.
           const levelMap = flattenByLevel(executiveRoots)
-          return Array.from(levelMap.keys())
-            .sort((a, b) => a - b)
-            .map(level => {
+          return Array.from(levelMap.keys()).map(level => {
               const ns = levelMap.get(level)!
               return {
                 level,

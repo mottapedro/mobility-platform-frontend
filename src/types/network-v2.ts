@@ -52,6 +52,8 @@ export interface GenealogyProjectionNode {
   name: string
   flowType: string
   level: number
+  /** Governance/global depth retained for analytics and ownership rules. */
+  absoluteDepth?: number
   rootDriverId: string
   parentId: string | null
   publicSlug: string | null
@@ -141,6 +143,8 @@ export interface ExecutiveGenealogyNode {
   actorType: 'DRIVER' | 'PASSENGER'
   name: string
   level: number
+  /** Passthrough for governance; never used for relative UI labels. */
+  absoluteDepth?: number
   flowType: string
   parentId: string | null
   tier: NodeTier
@@ -187,6 +191,8 @@ export interface Genealogy {
 export interface GenealogyNode {
   actor: NetworkActor
   depth: number
+  /** Absolute/global depth retained for governance and analytics. */
+  absoluteDepth?: number
   children: GenealogyNode[]
 }
 
