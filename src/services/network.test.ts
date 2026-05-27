@@ -138,7 +138,34 @@ describe('fetchNetworkContext', () => {
       it('passes inviteUrls through unchanged', async () => {
         mockFetch(baseBackendV2)
         const ctx = await fetchNetworkContext({ actorId: 'drv-pedro', actorType: 'driver' })
-        expect(ctx.inviteUrls).toEqual(baseBackendV2.inviteUrls)
+        expect(ctx.inviteUrls).toEqual({
+          d2p: 'https://aliado.app/invite/passenger/pedro-motta',
+          d2d: 'https://aliado.app/invite/driver/pedro-motta',
+          p2p: null,
+          driverToPassenger: 'https://aliado.app/invite/passenger/pedro-motta',
+          driverToDriver: 'https://aliado.app/invite/driver/pedro-motta',
+          passengerToPassenger: null,
+        })
+      })
+
+      it('normalizes explicit d2d/d2p/p2p keys into aliases', async () => {
+        mockFetch({
+          ...baseBackendV2,
+          inviteUrls: {
+            d2p: 'https://aliado.app/invite/d2p/new',
+            d2d: 'https://aliado.app/invite/d2d/new',
+            p2p: 'https://aliado.app/invite/p2p/new',
+          },
+        })
+        const ctx = await fetchNetworkContext({ actorId: 'drv-pedro', actorType: 'driver' })
+        expect(ctx.inviteUrls).toEqual({
+          d2p: 'https://aliado.app/invite/d2p/new',
+          d2d: 'https://aliado.app/invite/d2d/new',
+          p2p: 'https://aliado.app/invite/p2p/new',
+          driverToPassenger: 'https://aliado.app/invite/d2p/new',
+          driverToDriver: 'https://aliado.app/invite/d2d/new',
+          passengerToPassenger: 'https://aliado.app/invite/p2p/new',
+        })
       })
 
       it('maps missing inviteUrls to null', async () => {

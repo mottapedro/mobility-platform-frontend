@@ -6,6 +6,7 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
 import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
+import { resolveInviteUrl } from '../../../utils/inviteUrls'
 
 export default function DriverProfilePage() {
   const router = useRouter()
@@ -56,8 +57,8 @@ export default function DriverProfilePage() {
       {/* Referral card */}
       <div className="mb-6">
         <DriverReferralCard
-          d2pUrl={context?.inviteUrls?.driverToPassenger}
-          d2dUrl={context?.inviteUrls?.driverToDriver}
+          d2pUrl={resolveInviteUrl(context?.inviteUrls, 'd2p')}
+          d2dUrl={resolveInviteUrl(context?.inviteUrls, 'd2d')}
           capabilities={context?.capabilities}
         />
       </div>

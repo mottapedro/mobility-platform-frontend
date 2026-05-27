@@ -8,6 +8,8 @@ interface PassengerReferralCardProps {
   passengerId?: string | null
   passengerName?: string
   referralCode?: string | null
+  /** Explicit PASSENGER_TO_PASSENGER invite URL from backend context. */
+  p2pUrl?: string | null
 }
 
 function avatarLabel(name: string): string {
@@ -15,7 +17,12 @@ function avatarLabel(name: string): string {
   return words.slice(0, 2).map((word) => word.charAt(0).toUpperCase()).join('') || 'AL'
 }
 
-export function PassengerReferralCard({ passengerId, passengerName = '', referralCode }: PassengerReferralCardProps) {
+export function PassengerReferralCard({
+  passengerId,
+  passengerName = '',
+  referralCode,
+  p2pUrl,
+}: PassengerReferralCardProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -23,19 +30,22 @@ export function PassengerReferralCard({ passengerId, passengerName = '', referra
   }, [])
 
   const code = useMemo(() => {
+    const explicit = p2pUrl?.trim()
+    if (explicit) return explicit
     const backendCode = referralCode?.trim()
     if (backendCode) return backendCode
     return passengerName ? buildPassengerReferralSlug(passengerName) : ''
-  }, [passengerName, referralCode])
+  }, [passengerName, p2pUrl, referralCode])
 
   const origin = mounted ? window.location.origin : ''
+  const explicitP2pUrl = p2pUrl?.trim() || null
   const query = passengerId ? `?originPassengerId=${encodeURIComponent(passengerId)}` : ''
-  const fullUrl = code ? `${origin}/r/${code}${query}` : ''
-  const displayUrl = code ? `/r/${code}` : '/r/seu-link'
+  const fullUrl = explicitP2pUrl ?? (code ? `${origin}/r/${code}${query}` : '')
+  const displayUrl = explicitP2pUrl ?? (code ? `/r/${code}` : '/r/seu-link')
 
   return (
     <ReferralLinkCard
-      eyebrow="Link publico"
+      eyebrow="Expandir rede · P2P"
       title="Convide passageiros"
       description="Sua rede cresce a partir de convites diretos e relacoes de confianca."
       displayUrl={displayUrl}

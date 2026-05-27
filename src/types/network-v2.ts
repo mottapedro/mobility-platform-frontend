@@ -228,6 +228,21 @@ export interface NetworkCapabilityContext {
   skillCodes: string[]
 }
 
+export interface NetworkInviteUrls {
+  /** Explicit DRIVER_TO_PASSENGER invite URL. */
+  d2p?: string | null
+  /** Explicit DRIVER_TO_DRIVER invite URL. */
+  d2d?: string | null
+  /** Explicit PASSENGER_TO_PASSENGER invite URL. */
+  p2p?: string | null
+  /** Legacy backend alias kept for compatibility. */
+  driverToPassenger?: string | null
+  /** Legacy backend alias kept for compatibility. */
+  driverToDriver?: string | null
+  /** Legacy backend alias kept for compatibility. */
+  passengerToPassenger?: string | null
+}
+
 // ─── Top-level network context (GET /network/context) ──────────────────────
 
 export interface NetworkContext {
@@ -243,10 +258,7 @@ export interface NetworkContext {
   /** Backend-governed invite URLs for each expansion channel.
    *  Frontend MUST NOT construct these — consume exactly as returned.
    *  Absent until the backend publishes GET /drivers/me/invites. */
-  inviteUrls?: {
-    driverToPassenger?: string | null
-    driverToDriver?: string | null
-  } | null
+  inviteUrls?: NetworkInviteUrls | null
   /** Explicit capability flags for this actor.
    *  When present, components MUST use these instead of URL-presence inference.
    *  Absent until the backend implements capability propagation. */
