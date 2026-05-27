@@ -21,14 +21,14 @@ const MetricItem: FC<{
     : '--'
 
   return (
-    <div className="flex flex-col items-center rounded-xl border border-[#2E1A08] bg-[#120A02] px-2 py-2 text-center">
-      <span className="text-[9px] font-semibold uppercase tracking-widest text-[#9A7D5A]">
+    <div className="flex flex-col items-center rounded-xl border border-aliado-border bg-aliado-card-soft px-2 py-2 text-center">
+      <span className="text-[9px] font-semibold uppercase tracking-widest text-aliado-sub">
         {label}
       </span>
       <span
         className={[
           'mt-0.5 text-xs font-bold transition-colors',
-          isActive ? 'text-[#F28C28]' : 'text-[#4A3520]',
+          isActive ? 'text-aliado-orange' : 'text-aliado-muted-deep',
         ].join(' ')}
       >
         {display}
@@ -44,7 +44,7 @@ export interface NodeMetricsPanelProps {
 export const NodeMetricsPanel: FC<NodeMetricsPanelProps> = ({ node }) => {
   const { metrics } = node
   return (
-    <div className="mt-2 grid grid-cols-5 gap-1.5 rounded-xl border border-[#2E1A08] bg-[#0D0700] p-2.5 transition-all duration-200">
+    <div className="mt-2 grid grid-cols-5 gap-1.5 rounded-xl border border-aliado-border bg-aliado-bg p-2.5 transition-all duration-200">
       <MetricItem label="Corridas"     value={metrics.completedRides} />
       <MetricItem label="Passageiros"  value={metrics.activePassengers} />
       <MetricItem label="Motoristas"   value={metrics.activeDrivers} />

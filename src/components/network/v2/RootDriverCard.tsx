@@ -30,7 +30,7 @@ export const RootDriverCard: FC<RootDriverCardProps> = ({
         <Avatar size={64} fallback={fallback} highlight alt={rootDriver.name} />
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-black text-[#F5ECD8]">
+            <span className="text-lg font-black text-aliado-text">
               {rootDriver.name}
             </span>
             {rootDriver.offersAssistedTransport && (
@@ -38,11 +38,11 @@ export const RootDriverCard: FC<RootDriverCardProps> = ({
             )}
           </div>
           {rootDriver.vehicleSummary && (
-            <span className="text-sm text-[#9A7D5A]">
+            <span className="text-sm text-aliado-sub">
               {rootDriver.vehicleSummary}
             </span>
           )}
-          <div className="flex items-center gap-3 text-xs text-[#5A3F22]">
+          <div className="flex items-center gap-3 text-xs text-aliado-muted">
             {rootDriver.region && <span>{rootDriver.region}</span>}
             {rootDriver.rating != null && (
               <span>★ {rootDriver.rating.toFixed(1)}</span>

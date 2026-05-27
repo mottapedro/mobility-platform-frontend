@@ -7,6 +7,7 @@
 import type { FC } from 'react'
 import type { InfluenceTier } from '@/types/network-v2'
 import { Badge } from '@/design-system'
+import { NETWORK_INFLUENCE_BADGE } from './styles'
 
 export interface NetworkInfluenceBadgeProps {
   tier: InfluenceTier
@@ -35,7 +36,7 @@ export const NetworkInfluenceBadge: FC<NetworkInfluenceBadgeProps> = ({
 }) => {
   const { label, variant } = BADGE_CONFIG[tier]
   return (
-    <span className={className}>
+    <span className={[NETWORK_INFLUENCE_BADGE.wrapper, className].join(' ').trim()}>
       <Badge variant={variant}>{label}</Badge>
     </span>
   )

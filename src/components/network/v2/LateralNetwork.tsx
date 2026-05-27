@@ -4,6 +4,7 @@ import type { FC } from 'react'
 import type { NetworkActor } from '@/types/network-v2'
 import { Avatar, EmptyState, SectionTitle } from '@/design-system'
 import { ClusterGroup } from './ClusterGroup'
+import { NETWORK_LATERAL } from './styles'
 
 export interface LateralNetworkProps {
   lateral: NetworkActor[]
@@ -21,18 +22,18 @@ const LateralActorRow: FC<{ actor: NetworkActor; isDriver: boolean }> = ({
     <div
       data-testid="lateral-actor"
       className={[
-        'flex items-center gap-3 rounded-xl border px-3 py-2',
+        'flex items-center gap-3 px-3 py-2',
         isDriver
-          ? 'border-[#2E1A08] bg-[#0F0903]'
-          : 'border-[#1E1208] bg-[#0B0600]',
+          ? NETWORK_LATERAL.driverRow
+          : NETWORK_LATERAL.passengerRow,
       ].join(' ')}
     >
       <Avatar size={isDriver ? 36 : 30} fallback={fallback} alt={actor.name} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className={`truncate text-sm font-medium ${isDriver ? 'text-[#F5ECD8]' : 'text-[#C8A87A]'}`}>
+        <span className={isDriver ? NETWORK_LATERAL.driverName : NETWORK_LATERAL.passengerName}>
           {actor.name}
         </span>
-        <span className="text-xs text-[#9A7D5A]">
+        <span className={NETWORK_LATERAL.meta}>
           {isDriver ? 'Motorista' : 'Passageiro'}
           {actor.region ? ` · ${actor.region}` : ''}
         </span>

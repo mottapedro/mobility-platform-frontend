@@ -4,6 +4,7 @@ import type { FC } from 'react'
 import type { Genealogy, GenealogyNode, NetworkActor } from '@/types/network-v2'
 import { Avatar, Badge, Card, EmptyState, SectionTitle } from '@/design-system'
 import { LevelGroupSection } from './LevelGroupSection'
+import { NETWORK_SOCIAL } from './styles'
 
 export interface GenealogySocialProps {
   genealogy: Genealogy
@@ -31,10 +32,10 @@ const ActorRow: FC<{ actor: NetworkActor; tag?: string }> = ({ actor, tag }) => 
     <div className="flex items-center gap-3 py-2">
       <Avatar size={36} fallback={fallback} alt={actor.name} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-semibold text-[#F5ECD8]">
+        <span className={NETWORK_SOCIAL.actorName}>
           {actor.name}
         </span>
-        <span className="text-xs text-[#9A7D5A]">
+        <span className={NETWORK_SOCIAL.actorMeta}>
           {actor.actorType === 'driver' ? 'Motorista' : 'Passageiro'}
           {actor.region ? ` · ${actor.region}` : ''}
         </span>
@@ -48,11 +49,11 @@ const ActorRow: FC<{ actor: NetworkActor; tag?: string }> = ({ actor, tag }) => 
 const MeRow: FC<{ actor: NetworkActor }> = ({ actor }) => {
   const fallback = actor.name?.[0]?.toUpperCase() ?? '?'
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-[#F28C28]/20 bg-[#1A0E04] px-3 py-2 my-1">
+    <div className={NETWORK_SOCIAL.meRow}>
       <Avatar size={36} fallback={fallback} alt={actor.name} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-semibold text-[#F5ECD8]">{actor.name}</span>
-        <span className="text-xs text-[#9A7D5A]">
+        <span className={NETWORK_SOCIAL.actorName}>{actor.name}</span>
+        <span className={NETWORK_SOCIAL.actorMeta}>
           {actor.actorType === 'driver' ? 'Motorista' : 'Passageiro'}
           {actor.region ? ` · ${actor.region}` : ''}
         </span>
@@ -70,18 +71,18 @@ const DescendantRow: FC<{ node: GenealogyNode }> = ({ node }) => {
   return (
     <div
       className={[
-        'flex items-center gap-3 rounded-xl border px-3 py-2',
+        'flex items-center gap-3 px-3 py-2',
         isDriver
-          ? 'border-[#2E1A08] bg-[#0F0903]'
-          : 'border-[#1E1208] bg-[#0B0600]',
+          ? NETWORK_SOCIAL.driverRow
+          : NETWORK_SOCIAL.passengerRow,
       ].join(' ')}
     >
       <Avatar size={isDriver ? 36 : 30} fallback={fallback} alt={actor.name} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className={`truncate text-sm font-medium ${isDriver ? 'text-[#F5ECD8]' : 'text-[#C8A87A]'}`}>
+        <span className={isDriver ? 'truncate text-sm font-medium text-aliado-text' : NETWORK_SOCIAL.passengerName}>
           {actor.name}
         </span>
-        <span className="text-xs text-[#9A7D5A]">
+        <span className={NETWORK_SOCIAL.actorMeta}>
           {isDriver ? 'Motorista' : 'Passageiro'}
           {actor.region ? ` · ${actor.region}` : ''}
         </span>
@@ -124,7 +125,7 @@ export const GenealogySocial: FC<GenealogySocialProps> = ({
           {hasAncestors ? (
             <div className="relative">
               {/* Vertical connecting line behind ancestor rows */}
-              <div className="absolute left-4.5 top-8 bottom-13 w-0.5 bg-[#2E1A08]" />
+              <div className={NETWORK_SOCIAL.lineageConnector} />
               {ancestors.map((actor, idx) => (
                 <ActorRow
                   key={actor.id}
@@ -132,10 +133,10 @@ export const GenealogySocial: FC<GenealogySocialProps> = ({
                   tag={idx === 0 ? 'convidou você' : `+${idx}`}
                 />
               ))}
-              <div className="border-t border-[#2E1A08] mb-1" />
+              <div className={NETWORK_SOCIAL.lineageDivider} />
             </div>
           ) : (
-            <p className="py-3 text-xs text-[#5A3F22]">
+            <p className={NETWORK_SOCIAL.topHint}>
               Você está no topo da sua linhagem.
             </p>
           )}

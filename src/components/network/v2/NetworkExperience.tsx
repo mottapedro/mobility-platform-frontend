@@ -9,6 +9,7 @@ import { LateralNetwork } from './LateralNetwork'
 import { RootDriverCard } from './RootDriverCard'
 import { ProjectionTree } from './ProjectionTree'
 import { useRootDriverContext } from '@/hooks/useRootDriverContext'
+import { NETWORK_TAB_BUTTON } from './styles'
 
 export type NetworkSection = 'social' | 'operational' | 'lateral' | 'tree'
 
@@ -40,8 +41,8 @@ const TabButton: FC<{
     className={[
       'rounded-full px-4 py-1.5 text-sm font-bold transition-colors',
       active
-        ? 'bg-[#F28C28] text-[#0D0700]'
-        : 'bg-[#1A0E04] text-[#9A7D5A] border border-[#2E1A08]',
+        ? NETWORK_TAB_BUTTON.active
+        : 'bg-aliado-card text-aliado-sub border border-aliado-border',
     ].join(' ')}
   >
     {children}
@@ -112,8 +113,8 @@ export const NetworkExperience: FC<NetworkExperienceProps> = ({
                 data-testid="projection-loading"
                 className="flex flex-col gap-4"
               >
-                <div className="animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] h-20" />
-                <div className="animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] h-40" />
+                <div className="animate-pulse rounded-2xl border border-aliado-border bg-aliado-card h-20" />
+                <div className="animate-pulse rounded-2xl border border-aliado-border bg-aliado-card h-40" />
               </div>
             )
       )}

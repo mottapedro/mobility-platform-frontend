@@ -13,6 +13,12 @@ import { buildExecutiveTree } from '@/utils/networkTree'
 import { ExecutiveNodeCard } from './ExecutiveNodeCard'
 import { ClusterGroup } from './ClusterGroup'
 import { LevelGroupSection } from './LevelGroupSection'
+import {
+  NETWORK_BRANCH_BG_BY_TIER,
+  NETWORK_BRANCH_LINE_BY_TIER,
+  NETWORK_METRIC_PILL,
+  NETWORK_TAB_BUTTON,
+} from './styles'
 
 export interface ProjectionTreeProps {
   projection: GenealogyProjection
@@ -64,35 +70,13 @@ const MetricPill: FC<{ label: string; value: string | number }> = ({
   label,
   value,
 }) => (
-  <div className="flex flex-col items-center rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-3 py-2 text-center">
-    <span className="text-[10px] font-semibold uppercase tracking-widest text-[#9A7D5A]">
+  <div className={NETWORK_METRIC_PILL.wrapper}>
+    <span className={NETWORK_METRIC_PILL.label}>
       {label}
     </span>
-    <span className="mt-0.5 text-lg font-bold text-[#F5ECD8]">{value}</span>
+    <span className={NETWORK_METRIC_PILL.value}>{value}</span>
   </div>
 )
-
-// ─── Branch connector colors ──────────────────────────────────────────────
-
-const BRANCH_LINE_BY_TIER: Partial<Record<string, string>> = {
-  ROOT:        'border-[#F28C28]/40',
-  ELITE:       'border-[#F28C28]/25',
-  HUB:         'border-[#3DB87A]/25',
-  EXPANSION:   'border-[#F28C28]/15',
-  OPERATIONAL: 'border-[#2E1A08]',
-  BEGINNER:    'border-[#2E1A08]',
-  CLIENT:      'border-[#1E1208]',
-}
-
-const BRANCH_BG_BY_TIER: Partial<Record<string, string>> = {
-  ROOT:        'bg-[#F28C28]/40',
-  ELITE:       'bg-[#F28C28]/25',
-  HUB:         'bg-[#3DB87A]/25',
-  EXPANSION:   'bg-[#F28C28]/15',
-  OPERATIONAL: 'bg-[#2E1A08]',
-  BEGINNER:    'bg-[#2E1A08]',
-  CLIENT:      'bg-[#1E1208]',
-}
 
 // ─── Recursive tree node (hierarchy mode) ────────────────────────────────
 // Uses function declarations so TreeNode and ClusteredChildren can reference each other.
@@ -148,8 +132,8 @@ function TreeNode({
   node: ExecutiveGenealogyNode
   depth: number
 }) {
-  const lineClass = BRANCH_LINE_BY_TIER[node.influenceTier] ?? 'border-[#2E1A08]'
-  const bgClass   = BRANCH_BG_BY_TIER[node.influenceTier]   ?? 'bg-[#2E1A08]'
+  const lineClass = NETWORK_BRANCH_LINE_BY_TIER[node.influenceTier] ?? 'border-aliado-border'
+  const bgClass = NETWORK_BRANCH_BG_BY_TIER[node.influenceTier] ?? 'bg-aliado-border'
   const isRoot    = node.tier === 'root'
 
   return (
@@ -269,10 +253,10 @@ export const ProjectionTree: FC<ProjectionTreeProps> = ({
             type="button"
             onClick={() => setViewMode(mode)}
             className={[
-              'rounded-full px-3 py-1 text-xs font-bold transition-colors',
+              NETWORK_TAB_BUTTON.base,
               viewMode === mode
-                ? 'bg-[#F28C28] text-[#0D0700]'
-                : 'border border-[#2E1A08] bg-[#1A0E04] text-[#9A7D5A] hover:border-[#F28C28]/30',
+                ? NETWORK_TAB_BUTTON.active
+                : NETWORK_TAB_BUTTON.idle,
             ].join(' ')}
           >
             {VIEW_LABELS[mode]}
@@ -312,7 +296,7 @@ export const ProjectionTree: FC<ProjectionTreeProps> = ({
         <div className="flex flex-col gap-5">
           {Array.from(regionGroups.entries()).map(([region, regionRoots]) => (
             <div key={region} className="flex flex-col gap-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#9A7D5A]">
+              <p className="text-xs font-bold uppercase tracking-widest text-aliado-sub">
                 {region}
               </p>
               {regionRoots.map(root => (
