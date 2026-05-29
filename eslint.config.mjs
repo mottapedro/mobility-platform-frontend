@@ -19,6 +19,14 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
     },
   },
+  {
+    // Playwright fixtures use a parameter named `use` that the React Hook lint
+    // mistakes for the `use()` hook. E2E files are Node tests, not React.
+    files: ["e2e/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

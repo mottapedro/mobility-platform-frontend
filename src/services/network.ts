@@ -15,6 +15,7 @@ import type {
   NetworkContext,
   NetworkMetrics,
   NetworkCapabilityContext,
+  NetworkInviteUrls,
 } from '../types/network-v2'
 import {
   pickNetworkFixtureForActor,
@@ -66,9 +67,25 @@ interface BackendNetworkContextV2 {
   } | null
   capabilities?: NetworkCapabilityContext | null
   inviteUrls?: {
+    d2p?: string | null
+    d2d?: string | null
+    p2p?: string | null
     driverToPassenger?: string | null
     driverToDriver?: string | null
+    passengerToPassenger?: string | null
   } | null
+}
+
+function normalizeInviteUrls(inviteUrls?: BackendNetworkContextV2['inviteUrls']): NetworkInviteUrls | null {
+  if (!inviteUrls) return null
+  return {
+    d2p: inviteUrls.d2p ?? inviteUrls.driverToPassenger ?? null,
+    d2d: inviteUrls.d2d ?? inviteUrls.driverToDriver ?? null,
+    p2p: inviteUrls.p2p ?? inviteUrls.passengerToPassenger ?? null,
+    driverToPassenger: inviteUrls.driverToPassenger ?? inviteUrls.d2p ?? null,
+    driverToDriver: inviteUrls.driverToDriver ?? inviteUrls.d2d ?? null,
+    passengerToPassenger: inviteUrls.passengerToPassenger ?? inviteUrls.p2p ?? null,
+  }
 }
 
 function isBackendV2Shape(raw: unknown): raw is BackendNetworkContextV2 {
@@ -112,7 +129,7 @@ function adaptBackendV2(raw: BackendNetworkContextV2): NetworkContext {
     rootDriver: null, // rootDriverId available but full actor object not yet returned
     genealogy,
     networkMetrics,
-    inviteUrls: raw.inviteUrls ?? null,
+    inviteUrls: normalizeInviteUrls(raw.inviteUrls),
     capabilities: raw.capabilities ?? null,
   }
 }

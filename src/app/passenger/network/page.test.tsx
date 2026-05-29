@@ -12,8 +12,12 @@ jest.mock('../../../components/AuthGuard', () => ({
 jest.mock('../../../components/AppHeader', () => ({
   AppHeader: () => null,
 }))
+const capturedReferralProps: Record<string, unknown> = {}
 jest.mock('../../../components/passenger/PassengerReferralCard', () => ({
-  PassengerReferralCard: () => <div data-testid="referral-card" />,
+  PassengerReferralCard: (props: Record<string, unknown>) => {
+    Object.assign(capturedReferralProps, props)
+    return <div data-testid="referral-card" />
+  },
 }))
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
@@ -78,11 +82,17 @@ const d2pContext: NetworkContext = {
     depth: 1,
     ridesFromNetwork: 28,
   },
+  inviteUrls: {
+    p2p: 'https://aliado.app/invite/p2p/lia',
+  },
 }
 
 describe('PassengerNetworkPage (V2)', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue(baseAuth)
+    for (const key of Object.keys(capturedReferralProps)) {
+      delete capturedReferralProps[key]
+    }
   })
 
   it('renders NetworkExperience with backend-governed context', () => {
@@ -99,6 +109,7 @@ describe('PassengerNetworkPage (V2)', () => {
     const experience = screen.getByTestId('network-experience')
     expect(experience).toBeInTheDocument()
     expect(experience).toHaveAttribute('data-flow-type', 'DRIVER_TO_PASSENGER')
+    expect(capturedReferralProps['p2pUrl']).toBe('https://aliado.app/invite/p2p/lia')
   })
 
   it('shows loading skeleton while fetching', () => {

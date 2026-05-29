@@ -181,7 +181,7 @@ describe('V2 components (network/v2)', () => {
 
     it('shows empty-state when lateral is empty', () => {
       render(<LateralNetwork lateral={[]} />)
-      expect(screen.getByText('Nenhum par lateral')).toBeInTheDocument()
+      expect(screen.getByText('Seu núcleo lateral ainda não abriu')).toBeInTheDocument()
     })
   })
 

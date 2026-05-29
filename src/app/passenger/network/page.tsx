@@ -13,6 +13,7 @@ import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { NetworkExperience } from '../../../components/network/v2/NetworkExperience'
 import { PassengerReferralCard } from '../../../components/passenger/PassengerReferralCard'
 import { useRelationshipDomain } from '../../../contexts/domains/RelationshipDomainProvider'
+import { resolveInviteUrl } from '../../../utils/inviteUrls'
 
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] ${className}`} />
@@ -49,6 +50,7 @@ export default function PassengerNetworkPage() {
           passengerId={passengerId}
           passengerName={user?.name}
           referralCode={referralCode}
+          p2pUrl={resolveInviteUrl(context?.inviteUrls, 'p2p')}
         />
       </div>
 

@@ -95,8 +95,8 @@ export const LateralNetwork: FC<LateralNetworkProps> = ({
         </div>
       ) : (
         <EmptyState
-          title="Nenhum par lateral"
-          description="Você é o único nesta posição da rede."
+          title="Seu núcleo lateral ainda não abriu"
+          description="Convide novos aliados no mesmo nível para desbloquear colaboração lateral, cobertura territorial e mais resiliência operacional da sua rede."
         />
       )}
     </section>

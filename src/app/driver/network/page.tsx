@@ -15,6 +15,7 @@ import { NetworkExperience } from '../../../components/network/v2/NetworkExperie
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
 import { useRelationshipDomain } from '../../../contexts/domains/RelationshipDomainProvider'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
+import { resolveInviteUrl } from '../../../utils/inviteUrls'
 
 function SkeletonBlock({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl border border-[#2E1A08] bg-[#1A0E04] ${className}`} />
@@ -65,8 +66,8 @@ export default function DriverNetworkPage() {
       {/* Referral share card — operational complement, not part of NetworkContext. */}
       <div className="mb-6">
         <DriverReferralCard
-          d2pUrl={context?.inviteUrls?.driverToPassenger}
-          d2dUrl={context?.inviteUrls?.driverToDriver}
+          d2pUrl={resolveInviteUrl(context?.inviteUrls, 'd2p')}
+          d2dUrl={resolveInviteUrl(context?.inviteUrls, 'd2d')}
           capabilities={context?.capabilities}
         />
       </div>
