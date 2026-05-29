@@ -1,0 +1,115 @@
+name: Smoke Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Nightly at 04:00 UTC (01:00 BRT) — runs full suite including @slow specs.
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      include_slow:
+        description: 'Include @slow specs (reject + timeout + invariant)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+concurrency:
+  group: smoke-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLAYWRIGHT_SUITE: smoke
+  SMOKE_API_URL: ${{ secrets.SMOKE_API_URL }}
+  SMOKE_PASSENGER_URL: ${{ secrets.SMOKE_PASSENGER_URL }}
+  SMOKE_DRIVER_URL: ${{ secrets.SMOKE_DRIVER_URL }}
+  SMOKE_PASSENGER_EMAIL: ${{ secrets.SMOKE_PASSENGER_EMAIL }}
+  SMOKE_PASSENGER_PASSWORD: ${{ secrets.SMOKE_PASSENGER_PASSWORD }}
+  SMOKE_DRIVER_EMAIL: ${{ secrets.SMOKE_DRIVER_EMAIL }}
+  SMOKE_DRIVER_PASSWORD: ${{ secrets.SMOKE_DRIVER_PASSWORD }}
+  SMOKE_ORIGIN: ${{ vars.SMOKE_ORIGIN }}
+  SMOKE_DESTINATION: ${{ vars.SMOKE_DESTINATION }}
+  SMOKE_GEO_LAT: ${{ vars.SMOKE_GEO_LAT }}
+  SMOKE_GEO_LNG: ${{ vars.SMOKE_GEO_LNG }}
+
+jobs:
+  smoke-pr:
+    name: Mobility Smoke (PR Gate — happy path only)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium chrome
+      - name: Run smoke (happy path only, @slow excluded)
+        run: npm run test:e2e:smoke
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-pr-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  smoke-nightly:
+    name: Mobility Smoke (Nightly — full suite)
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.include_slow == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium chrome
+      - name: Run smoke (full suite — happy + reject + timeout + dispatch invariant)
+        run: npm run test:e2e:smoke:nightly
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-nightly-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
+  smoke-manual:
+    name: Mobility Smoke (Manual — happy path)
+    if: github.event_name == 'workflow_dispatch' && inputs.include_slow != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium chrome
+      - name: Run smoke (happy path only)
+        run: npm run test:e2e:smoke
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-manual-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
