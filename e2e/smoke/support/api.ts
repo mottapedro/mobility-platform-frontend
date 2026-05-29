@@ -76,6 +76,26 @@ export class SmokeApi {
     return (await res.json()) as { id: string; status: string; selectedDriverId: string | null }
   }
 
+  /**
+   * Returns the ride with the full offers array (PENDING/ACCEPTED/REJECTED/EXPIRED).
+   * Used by dispatch-invariant smoke to assert "at most one PENDING offer at a time".
+   */
+  async getRideWithOffers(rideId: string): Promise<{
+    id: string
+    status: string
+    selectedDriverId: string | null
+    offers: Array<{ id: string; driverId: string; status: string; expiresAt: string }>
+  }> {
+    const res = await this.ctx.get(`/rides/${rideId}`)
+    if (!res.ok()) throw new Error(`GET /rides/${rideId} failed (${res.status()})`)
+    return (await res.json()) as {
+      id: string
+      status: string
+      selectedDriverId: string | null
+      offers: Array<{ id: string; driverId: string; status: string; expiresAt: string }>
+    }
+  }
+
   async listDriverOffers(driverId: string): Promise<RideOffer[]> {
     const res = await this.ctx.get(`/drivers/${driverId}/offers`, {
       headers: { 'x-driver-id': driverId },
