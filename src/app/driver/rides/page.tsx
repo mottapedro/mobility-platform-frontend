@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverRides } from '../../../hooks/useDriverRides'
 import { updateRide } from '../../../services/rides'
+import { calculatePrice, formatPrice } from '../../../utils/pricing'
 import type { DriverRide, RideContext } from '../../../types'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
@@ -23,6 +24,17 @@ export default function DriverRidesPage() {
     setUpdatingRide(rideId)
     try {
       await updateRide(rideId, { status: 'IN_PROGRESS' })
+    } catch {
+      // ignore — hook will refresh
+    } finally {
+      setUpdatingRide(null)
+    }
+  }
+
+  async function handleFinishRide(rideId: string) {
+    setUpdatingRide(rideId)
+    try {
+      await updateRide(rideId, { status: 'COMPLETED' })
     } catch {
       // ignore — hook will refresh
     } finally {
@@ -72,6 +84,7 @@ export default function DriverRidesPage() {
                   ride={ride}
                   updating={updatingRide === ride.id}
                   onStartRide={() => handleStartRide(ride.id)}
+                  onFinishRide={() => handleFinishRide(ride.id)}
                 />
               ))}
             </div>
@@ -84,10 +97,12 @@ function RideCard({
   ride,
   updating,
   onStartRide,
+  onFinishRide,
 }: {
   ride: DriverRide
   updating: boolean
   onStartRide: () => void
+  onFinishRide: () => void
 }) {
   const passenger = ride.passenger.user
   const context = ride.context as RideContext | null
@@ -117,7 +132,7 @@ function RideCard({
           </div>
         </div>
         <span className="flex items-center gap-1.5 rounded-full border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-3 py-1 text-xs font-semibold text-[#3DB87A]">
-          {ride.status === 'IN_PROGRESS' ? '🚗 A caminho' : '✓ Confirmada'}
+          {ride.status === 'COMPLETED' ? '✓ Finalizada' : ride.status === 'IN_PROGRESS' ? '🚗 A caminho' : '✓ Confirmada'}
         </span>
       </div>
 
@@ -135,6 +150,15 @@ function RideCard({
           <span className="text-[#F5ECD8]">{scheduledDate}</span>
         </p>
       </div>
+
+      {ride.distanceKm != null && ride.durationMin != null && (
+        <div className="flex items-center justify-between rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-2.5 text-sm">
+          <span className="text-[#9A7D5A]">🚗 {ride.distanceKm} km • ⏱ {ride.durationMin} min</span>
+          <span className="font-bold text-[#3DB87A]">
+            {formatPrice(calculatePrice(ride.distanceKm, ride.durationMin))}
+          </span>
+        </div>
+      )}
 
       {context && (context.isVip || context.isAirport || context.isPet || context.isLuggage) && (
         <div className="flex flex-wrap gap-2">
@@ -158,6 +182,23 @@ function RideCard({
             </span>
           ) : (
             '🚗 A caminho'
+          )}
+        </button>
+      )}
+
+      {ride.status === 'IN_PROGRESS' && (
+        <button
+          onClick={onFinishRide}
+          disabled={updating}
+          className="w-full rounded-xl bg-[#3DB87A] py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {updating ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Finalizando...
+            </span>
+          ) : (
+            '🏁 Finalizar corrida'
           )}
         </button>
       )}
