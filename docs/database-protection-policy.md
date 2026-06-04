@@ -1,93 +1,191 @@
-# Aliado — Política Oficial de Proteção de Dados Estruturais
+# Diretrizes Oficiais de Banco de Dados — Aliado V2
 
-## 1. Snapshot Obrigatório
-Antes de qualquer migration, refactor, seed, update de relação, auth ou referral, execute:
+## Objetivo
 
-```bash
-pg_dump
-```
+Garantir integridade, rastreabilidade, previsibilidade e governança da evolução do domínio, evitando:
 
-Snapshots devem ser versionados em `backups/`:
-- aliado-v1-network-stable-YYYYMMDD.sql.gz
-- aliado-pre-passenger-network.sql.gz
-- aliado-before-auth-refactor.sql.gz
+- Schema Drift
+- Migration Drift
+- Contract Drift
+- Dados órfãos
+- Violação de invariantes do domínio
+- Corrupção da GODNETWORK
 
-## 2. Migrations Incrementais
-Sempre use:
-```bash
-npx prisma migrate dev --name nome_da_migration
-```
-Nunca use reset destrutivo.
+Esta política é obrigatória para todos os colaboradores.
 
-## 3. Proteção dos Testes
-Prefixos obrigatórios para massa de teste:
-- TEST_EMAIL_PREFIX
-- TEST_PHONE_PREFIX
-- TEST_REFERRAL_PREFIX
+## 1. O que pode
+
+### 1.1 Evoluir schema via migration versionada
+
+Toda alteração estrutural deve ocorrer via migration versionada.
+
+Permitido:
+
+- CREATE TABLE
+- ALTER TABLE
+- CREATE INDEX
+- ALTER TYPE
+- ADD COLUMN
+- ADD CONSTRAINT
 
 Exemplo:
-- @test.com
-- ref_test_
-- drv_test_
-- psg_test_
 
-Cleanup sempre filtrado por prefixo.
-
-## 4. Proibição de Comandos Destrutivos
-**PROIBIDO:**
-- DROP DATABASE
-- prisma migrate reset
-- db push destrutivo
-- deleteMany global
-- truncate sem filtro
-
-## 5. Scripts de Proteção no package.json
-```json
-{
-  "scripts": {
-    "db:reset:local": "...",
-    "db:snapshot": "...",
-    "db:restore": "..."
-  }
-}
+```sql
+ALTER TABLE "RideRequest"
+ADD COLUMN "currentDispatchStage" TEXT;
 ```
 
-Bloqueie resets em produção:
-```ts
-if (process.env.NODE_ENV === "production") {
-  throw new Error("Database reset blocked in production");
-}
+### 1.2 Criar migrations determinísticas
+
+Toda migration deve produzir o mesmo resultado em qualquer ambiente.
+
+Exemplo:
+
+```sql
+CREATE TYPE "DispatchStage" AS ENUM (
+  'REFERRAL_DIRECT',
+  'REFERRAL_NETWORK',
+  'REGION',
+  'GLOBAL'
+);
 ```
 
-## 6. Isolamento de Ambientes
-- .env.local
-- .env.test
-- .env.production
+### 1.3 Criar índices de governança
 
-Nunca execute resets com NODE_ENV=production.
+Permitido criar índices que reforcem invariantes de domínio.
 
-## 7. Banco Operacional x Banco de Testes
-- **mobility-db**: preservado, sem resets, dados reais
-- **mobility-test-db**: pode resetar, truncar, gerar massa fake
+Exemplo:
 
-## 8. Versionamento de Snapshots
-- v1-network-stable
-- v1-passenger-network
-- v1-driver-intelligence
-- v1-beta-core
+```sql
+CREATE UNIQUE INDEX RideOffer_one_pending_per_ride
+ON "RideOffer" ("rideRequestId")
+WHERE status = 'PENDING';
+```
 
-## 9. Recomendações Avançadas
-- Snapshot automático antes de migration: `npm run db:snapshot`
-- Documentar toda alteração estrutural
+### 1.4 Criar seeds oficiais
 
-## 10. O que está sendo protegido
-- Validação estrutural
-- Arquitetura relacional
-- Social graph
-- Vínculo operacional
-- Dados estratégicos
-- Seeds validados
+Permitido manter seeds oficiais para:
 
----
+- Smoke
+- Staging
+- GODNETWORK
+- Auditoria
 
-**Esta política é obrigatória para todos os colaboradores do Aliado.**
+### 1.5 Adicionar novos status e eventos
+
+Permitido evoluir:
+
+- RideStatus
+- DispatchStage
+- DomainEventType
+
+Desde que sejam atualizados juntos:
+
+- migration
+- schema
+- client
+- runtime
+- testes
+
+## 2. O que não pode
+
+### 2.1 Alterar banco manualmente em staging/prod
+
+Proibido executar manualmente em ambiente operacional:
+
+- UPDATE/DELETE/ALTER fora de migration
+- ALTER TYPE fora de migration
+
+Toda alteração estrutural deve nascer de migration.
+
+### 2.2 Apagar ou recriar GODNETWORK arbitrariamente
+
+Proibido:
+
+- apagar árvore canônica
+- reparenting arbitrário
+- reseed com IDs incompatíveis sem governança
+
+A GODNETWORK é canônica, auditável e governada.
+
+### 2.3 Usar mock para GODNETWORK em smoke/governance
+
+Proibido usar mock/fake tree em cenários de validação oficial.
+
+### 2.4 Criar migration condicional sem justificativa
+
+Evitar `IF NOT EXISTS` quando isso gerar resultado divergente entre ambientes.
+
+### 2.5 Renomear coluna/enum sem trilha completa
+
+Qualquer rename exige:
+
+- migration
+- atualização de schema
+- regeneração de client
+- validação de contrato
+
+## 3. Contratos obrigatórios
+
+Nenhuma evolução estrutural pode ocorrer isoladamente. Deve existir alinhamento entre:
+
+Database <-> Prisma Schema <-> Prisma Client <-> Application Code <-> E2E Tests
+
+Observação de escopo:
+
+- Este repositório frontend aplica principalmente governança de contrato/runtime e E2E.
+- Validações Prisma completas devem executar no repositório que contém `prisma/schema.prisma`.
+
+## 4. Invariantes de domínio
+
+### 4.1 Dispatch
+
+Obrigatório:
+
+`COUNT(PENDING) <= 1` por RideRequest.
+
+### 4.2 GODNETWORK
+
+Obrigatório:
+
+- sem órfãos
+- sem duplicados
+- sem ciclos
+- sem reparenting arbitrário
+
+### 4.3 Referral
+
+Obrigatório:
+
+`D2D != D2P != P2P`
+
+### 4.4 Dispatch lifecycle
+
+Fluxos válidos mínimos:
+
+- WAITING_REFERRAL -> WAITING_PARTNER -> WAITING_GENERAL
+- WAITING_REFERRAL -> MATCHED
+
+## 5. Critério de aceite de PR
+
+Antes de merge, o PR deve passar nos gates configurados:
+
+- checks de migração/contrato aplicáveis ao repositório
+- smoke suite obrigatória
+- governance suite (quando aplicável)
+- sem drift
+- sem migration quebrada
+- sem alteração indevida da GODNETWORK
+
+Se qualquer item falhar, o PR deve ser rejeitado.
+
+## 6. Backups e isolamento de ambientes
+
+- Snapshot obrigatório antes de mudanças estruturais sensíveis
+- Isolamento explícito entre ambiente operacional e banco de testes
+- Proibição de reset destrutivo em produção
+
+## 7. Donos e rastreabilidade
+
+- Mudanças desta política exigem revisão de owner técnico
+- Registrar data de revisão e motivação no histórico de PR

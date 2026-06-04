@@ -1,3 +1,9 @@
+
+import 'dotenv/config';
+import * as path from 'path';
+import { config as loadEnv } from 'dotenv';
+loadEnv({ path: path.resolve(__dirname, './.env.smoke') });
+
 import { defineConfig, devices } from '@playwright/test'
 
 const isSmoke = process.env.PLAYWRIGHT_SUITE === 'smoke'

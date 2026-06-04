@@ -1,0 +1,56 @@
+name: GODNETWORK Smoke Suite
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+  push:
+    branches: [staging, release]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SMOKE_API_URL: ${{ secrets.SMOKE_API_URL }}
+      SMOKE_DRIVER_EMAIL: ${{ secrets.SMOKE_DRIVER_EMAIL }}
+      SMOKE_DRIVER_PASSWORD: ${{ secrets.SMOKE_DRIVER_PASSWORD }}
+      SMOKE_PASSENGER_EMAIL: ${{ secrets.SMOKE_PASSENGER_EMAIL }}
+      SMOKE_PASSENGER_PASSWORD: ${{ secrets.SMOKE_PASSENGER_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium chrome
+      - name: Contract Integrity (Repository Scope)
+        run: |
+          if [ -f prisma/schema.prisma ]; then
+            npx prisma migrate status
+            npx prisma validate
+            npx prisma generate
+          else
+            echo "No prisma/schema.prisma in this repository; skipping local Prisma checks."
+          fi
+      - name: Run GODNETWORK Foundation Smoke
+        run: |
+          npx playwright test e2e/godnetwork-smoke/network-context.spec.ts
+          npx playwright test e2e/godnetwork-smoke/referral-urls.spec.ts
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14

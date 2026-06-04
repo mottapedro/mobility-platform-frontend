@@ -7,9 +7,73 @@ on:
     branches: [main, develop]
 
 jobs:
+  governance-gate:
+    name: Governance Gate (DB/Contract)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Block destructive DB operations in changed files
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          BASE_REF="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=1
+
+          CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changed files detected."
+            exit 0
+          fi
+
+          PATTERN='(DROP[[:space:]]+DATABASE|prisma[[:space:]]+migrate[[:space:]]+reset|TRUNCATE[[:space:]]+TABLE|deleteMany\(\)|ALTER[[:space:]]+TYPE[[:space:]].*[[:space:]]ADD[[:space:]]+VALUE)'
+          VIOLATIONS=0
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            [ ! -f "$file" ] && continue
+
+            if grep -Ein "$PATTERN" "$file" > /tmp/dbgov_hits.txt; then
+              echo "::error file=$file::Potentially destructive DB command detected"
+              cat /tmp/dbgov_hits.txt
+              VIOLATIONS=1
+            fi
+          done <<< "$CHANGED_FILES"
+
+          if [ "$VIOLATIONS" -ne 0 ]; then
+            echo "Governance gate failed due to destructive DB commands."
+            exit 1
+          fi
+
+          echo "Governance guard passed."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma contract checks (if prisma schema exists)
+        shell: bash
+        run: |
+          if [ -f prisma/schema.prisma ]; then
+            npx prisma validate
+            npx prisma generate
+          else
+            echo "No prisma/schema.prisma in this repository; skipping Prisma contract checks."
+          fi
+
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    needs: [governance-gate]
 
     steps:
       - name: Checkout code
@@ -33,6 +97,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs: [governance-gate]
     env:
       NEXT_PUBLIC_API_URL: http://localhost:3000
 
@@ -101,7 +166,7 @@ jobs:
   e2e-network-tabs:
     name: E2E Network Tabs (No Offers/Rides)
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: [governance-gate, lint]
 
     steps:
       - name: Checkout code
