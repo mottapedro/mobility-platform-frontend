@@ -25,6 +25,7 @@ const eslintConfig = defineConfig([
     files: ["e2e/**/*.{ts,tsx}"],
     rules: {
       "react-hooks/rules-of-hooks": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ]);
