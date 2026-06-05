@@ -1,8 +1,9 @@
 name: GODNETWORK Smoke Suite
 
+# Smoke tests require a live backend at SMOKE_API_URL (ngrok tunnel).
+# Run manually via workflow_dispatch after confirming the tunnel is active.
+# Automatic PR triggers are disabled — backend is not a deployed service yet.
 on:
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
   push:
     branches: [staging, release]

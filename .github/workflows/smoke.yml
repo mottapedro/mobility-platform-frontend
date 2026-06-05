@@ -1,11 +1,9 @@
 name: Smoke Gate
 
+# Smoke tests require a live backend at SMOKE_API_URL (ngrok tunnel).
+# Run manually via workflow_dispatch after confirming the tunnel is active.
+# Automatic PR and schedule triggers are disabled — backend is not a deployed service yet.
 on:
-  pull_request:
-    branches: [main, develop]
-  schedule:
-    # Nightly at 04:00 UTC (01:00 BRT) — runs full suite including @slow specs.
-    - cron: '0 4 * * *'
   workflow_dispatch:
     inputs:
       include_slow:
