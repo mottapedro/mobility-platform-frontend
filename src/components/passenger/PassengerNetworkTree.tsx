@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { NetworkTree, type NetworkHierarchy, type NetworkNode, type NetworkStatCard } from '../network/NetworkTree'
-import { buildPassengerReferralSlug } from '../../services/passengers'
 import type { PassengerNetwork, PassengerNetworkHierarchy, PassengerNetworkReferral } from '../../types'
 
 interface PassengerNetworkTreeProps {
@@ -13,6 +12,7 @@ interface PassengerNetworkTreeProps {
   loading?: boolean
   error?: string | null
   onRetry?: () => void
+  p2pUrl?: string | null
 }
 
 function formatDate(iso: string): string {
@@ -88,27 +88,16 @@ function mapFallbackHierarchy({
   }
 }
 
-function buildReferralUrl(passengerId: string | null, passengerName: string): string {
-  if (typeof window === 'undefined') return ''
-  const code = buildPassengerReferralSlug(passengerName)
-  if (!code) return ''
-  const query = passengerId ? `?originPassengerId=${encodeURIComponent(passengerId)}` : ''
-  return `${window.location.origin}/r/${code}${query}`
-}
-
 function PassengerEmptyState({
-  passengerId,
-  passengerName,
+  p2pUrl,
 }: {
-  passengerId: string | null
-  passengerName: string
+  p2pUrl: string | null
 }) {
   const [copied, setCopied] = useState(false)
 
   function handleCopy() {
-    const url = buildReferralUrl(passengerId, passengerName)
-    if (!url) return
-    navigator.clipboard.writeText(url).then(() => {
+    if (!p2pUrl) return
+    navigator.clipboard.writeText(p2pUrl).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }).catch(() => { /* ignore clipboard errors */ })
@@ -136,7 +125,8 @@ function PassengerEmptyState({
 
       <button
         onClick={handleCopy}
-        className="inline-flex items-center gap-2 rounded-xl bg-[#F28C28] px-6 py-2.5 text-sm font-bold text-[#0D0700] transition-all hover:bg-[#F28C28]/90 active:scale-95"
+        disabled={!p2pUrl}
+        className="inline-flex items-center gap-2 rounded-xl bg-[#F28C28] px-6 py-2.5 text-sm font-bold text-[#0D0700] transition-all hover:bg-[#F28C28]/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {copied ? '✓ Copiado!' : 'Copiar link'}
       </button>
@@ -152,6 +142,7 @@ export function PassengerNetworkTree({
   loading,
   error,
   onRetry,
+  p2pUrl,
 }: PassengerNetworkTreeProps) {
   const referrals = useMemo(() => network?.recentReferrals ?? [], [network?.recentReferrals])
   const mappedHierarchy = useMemo<NetworkHierarchy | null>(() => {
@@ -194,7 +185,7 @@ export function PassengerNetworkTree({
 
   const hasReferrals = (mappedHierarchy?.referrals.length ?? 0) > 0
   const emptyStateSlot = !hasReferrals ? (
-    <PassengerEmptyState passengerId={passengerId} passengerName={passengerName} />
+    <PassengerEmptyState p2pUrl={p2pUrl ?? null} />
   ) : undefined
 
   return (
