@@ -20,6 +20,7 @@ import type {
 import {
   pickNetworkFixtureForActor,
 } from './__mocks__/network.fixtures'
+import canonicalTreeSnapshot from '../../e2e/fixtures/godnetwork.snapshot.json'
 
 const MOCK_ENV_FLAG = 'NEXT_PUBLIC_USE_MOCK_NETWORK'
 
@@ -179,4 +180,53 @@ export async function fetchGenealogyProjection(
   const url =
     options.maxDepth !== undefined ? `${base}?maxDepth=${options.maxDepth}` : base
   return apiRequest<GenealogyProjection>(url)
+}
+
+export interface CanonicalTreeNode {
+  id: string
+  parentId: string | null
+  depth: number
+  publicSlug: string
+  name: string
+}
+
+export interface CanonicalTree {
+  root: CanonicalTreeNode
+  nodes: CanonicalTreeNode[]
+}
+
+function slugToName(slug: string): string {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+/**
+ * Returns the canonical GODNETWORK tree used by governance tests.
+ * This is sourced from the repository snapshot to keep checks deterministic.
+ */
+export async function getCanonicalTree(): Promise<CanonicalTree> {
+  const rootSlug = canonicalTreeSnapshot.rootSlug
+  const root: CanonicalTreeNode = {
+    id: rootSlug,
+    parentId: null,
+    depth: 0,
+    publicSlug: rootSlug,
+    name: slugToName(rootSlug),
+  }
+
+  const nodes: CanonicalTreeNode[] = [
+    root,
+    ...canonicalTreeSnapshot.nodes.map((node) => ({
+      id: node.slug,
+      parentId: node.parentSlug,
+      depth: node.depth,
+      publicSlug: node.slug,
+      name: slugToName(node.slug),
+    })),
+  ]
+
+  return { root, nodes }
 }

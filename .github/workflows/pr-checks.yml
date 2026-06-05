@@ -10,6 +10,49 @@ permissions:
   issues: write
 
 jobs:
+  db-governance-guard:
+    name: DB Governance Guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Block destructive DB operations in changed files
+        shell: bash
+        run: |
+          BASE_REF="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=1
+
+          CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changed files detected."
+            exit 0
+          fi
+
+          PATTERN='(DROP[[:space:]]+DATABASE|prisma[[:space:]]+migrate[[:space:]]+reset|TRUNCATE[[:space:]]+TABLE|deleteMany\(\)|ALTER[[:space:]]+TYPE[[:space:]].*[[:space:]]ADD[[:space:]]+VALUE)'
+          VIOLATIONS=0
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            [ ! -f "$file" ] && continue
+
+            if grep -Ein "$PATTERN" "$file" > /tmp/dbgov_hits.txt; then
+              echo "::error file=$file::Potentially destructive DB command detected"
+              cat /tmp/dbgov_hits.txt
+              VIOLATIONS=1
+            fi
+          done <<< "$CHANGED_FILES"
+
+          if [ "$VIOLATIONS" -ne 0 ]; then
+            echo "DB governance guard failed."
+            exit 1
+          fi
+
+          echo "DB governance guard passed."
+
   pr-info:
     name: PR Information
     runs-on: ubuntu-latest

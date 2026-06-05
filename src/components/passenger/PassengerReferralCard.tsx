@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { ReferralLinkCard } from '../network/ReferralLinkCard'
-import { buildPassengerReferralSlug } from '../../services/passengers'
 
 interface PassengerReferralCardProps {
   passengerId?: string | null
@@ -34,8 +33,8 @@ export function PassengerReferralCard({
     if (explicit) return explicit
     const backendCode = referralCode?.trim()
     if (backendCode) return backendCode
-    return passengerName ? buildPassengerReferralSlug(passengerName) : ''
-  }, [passengerName, p2pUrl, referralCode])
+    return ''
+  }, [p2pUrl, referralCode])
 
   const origin = mounted ? window.location.origin : ''
   const explicitP2pUrl = p2pUrl?.trim() || null

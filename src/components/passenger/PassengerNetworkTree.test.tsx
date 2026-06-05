@@ -174,7 +174,23 @@ describe('PassengerNetworkTree — empty state', () => {
     expect(screen.queryByTestId('passenger-empty-state')).not.toBeInTheDocument()
   })
 
-  it('Copiar link button calls clipboard with referral URL', async () => {
+  it('Copiar link button is disabled when p2pUrl is absent', () => {
+    render(
+      <PassengerNetworkTree
+        passengerId={PASSENGER_ID}
+        passengerName={PASSENGER_NAME}
+        network={null}
+        hierarchy={null}
+        loading={false}
+        error={null}
+        p2pUrl={null}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /Copiar link/i })).toBeDisabled()
+  })
+
+  it('Copiar link button copies the backend p2pUrl when provided', async () => {
     const writeText = jest.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText },
@@ -190,13 +206,14 @@ describe('PassengerNetworkTree — empty state', () => {
         hierarchy={null}
         loading={false}
         error={null}
+        p2pUrl="https://app.aliado.app/r/alice-code"
       />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Copiar link/i }))
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/r/alice-teste'))
+      expect(writeText).toHaveBeenCalledWith('https://app.aliado.app/r/alice-code')
     })
 
     expect(await screen.findByText(/Copiado!/)).toBeInTheDocument()

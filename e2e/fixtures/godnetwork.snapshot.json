@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-29",
+  "rootSlug": "pedro-paulo-motta",
+  "nodes": [
+    { "slug": "joao-luiz-correa-de-brito", "parentSlug": "pedro-paulo-motta", "depth": 1, "relationshipType": "D2D" },
+    { "slug": "carlinhos", "parentSlug": "joao-luiz-correa-de-brito", "depth": 2, "relationshipType": "D2D" },
+    { "slug": "jenner", "parentSlug": "joao-luiz-correa-de-brito", "depth": 2, "relationshipType": "D2D" },
+    { "slug": "bira", "parentSlug": "joao-luiz-correa-de-brito", "depth": 2, "relationshipType": "D2D" },
+    { "slug": "gisele", "parentSlug": "joao-luiz-correa-de-brito", "depth": 2, "relationshipType": "D2D" },
+    { "slug": "fabio", "parentSlug": "joao-luiz-correa-de-brito", "depth": 2, "relationshipType": "D2D" },
+    { "slug": "andre-cabral", "parentSlug": "joao-luiz-correa-de-brito", "depth": 2, "relationshipType": "D2D" },
+    { "slug": "anselmo-valle", "parentSlug": "pedro-paulo-motta", "depth": 1, "relationshipType": "D2D" },
+    { "slug": "fernando-barreira", "parentSlug": "pedro-paulo-motta", "depth": 1, "relationshipType": "D2D" },
+    { "slug": "carlos-henrique", "parentSlug": "pedro-paulo-motta", "depth": 1, "relationshipType": "D2D" }
+  ]
+}

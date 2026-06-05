@@ -7,6 +7,7 @@ import { useOffers } from '../../../hooks/useOffers'
 import { respondOffer } from '../../../services/rides'
 import { Countdown } from '../../../components/driver/Countdown'
 import { useOperationalDomain } from '../../../contexts/domains/OperationalDomainProvider'
+import { calculatePrice, formatPrice } from '../../../utils/pricing'
 import type { DriverOffer, RideContext, RegionalContext } from '../../../types'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
@@ -211,6 +212,18 @@ function OfferCard({ offer, driverId, responding, onAccept, onReject }: OfferCar
         <p className="text-xs text-[#F5ECD8]/70 mt-1">
           🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min
         </p>
+        {(() => {
+          const price = ride.priceBrl != null
+            ? ride.priceBrl
+            : ride.distanceKm != null && ride.durationMin != null
+              ? calculatePrice(ride.distanceKm, ride.durationMin)
+              : null
+          return price != null ? (
+            <p className="text-sm font-bold text-[#3DB87A] mt-1">
+              💰 {formatPrice(price)}
+            </p>
+          ) : null
+        })()}
         <p className="text-xs text-[#9A7D5A]">
           {new Date(ride.scheduledAt).toLocaleString('pt-BR', {
             dateStyle: 'short',

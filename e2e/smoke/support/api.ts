@@ -13,6 +13,7 @@ export interface LoginPassengerResult {
   user: { id: string; name: string; email: string; role: 'passenger' }
   passengerId: string
   referredByDriverId: string | null
+  token: string
 }
 
 export interface RideOffer {
@@ -33,12 +34,30 @@ export class SmokeApi {
   private constructor(private readonly ctx: APIRequestContext, private readonly baseUrl: string) {}
 
   static async create(baseUrl: string): Promise<SmokeApi> {
-    const ctx = await pwRequest.newContext({ baseURL: baseUrl })
+    const ctx = await pwRequest.newContext({
+      baseURL: baseUrl,
+      // Bypass ngrok's browser-warning HTML interstitial on free-plan tunnels.
+      extraHTTPHeaders: { 'ngrok-skip-browser-warning': 'any' },
+    })
     return new SmokeApi(ctx, baseUrl)
   }
 
   async dispose() {
     await this.ctx.dispose()
+  }
+
+  /**
+   * Low-level GET returning raw JSON. For contract/shape assertions that need
+   * access to fields not yet surfaced on typed helpers.
+   */
+  async rawGet(
+    path: string,
+    params?: Record<string, string>,
+    extraHeaders?: Record<string, string>,
+  ): Promise<unknown> {
+    const res = await this.ctx.get(path, { params, headers: extraHeaders })
+    if (!res.ok()) throw new Error(`GET ${path} failed (${res.status()}): ${await res.text()}`)
+    return res.json()
   }
 
   async loginDriver(email: string, password: string): Promise<LoginDriverResult> {
@@ -57,17 +76,20 @@ export class SmokeApi {
     return body
   }
 
-  async createRide(input: {
-    passengerId: string
-    origin: string
-    destination: string
-    scheduledAt: string
-  }): Promise<{ id: string; status: string }> {
-    const res = await this.ctx.post('/rides', { data: input })
+  async createRide(
+    input: { passengerId: string; origin: string; destination: string; scheduledAt: string },
+    token?: string,
+  ): Promise<{ id: string; status: string }> {
+    const res = await this.ctx.post('/rides', {
+      data: input,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
     if (res.status() !== 201 && res.status() !== 200) {
       throw new Error(`POST /rides failed (${res.status()}): ${await res.text()}`)
     }
-    return (await res.json()) as { id: string; status: string }
+    // Backend wraps the ride in { message, ride: { ... } }; fall back to bare body.
+    const body = (await res.json()) as Record<string, unknown>
+    return ((body['ride'] as Record<string, unknown>) ?? body) as { id: string; status: string }
   }
 
   async getRide(rideId: string): Promise<{ id: string; status: string; selectedDriverId: string | null }> {
@@ -148,5 +170,55 @@ export class SmokeApi {
       await new Promise((r) => setTimeout(r, pollMs))
     }
     throw new Error(`Ride ${rideId} did not reach expected status within ${timeoutMs}ms (last: ${JSON.stringify(last)})`)
+  }
+
+  /**
+   * Best-effort ride cancellation. Silently ignores all errors.
+   * Used in afterAll hooks to clean up test-created rides and avoid
+   * SCHEDULE_CONFLICT (409) in subsequent runs.
+   */
+  /**
+   * Best-effort ride cancellation. Silently ignores all errors.
+   * Pass the passenger's bearer token so the backend can authorize the request.
+   */
+  async tryCancel(rideId: string, token?: string): Promise<void> {
+    try {
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      await this.ctx.delete(`/rides/${rideId}`, { headers })
+    } catch {
+      // Best-effort; ignore endpoint not supported or ride already terminal.
+    }
+  }
+
+  /**
+   * Create a ride, automatically resolving SCHEDULE_CONFLICT (409) by
+   * cancelling the conflicting ride and retrying. Handles the accumulated
+   * stale rides left by previous test runs without manual cleanup.
+   */
+  async createRideOrReclaim(
+    input: { passengerId: string; origin: string; destination: string; scheduledAt: string },
+    token: string,
+    maxAttempts = 8,
+  ): Promise<{ id: string; status: string; [k: string]: unknown }> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await this.createRide(input, token)
+      } catch (err: unknown) {
+        const msg = String(err)
+        const m = msg.match(/"conflictingRideId":"([a-f0-9-]+)"/)
+        if (m && attempt < maxAttempts - 1) {
+          console.log(
+            `[createRideOrReclaim] 409 conflict with ${m[1]}, cancelling and retrying (attempt ${attempt + 1}/${maxAttempts})`,
+          )
+          await this.tryCancel(m[1], token)
+          // Brief pause for the backend to process the cancellation.
+          await new Promise((r) => setTimeout(r, 800))
+          continue
+        }
+        throw err
+      }
+    }
+    throw new Error('createRideOrReclaim: all attempts exhausted')
   }
 }

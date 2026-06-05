@@ -47,7 +47,13 @@ export type RideStatus =
   | 'MATCHING'
   | 'WAITING_DRIVER'
   | 'WAITING_REFERRAL'
+  | 'WAITING_PARTNER'
+  | 'WAITING_GENERAL'
+  | 'MATCHED'
   | 'ACCEPTED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED'
   | 'REJECTED'
   | 'EXPIRED'
 
@@ -77,6 +83,9 @@ export interface Ride {
   selectedDriverId: string | null
   createdAt: string
   context?: RideContext | null
+  distanceKm?: number | null
+  durationMin?: number | null
+  priceBrl?: number | null
   passenger: {
     user: {
       name: string
@@ -108,6 +117,7 @@ export interface DriverOffer {
     status: string
     distanceKm?: number | null
     durationMin?: number | null
+    priceBrl?: number | null
     context?: RideContext | null
     regionalContext?: RegionalContext | null
     passenger: {
@@ -123,6 +133,9 @@ export interface DriverRide {
   destination: string
   scheduledAt: string
   status: string
+  distanceKm?: number | null
+  durationMin?: number | null
+  priceBrl?: number | null
   context?: RideContext | null
   passenger: {
     user: { name: string; phone?: string }

@@ -7,6 +7,7 @@ import { useAlliedDriver } from '../../../hooks/useAlliedDriver'
 import { AlliedDriverCard } from '../../../components/passenger/AlliedDriverCard'
 import { PixModal } from '../../../components/payment/PixModal'
 import { useAuth } from '../../../contexts/AuthContext'
+import { calculatePrice, formatPrice } from '../../../utils/pricing'
 import type { Ride, RideStatus } from '../../../types'
 
 function rideStatusLabel(status: RideStatus): string {
@@ -17,9 +18,19 @@ function rideStatusLabel(status: RideStatus): string {
       return 'Buscando motoristas'
     case 'PENDING':
     case 'WAITING_DRIVER':
+    case 'WAITING_GENERAL':
       return 'Aguardando'
+    case 'WAITING_PARTNER':
+      return 'Aguardando motorista parceiro'
+    case 'MATCHED':
     case 'ACCEPTED':
       return 'Motorista confirmado'
+    case 'IN_PROGRESS':
+      return '🚗 A caminho'
+    case 'COMPLETED':
+      return 'Corrida finalizada'
+    case 'CANCELLED':
+      return 'Cancelada'
     case 'REJECTED':
     case 'EXPIRED':
       return 'Encerrada'
@@ -30,8 +41,14 @@ function rideStatusLabel(status: RideStatus): string {
 
 function rideStatusStyle(status: RideStatus): string {
   switch (status) {
+    case 'MATCHED':
     case 'ACCEPTED':
       return 'bg-[#3DB87A]/15 text-[#3DB87A] border border-[#3DB87A]/30'
+    case 'IN_PROGRESS':
+      return 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/30'
+    case 'COMPLETED':
+      return 'bg-[#3DB87A]/15 text-[#3DB87A] border border-[#3DB87A]/30'
+    case 'CANCELLED':
     case 'REJECTED':
     case 'EXPIRED':
       return 'bg-[#E05050]/15 text-[#E05050] border border-[#E05050]/30'
@@ -88,6 +105,8 @@ export default function PassengerRidesPage() {
 
   useEffect(() => {
     fetchRides()
+    const interval = setInterval(fetchRides, 5000)
+    return () => clearInterval(interval)
   }, [fetchRides])
 
   return (
@@ -160,9 +179,15 @@ export default function PassengerRidesPage() {
                 </div>
                 <div className="flex items-center justify-between border-t border-[#2E1A08] pt-2">
                   <p className="text-xs text-[#9A7D5A]">{formatDate(ride.scheduledAt)}</p>
-                  <p className="text-xs text-[#5A3F22]">#{ride.id.slice(0, 8)}</p>
+                  {ride.priceBrl != null ? (
+                    <p className="text-xs font-bold text-[#3DB87A]">{formatPrice(ride.priceBrl)}</p>
+                  ) : ride.distanceKm != null && ride.durationMin != null ? (
+                    <p className="text-xs font-bold text-[#3DB87A]">{formatPrice(calculatePrice(ride.distanceKm, ride.durationMin))}</p>
+                  ) : (
+                    <p className="text-xs text-[#5A3F22]">#{ride.id.slice(0, 8)}</p>
+                  )}
                 </div>
-                {ride.status === 'ACCEPTED' && (
+                {(ride.status === 'ACCEPTED' || ride.status === 'MATCHED' || ride.status === 'IN_PROGRESS') && (
                   <button
                     onClick={() => setPixRideId(ride.id)}
                     className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-4 py-2.5 text-sm font-semibold text-[#3DB87A] transition-colors hover:border-[#3DB87A]/60 hover:bg-[#3DB87A]/15"
