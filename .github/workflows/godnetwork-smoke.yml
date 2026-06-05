@@ -36,6 +36,14 @@ jobs:
           else
             echo "No prisma/schema.prisma in this repository; skipping local Prisma checks."
           fi
+      - name: Validate smoke secrets
+        run: |
+          test -n "$SMOKE_API_URL" || (echo "::error::Missing SMOKE_API_URL" && exit 1)
+          test -n "$SMOKE_DRIVER_EMAIL" || (echo "::error::Missing SMOKE_DRIVER_EMAIL" && exit 1)
+          test -n "$SMOKE_DRIVER_PASSWORD" || (echo "::error::Missing SMOKE_DRIVER_PASSWORD" && exit 1)
+          test -n "$SMOKE_PASSENGER_EMAIL" || (echo "::error::Missing SMOKE_PASSENGER_EMAIL" && exit 1)
+          test -n "$SMOKE_PASSENGER_PASSWORD" || (echo "::error::Missing SMOKE_PASSENGER_PASSWORD" && exit 1)
+          echo "All smoke secrets present ✓"
       - name: Run GODNETWORK Foundation Smoke
         run: |
           npx playwright test e2e/godnetwork-smoke/network-context.spec.ts

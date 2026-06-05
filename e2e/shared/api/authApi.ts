@@ -11,10 +11,21 @@ export interface AuthResult {
 }
 
 export async function loginDriver(): Promise<AuthResult> {
-  const res = await axios.post(`${smokeConfig.apiUrl}/auth/login`, {
-    email: smokeConfig.driverEmail,
-    password: smokeConfig.driverPassword,
-  });
+  let res;
+  try {
+    res = await axios.post(`${smokeConfig.apiUrl}/auth/login`, {
+      email: smokeConfig.driverEmail,
+      password: smokeConfig.driverPassword,
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        `POST /auth/login (driver) failed with status ${error.response?.status ?? 'unknown'}: ` +
+          JSON.stringify(error.response?.data ?? {}),
+      );
+    }
+    throw error;
+  }
   if (isSmokeDebugEnabled) {
     console.log('SMOKE DEBUG loginDriver response', {
       userId: res.data?.user?.id,
@@ -30,10 +41,21 @@ export async function loginDriver(): Promise<AuthResult> {
 }
 
 export async function loginPassenger(): Promise<AuthResult> {
-  const res = await axios.post(`${smokeConfig.apiUrl}/auth/login`, {
-    email: smokeConfig.passengerEmail,
-    password: smokeConfig.passengerPassword,
-  });
+  let res;
+  try {
+    res = await axios.post(`${smokeConfig.apiUrl}/auth/login`, {
+      email: smokeConfig.passengerEmail,
+      password: smokeConfig.passengerPassword,
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        `POST /auth/login (passenger) failed with status ${error.response?.status ?? 'unknown'}: ` +
+          JSON.stringify(error.response?.data ?? {}),
+      );
+    }
+    throw error;
+  }
   if (isSmokeDebugEnabled) {
     console.log('SMOKE DEBUG loginPassenger response', {
       userId: res.data?.user?.id,
