@@ -4,15 +4,68 @@ import { SmokeContext } from '../context/smokeContext';
 
 const isSmokeDebugEnabled = process.env.SMOKE_DEBUG === 'true';
 
-type LooseObject = Record<string, any>;
+// ─── Domain types ────────────────────────────────────────────────────────────
 
-function toGenealogyArray(genealogy: any, fallbackActorId: string): any[] {
+type CapabilityMap = Partial<{
+  driverToDriver: boolean;
+  driverToPassenger: boolean;
+  passengerToPassenger: boolean;
+  d2d: boolean;
+  d2p: boolean;
+  p2p: boolean;
+}>;
+
+type InviteUrlMap = Partial<{
+  driverToDriver: string;
+  driverToPassenger: string;
+  passengerToPassenger: string;
+  d2d: string;
+  d2p: string;
+  p2p: string;
+}>;
+
+interface GenealogyNode {
+  id: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+interface GenealogyShape {
+  me?: GenealogyNode;
+  ancestors?: GenealogyNode[];
+  descendants?: GenealogyNode[];
+  lateral?: GenealogyNode[];
+  operationalOwner?: GenealogyNode;
+}
+
+interface NetworkContextRaw {
+  actorId?: string;
+  rootDriverId?: string;
+  rootDriver?: { id: string; name?: string };
+  rootDriverName?: string;
+  state?: string;
+  ownership?: { type?: string };
+  targetActorExpected?: string;
+  relationships?: unknown[];
+  genealogy?: GenealogyShape | GenealogyNode[];
+  capabilities?: CapabilityMap;
+  inviteCapabilities?: CapabilityMap;
+  inviteUrls?: InviteUrlMap;
+  [key: string]: unknown;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function toGenealogyArray(
+  genealogy: GenealogyShape | GenealogyNode[] | undefined | null,
+  fallbackActorId: string,
+): GenealogyNode[] {
   if (Array.isArray(genealogy)) {
     return genealogy;
   }
 
   if (genealogy && typeof genealogy === 'object') {
-    const nodes = [
+    const nodes: GenealogyNode[] = [
       ...(genealogy.me ? [genealogy.me] : []),
       ...(Array.isArray(genealogy.ancestors) ? genealogy.ancestors : []),
       ...(Array.isArray(genealogy.descendants) ? genealogy.descendants : []),
@@ -26,12 +79,16 @@ function toGenealogyArray(genealogy: any, fallbackActorId: string): any[] {
   return [{ id: fallbackActorId }];
 }
 
-function normalizeNetworkContext(raw: LooseObject, ctx: SmokeContext): LooseObject {
-  const actorId = raw.actorId ?? raw.genealogy?.me?.id ?? ctx.driverId;
+function normalizeNetworkContext(raw: NetworkContextRaw, ctx: SmokeContext): NetworkContextRaw {
+  const genealogyShape = !Array.isArray(raw.genealogy)
+    ? (raw.genealogy as GenealogyShape | undefined)
+    : undefined;
+
+  const actorId = raw.actorId ?? genealogyShape?.me?.id ?? ctx.driverId;
   const rootDriverId =
     raw.rootDriverId ??
     raw.rootDriver?.id ??
-    raw.genealogy?.operationalOwner?.id ??
+    genealogyShape?.operationalOwner?.id ??
     ctx.driverId;
 
   return {
@@ -47,7 +104,7 @@ function normalizeNetworkContext(raw: LooseObject, ctx: SmokeContext): LooseObje
   };
 }
 
-export async function getNetworkContext(ctx: SmokeContext) {
+export async function getNetworkContext(ctx: SmokeContext): Promise<NetworkContextRaw> {
   if (!ctx.driverId) {
     throw new Error('Missing driverId in smoke context for /network/context');
   }
@@ -74,7 +131,7 @@ export async function getNetworkContext(ctx: SmokeContext) {
 
   try {
     const res = await axios.get(url, { headers });
-    const normalized = normalizeNetworkContext(res.data as LooseObject, ctx);
+    const normalized = normalizeNetworkContext(res.data as NetworkContextRaw, ctx);
     if (isSmokeDebugEnabled) {
       console.log('SMOKE DEBUG network/context response', {
         state: normalized.state,
@@ -96,7 +153,7 @@ export async function getNetworkContext(ctx: SmokeContext) {
 
 export async function getInviteUrls(ctx: SmokeContext) {
   const context = await getNetworkContext(ctx);
-  const inviteUrls = context?.inviteUrls ?? {};
+  const inviteUrls: InviteUrlMap = context.inviteUrls ?? {};
 
   return {
     driverToDriver: inviteUrls.driverToDriver ?? inviteUrls.d2d ?? null,
@@ -104,3 +161,5 @@ export async function getInviteUrls(ctx: SmokeContext) {
     passengerToPassenger: inviteUrls.passengerToPassenger ?? inviteUrls.p2p ?? null,
   };
 }
+
+export type { CapabilityMap, InviteUrlMap, NetworkContextRaw, GenealogyNode };

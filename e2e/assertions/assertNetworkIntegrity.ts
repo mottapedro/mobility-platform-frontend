@@ -1,15 +1,16 @@
 import { expect } from '@playwright/test';
 import { getNetworkContext } from '../shared/api/networkApi';
+import type { CapabilityMap, GenealogyNode } from '../shared/api/networkApi';
 import { SmokeContext } from '../shared/context/smokeContext';
 
-function printCapabilities(capabilities: any) {
-  const caps = [
+function printCapabilities(capabilities: CapabilityMap) {
+  const caps: Array<{ key: keyof CapabilityMap; label: string }> = [
     { key: 'd2d', label: 'D2D' },
     { key: 'd2p', label: 'D2P' },
     { key: 'p2p', label: 'P2P' },
   ];
   caps.forEach(c => {
-    const ok = capabilities?.[c.key] ? '✓' : '✗';
+    const ok = capabilities[c.key] ? '\u2713' : '\u2717';
     console.log(`${ok} ${c.label}`);
   });
 }
@@ -23,7 +24,7 @@ export async function assertNetworkIntegrity(ctx: SmokeContext) {
   expect(context.ownership).toBeDefined();
   expect(context.relationships).toBeDefined();
   expect(Array.isArray(context.genealogy)).toBe(true);
-  expect(context.genealogy.length).toBeGreaterThan(0);
+  expect((context.genealogy as GenealogyNode[]).length).toBeGreaterThan(0);
 
   // Diagnóstico operacional
   console.log('\nNetwork Context Audit');
@@ -40,6 +41,7 @@ export async function assertNetworkIntegrity(ctx: SmokeContext) {
   console.log('Ownership Type:', context.ownership?.type || 'N/A');
   // Capabilities
   console.log('Capabilities:');
-  printCapabilities(context.capabilities || context.inviteCapabilities || {});
+  const caps: CapabilityMap = context.capabilities ?? context.inviteCapabilities ?? {};
+  printCapabilities(caps);
   console.log('----------------------\n');
 }
