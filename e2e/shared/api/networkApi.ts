@@ -117,6 +117,9 @@ export async function getNetworkContext(ctx: SmokeContext): Promise<NetworkConte
   const headers = {
     ...(ctx.driverToken ? { Authorization: `Bearer ${ctx.driverToken}` } : {}),
     'x-driver-id': ctx.driverId,
+    // Bypass ngrok's browser-warning HTML interstitial on free-plan tunnels.
+    // Harmless on non-ngrok servers (ignored as an unknown header).
+    'ngrok-skip-browser-warning': 'any',
   };
 
   if (isSmokeDebugEnabled) {
