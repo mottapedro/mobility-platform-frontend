@@ -6,6 +6,7 @@ import { createRide } from '../../../services/rides'
 import { ApiError } from '../../../services/api'
 import { usePassenger } from '../../../hooks/usePassenger'
 import { useAuth } from '../../../contexts/AuthContext'
+import { AddressInput, type AddressCoords } from '../../../components/passenger/AddressInput'
 import type { DriverSummary } from '../../../services/drivers'
 
 interface ContextCheckboxProps {
@@ -39,7 +40,9 @@ export default function PassengerCreatePage() {
   const passengerId = user?.passengerId ?? ''
 
   const [origin, setOrigin] = useState('')
+  const [originCoords, setOriginCoords] = useState<AddressCoords | undefined>()
   const [destination, setDestination] = useState('')
+  const [destCoords, setDestCoords] = useState<AddressCoords | undefined>()
   const [scheduledAt, setScheduledAt] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -89,6 +92,8 @@ export default function PassengerCreatePage() {
       scheduledAt: new Date(scheduledAt).toISOString(),
       context: { isVip, isAirport, isAssistedTransport, isLuggage },
       ...(notes.trim() ? { notes: notes.trim() } : {}),
+      ...(originCoords ? { originLat: originCoords.lat, originLng: originCoords.lng } : {}),
+      ...(destCoords ? { destLat: destCoords.lat, destLng: destCoords.lng } : {}),
     }
 
     setSubmitting(true)
@@ -100,7 +105,9 @@ export default function PassengerCreatePage() {
       localStorage.setItem('passengerRideIds', JSON.stringify(ids))
       // reset
       setOrigin('')
+      setOriginCoords(undefined)
       setDestination('')
+      setDestCoords(undefined)
       setScheduledAt('')
       setIsVip(false)
       setIsAirport(false)
@@ -181,27 +188,29 @@ export default function PassengerCreatePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#F5ECD8]/70">Origem</label>
-          <input
-            type="text"
-            placeholder="Ex: Barra da Tijuca, Rio de Janeiro"
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
-          />
-        </div>
+        <AddressInput
+          id="origin"
+          label="Origem"
+          placeholder="Ex: Barra da Tijuca, Rio de Janeiro"
+          value={origin}
+          required
+          onChange={(val, coords) => {
+            setOrigin(val)
+            setOriginCoords(coords)
+          }}
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#F5ECD8]/70">Destino</label>
-          <input
-            type="text"
-            placeholder="Ex: Aeroporto Galeão, Rio de Janeiro"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
-          />
-        </div>
+        <AddressInput
+          id="destination"
+          label="Destino"
+          placeholder="Ex: Aeroporto Galeão, Rio de Janeiro"
+          value={destination}
+          required
+          onChange={(val, coords) => {
+            setDestination(val)
+            setDestCoords(coords)
+          }}
+        />
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-[#F5ECD8]/70">Horário da corrida</label>

@@ -12,11 +12,10 @@ function avatarLabel(name: string): string {
 
 interface DriverReferralCardProps {
   /** D2P invite URL from backend (GET /network/context → inviteUrls.driverToPassenger).
-   *  Falls back to /r/{publicSlug} when absent — legacy behaviour until
-   *  GET /drivers/me/invites is available. */
+   *  Falls back to referralCode when absent. */
   d2pUrl?: string | null
   /** D2D invite URL from backend (GET /network/context → inviteUrls.driverToDriver).
-   *  Never falls back to /r/{publicSlug}. */
+   *  Falls back to referralCode when absent. */
   d2dUrl?: string | null
   /** Explicit capability flags from backend (NetworkContext.capabilities).
    *  When present, these govern render behaviour instead of URL-presence inference.
@@ -33,26 +32,39 @@ export function DriverReferralCard({ d2pUrl, d2dUrl, capabilities }: DriverRefer
   }, [])
 
   if (!user?.name) return null
-  if (!user.publicSlug && !d2pUrl) return null
 
   const origin = mounted ? window.location.origin : ''
   const normalizedD2pUrl = d2pUrl?.trim() || null
   const normalizedD2dUrl = d2dUrl?.trim() || null
+  const normalizedReferralCode = user.referralCode?.trim() || null
 
-  // D2P: backend URL → /r/{slug} fallback.
-  const resolvedD2pUrl = normalizedD2pUrl ?? (user.publicSlug ? `${origin}/r/${user.publicSlug}` : null)
-  const displayD2pUrl = normalizedD2pUrl ?? (user.publicSlug ? `/r/${user.publicSlug}` : null)
+  const fallbackD2pPath = normalizedReferralCode
+    ? `/invite/d2p/${encodeURIComponent(normalizedReferralCode)}`
+    : null
+  const fallbackD2dPath = normalizedReferralCode
+    ? `/invite/d2d/${encodeURIComponent(normalizedReferralCode)}`
+    : null
 
-  // D2D: backend URL only. Never reuse D2P/public slug as D2D fallback.
-  // This avoids sharing passenger invite links as driver invites.
+  // D2P: backend URL first, then referralCode fallback.
+  const resolvedD2pUrl = normalizedD2pUrl ?? (fallbackD2pPath ? `${origin}${fallbackD2pPath}` : null)
+  const displayD2pUrl = normalizedD2pUrl ?? fallbackD2pPath
+
+  // D2D: backend URL first, then referralCode fallback.
+  // Keep D2D distinct from D2P when backend accidentally returns the same URL.
   const hasDistinctD2dUrl = !!normalizedD2dUrl && normalizedD2dUrl !== resolvedD2pUrl
-  const resolvedD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : null
-  const displayD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : null
+  const resolvedD2dUrl = hasDistinctD2dUrl
+    ? normalizedD2dUrl
+    : fallbackD2dPath
+      ? `${origin}${fallbackD2dPath}`
+      : null
+  const displayD2dUrl = hasDistinctD2dUrl ? normalizedD2dUrl : fallbackD2dPath
 
   // Capability resolution: explicit flags win over heuristics.
   const d2pEnabled = capabilities != null ? capabilities.canInvitePassengers : !!resolvedD2pUrl
   const shouldRenderD2dCard = capabilities != null ? capabilities.canInviteDrivers : true
   const d2dEnabled = shouldRenderD2dCard && !!resolvedD2dUrl
+
+  if (!d2pEnabled && !shouldRenderD2dCard) return null
 
   const avatar = avatarLabel(user.name)
 
