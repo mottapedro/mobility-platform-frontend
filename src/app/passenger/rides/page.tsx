@@ -7,7 +7,7 @@ import { useAlliedDriver } from '../../../hooks/useAlliedDriver'
 import { AlliedDriverCard } from '../../../components/passenger/AlliedDriverCard'
 import { PixModal } from '../../../components/payment/PixModal'
 import { useAuth } from '../../../contexts/AuthContext'
-import { calculatePrice, formatPrice } from '../../../utils/pricing'
+import { formatPrice } from '../../../utils/pricing'
 import type { Ride, RideStatus } from '../../../types'
 
 function rideStatusLabel(status: RideStatus): string {
@@ -181,8 +181,6 @@ export default function PassengerRidesPage() {
                   <p className="text-xs text-[#9A7D5A]">{formatDate(ride.scheduledAt)}</p>
                   {ride.priceBrl != null ? (
                     <p className="text-xs font-bold text-[#3DB87A]">{formatPrice(ride.priceBrl)}</p>
-                  ) : ride.distanceKm != null && ride.durationMin != null ? (
-                    <p className="text-xs font-bold text-[#3DB87A]">{formatPrice(calculatePrice(ride.distanceKm, ride.durationMin))}</p>
                   ) : (
                     <p className="text-xs text-[#5A3F22]">#{ride.id.slice(0, 8)}</p>
                   )}

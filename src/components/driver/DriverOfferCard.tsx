@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import type { DriverOffer, RideContext, RegionalContext } from '../../types'
-import { calculatePrice, formatPrice } from '../../utils/pricing'
+import { formatPrice } from '../../utils/pricing'
 import { Countdown } from './Countdown'
 
 interface DriverOfferCardProps {
@@ -31,12 +31,7 @@ export function DriverOfferCard({
   if (context?.isPet) contextBadges.push({ label: 'Pet', emoji: '🐶' })
   if (context?.isLuggage) contextBadges.push({ label: 'Bagagem', emoji: '🧳' })
 
-  const price =
-    ride.priceBrl != null
-      ? ride.priceBrl
-      : ride.distanceKm != null && ride.durationMin != null
-      ? calculatePrice(ride.distanceKm, ride.durationMin)
-      : null
+  const price = ride.priceBrl
 
   return (
     <div
