@@ -1,150 +1,159 @@
 ﻿'use client'
 
-import type { Offer } from '../../types'
-import { RideContextBadges } from './RideContextBadges'
+import type { DriverOffer, RideContext, RegionalContext } from '../../types'
+import { calculatePrice, formatPrice } from '../../utils/pricing'
 import { Countdown } from './Countdown'
 
 interface DriverOfferCardProps {
-  offer: Offer & { rideContext?: import('../../types').RideContext | null }
-  passengerName?: string
-  origin?: string
-  destination?: string
-  distanceKm?: number | null
-  durationMin?: number | null
+  offer: DriverOffer
+  driverId: string
+  responding: boolean
   onAccept: () => void
   onReject: () => void
-  responding: boolean
 }
 
 export function DriverOfferCard({
   offer,
-  passengerName,
-  origin,
-  destination,
-  distanceKm,
-  durationMin,
+  driverId,
+  responding,
   onAccept,
   onReject,
-  responding,
 }: DriverOfferCardProps) {
-  const isVip = offer.rideContext?.isVip
-  const isAssisted = offer.rideContext?.isAssistedTransport
+  const ride = offer.rideRequest
+  const passenger = ride.passenger
+  const isReferral = passenger.referredByDriverId === driverId
+  const context = ride.context as RideContext | null
+  const regionalContext = ride.regionalContext as RegionalContext | null
+
+  const contextBadges: { label: string; emoji: string }[] = []
+  if (context?.isVip) contextBadges.push({ label: 'VIP', emoji: '⭐' })
+  if (context?.isAirport) contextBadges.push({ label: 'Aeroporto', emoji: '✈️' })
+  if (context?.isPet) contextBadges.push({ label: 'Pet', emoji: '🐶' })
+  if (context?.isLuggage) contextBadges.push({ label: 'Bagagem', emoji: '🧳' })
+
+  const price =
+    ride.priceBrl != null
+      ? ride.priceBrl
+      : ride.distanceKm != null && ride.durationMin != null
+      ? calculatePrice(ride.distanceKm, ride.durationMin)
+      : null
 
   return (
     <div
-      className={`rounded-xl border p-5 transition-colors ${
-        isVip
-          ? 'border-orange-500/40 bg-orange-500/5'
-          : isAssisted
-          ? 'border-violet-500/30 bg-violet-500/5'
+      className={`rounded-2xl border p-5 flex flex-col gap-4 transition-all ${
+        isReferral
+          ? 'border-[#F28C28]/60 bg-[#1A0E04] shadow-[0_0_24px_0_rgba(242,140,40,0.10)]'
           : 'border-[#2E1A08] bg-[#1A0E04]'
       }`}
     >
-      {/* Driver info */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-sm font-bold text-white">
-          {offer.driver.user.name.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="truncate font-semibold text-white">
-            {offer.driver.user.name}
-          </p>
-          {offer.driver.user.phone && (
-            <p className="text-xs text-zinc-500">{offer.driver.user.phone}</p>
+      {/* Priority badge row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+              isReferral
+                ? 'bg-[#F28C28]/15 text-[#F28C28] border border-[#F28C28]/40'
+                : 'bg-[#2E1A08] text-[#9A7D5A] border border-[#2E1A08]'
+            }`}
+          >
+            {isReferral ? '★ Seu cliente' : '◎ Disponível na rede'}
+          </span>
+          {regionalContext?.isRegionalPriority && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+              📍 Prioridade regional
+            </span>
           )}
         </div>
-        {isVip && (
-          <span className="shrink-0 rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-xs font-bold text-orange-400">
-            ⭐ VIP
-          </span>
-        )}
-        {isAssisted && !isVip && (
-          <span className="shrink-0 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-xs font-bold text-violet-400">
-            ♿ Assistido
-          </span>
-        )}
+        <Countdown expiresAt={offer.expiresAt} />
       </div>
 
-      {/* Ride details */}
-      {(origin || destination) && (
-        <div className="mb-3 space-y-1 rounded-lg bg-zinc-800/50 px-3 py-2.5">
-          {passengerName && (
-            <p className="text-xs text-zinc-500">
-              Passageiro:{' '}
-              <span className="font-medium text-zinc-300">{passengerName}</span>
-            </p>
-          )}
-          {origin && (
-            <p className="text-xs text-zinc-500">
-              De: <span className="font-medium text-zinc-300">{origin}</span>
-            </p>
-          )}
-          {destination && (
-            <p className="text-xs text-zinc-500">
-              Para:{' '}
-              <span className="font-medium text-zinc-300">{destination}</span>
-            </p>
-          )}
-          {(distanceKm != null || durationMin != null) && (
-            <p className="mt-1 text-xs text-[#F5ECD8]/70">
-              🚗 {distanceKm ?? '--'} km • ⏱ {durationMin ?? '--'} min
-            </p>
+      {/* Passenger */}
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+            isReferral ? 'bg-[#F28C28] text-[#0D0700]' : 'bg-[#2E1A08] text-[#F5ECD8]'
+          }`}
+        >
+          {passenger.user.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <p className="font-semibold text-[#F5ECD8]">{passenger.user.name}</p>
+          {passenger.user.phone && (
+            <p className="text-xs text-[#9A7D5A]">{passenger.user.phone}</p>
           )}
         </div>
-      )}
+      </div>
+
+      {/* Route + pricing */}
+      <div className="rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-3 flex flex-col gap-1.5 text-sm">
+        <p className="text-[#F5ECD8]/70">
+          <span className="font-semibold text-[#F28C28]">De:</span> {ride.origin}
+        </p>
+        <p className="text-[#F5ECD8]/70">
+          <span className="font-semibold text-[#F28C28]">Para:</span> {ride.destination}
+        </p>
+        <p className="text-xs text-[#F5ECD8]/70 mt-1">
+          🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min
+        </p>
+        {price != null && (
+          <p className="text-sm font-bold text-[#3DB87A] mt-1">
+            💰 {formatPrice(price)}
+          </p>
+        )}
+        <p className="text-xs text-[#9A7D5A]">
+          {new Date(ride.scheduledAt).toLocaleString('pt-BR', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+          })}
+        </p>
+        {regionalContext?.region && (
+          <p className="text-xs text-emerald-400/80 mt-0.5">
+            📍 Região: {regionalContext.region}
+            {regionalContext.cluster && (
+              <span className="text-emerald-400/40"> · {regionalContext.cluster}</span>
+            )}
+          </p>
+        )}
+      </div>
 
       {/* Context badges */}
-      <RideContextBadges context={offer.rideContext} />
-
-      {/* Timer */}
-      <div className="mt-3 mb-4">
-        {offer.status === 'PENDING' ? (
-          <Countdown expiresAt={offer.expiresAt} />
-        ) : (
-          <StatusLabel status={offer.status} />
-        )}
-      </div>
-
-      {/* Actions — only for PENDING */}
-      {offer.status === 'PENDING' && (
-        <div className="flex gap-3">
-          <button
-            onClick={onAccept}
-            disabled={responding}
-            className="flex-1 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {responding ? '...' : 'Aceitar'}
-          </button>
-          <button
-            onClick={onReject}
-            disabled={responding}
-            className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-red-700/50 hover:bg-red-900/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {responding ? '...' : 'Rejeitar'}
-          </button>
+      {contextBadges.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {contextBadges.map((b) => (
+            <span
+              key={b.label}
+              className="inline-flex items-center gap-1 rounded-full border border-[#F28C28]/25 bg-[#F28C28]/8 px-2.5 py-0.5 text-xs font-medium text-[#F28C28]"
+            >
+              {b.emoji} {b.label}
+            </span>
+          ))}
         </div>
       )}
+
+      {/* Actions */}
+      <div className="flex gap-3">
+        <button
+          onClick={onAccept}
+          disabled={responding}
+          className="flex-1 rounded-xl bg-[#3DB87A] px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {responding ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Aguarde...
+            </span>
+          ) : (
+            'Aceitar'
+          )}
+        </button>
+        <button
+          onClick={onReject}
+          disabled={responding}
+          className="flex-1 rounded-xl border border-[#2E1A08] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#9A7D5A] transition-colors hover:border-[#E05050]/50 hover:text-[#E05050] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {responding ? '...' : 'Rejeitar'}
+        </button>
+      </div>
     </div>
   )
-}
-
-function StatusLabel({ status }: { status: string }) {
-  const map: Record<string, { label: string; className: string }> = {
-    ACCEPTED: {
-      label: '✓ Corrida aceita',
-      className: 'text-green-400',
-    },
-    REJECTED: {
-      label: 'Rejeitada',
-      className: 'text-zinc-500',
-    },
-    EXPIRED: {
-      label: 'Expirada',
-      className: 'text-red-400',
-    },
-  }
-
-  const { label, className } = map[status] ?? { label: status, className: 'text-zinc-400' }
-
-  return <span className={`text-xs font-semibold ${className}`}>{label}</span>
 }
