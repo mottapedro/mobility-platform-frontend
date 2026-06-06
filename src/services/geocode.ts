@@ -1,11 +1,18 @@
 type Coords = { lat: number; lng: number }
 type NominatimResult = { lat: string; lon: string; display_name: string }
 
+export interface AddressSuggestion {
+  displayName: string
+  lat: number
+  lng: number
+}
+
 // Append region context so Nominatim doesn't return results from outside Brazil
 const BASE_REGION = 'Rio de Janeiro, Brasil'
 
 // Simple in-memory cache to avoid hammering Nominatim on re-renders
 const cache = new Map<string, Coords | null>()
+const suggestCache = new Map<string, AddressSuggestion[]>()
 
 export async function geocodeAddress(address: string): Promise<Coords | null> {
   const trimmed = address.trim()
@@ -52,5 +59,34 @@ export async function geocodeAddress(address: string): Promise<Coords | null> {
   } catch {
     cache.set(key, null)
     return null
+  }
+}
+
+export async function searchAddresses(query: string): Promise<AddressSuggestion[]> {
+  const trimmed = query.trim()
+  if (trimmed.length < 4) return []
+
+  const key = trimmed.toLowerCase()
+  if (suggestCache.has(key)) return suggestCache.get(key)!
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&limit=5&countrycodes=br`,
+      { headers: { 'User-Agent': 'mobility-platform-frontend/1.0' } },
+    )
+
+    if (!res.ok) return []
+
+    const data: NominatimResult[] = await res.json()
+    const suggestions: AddressSuggestion[] = data.map((r) => ({
+      displayName: r.display_name,
+      lat: parseFloat(r.lat),
+      lng: parseFloat(r.lon),
+    }))
+
+    suggestCache.set(key, suggestions)
+    return suggestions
+  } catch {
+    return []
   }
 }
