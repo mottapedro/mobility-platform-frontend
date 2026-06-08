@@ -14,15 +14,16 @@ type DriverReferralLandingPageProps = {
   }>
   searchParams?: Promise<{
     originPassengerId?: string
+    flow?: string | string[]
   }>
 }
 
 const PAGE_BACKGROUND =
   'radial-gradient(circle at top, rgba(242,140,40,0.24), transparent 35%), linear-gradient(180deg, #20120b 0%, #120b07 55%, #0d0806 100%)'
 
-async function loadOnboarding(slug: string): Promise<OnboardingContext | null> {
+async function loadOnboarding(slug: string, flow?: string): Promise<OnboardingContext | null> {
   try {
-    return await fetchOnboardingContext({ slug })
+    return await fetchOnboardingContext({ slug, flow })
   } catch (err) {
     // Treat any backend error (404, 500, network) as "not found" — render
     // NotFoundView rather than crashing the Server Component.
@@ -71,8 +72,9 @@ export default async function DriverReferralLandingPage(props: DriverReferralLan
   const { slug } = await props.params
   const searchParams = props.searchParams ? await props.searchParams : {}
   const originPassengerId = searchParams.originPassengerId
+  const flow = typeof searchParams.flow === 'string' ? searchParams.flow : undefined
 
-  const onboarding = await loadOnboarding(slug)
+  const onboarding = await loadOnboarding(slug, flow)
   // Backend must always return invite; if absent, treat as not-found
   if (!onboarding || !onboarding.invite) {
     return <NotFoundView slug={slug} originPassengerId={originPassengerId} />

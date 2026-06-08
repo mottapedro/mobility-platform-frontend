@@ -17,6 +17,8 @@ export interface FetchOnboardingContextParams {
   slug?: string
   /** Opaque invite token (deep link, future channels). */
   token?: string
+  /** Transport the onboarding flow context (e.g., 'd2d', 'd2p') explicitly */
+  flow?: string
 }
 
 /**
@@ -40,7 +42,14 @@ export async function fetchOnboardingContext(
     return Promise.resolve(pickOnboardingFixtureForSlugOrToken(params))
   }
   if (params.slug) {
-    return apiRequest<OnboardingContext>(`/onboarding/context/${encodeURIComponent(params.slug)}`)
+    let url = `/onboarding/context/${encodeURIComponent(params.slug)}`
+    if (params.flow) {
+      const query = new URLSearchParams({ flow: params.flow })
+      url += `?${query.toString()}`
+    }
+    return apiRequest<OnboardingContext>(url)
   }
-  return apiRequest<OnboardingContext>(`/onboarding/context?token=${encodeURIComponent(params.token!)}`)
+  const query = new URLSearchParams({ token: params.token! })
+  if (params.flow) query.set('flow', params.flow)
+  return apiRequest<OnboardingContext>(`/onboarding/context?${query.toString()}`)
 }

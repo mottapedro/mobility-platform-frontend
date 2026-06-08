@@ -8,16 +8,16 @@ import { redirect } from 'next/navigation'
  * at /r/[slug], which already accepts both publicSlug and referralCode values
  * as the slug (backend resolves by referralCode when no publicSlug matches).
  *
- * The [flow] segment is intentionally discarded: flowType (DRIVER_TO_PASSENGER
- * vs DRIVER_TO_DRIVER) is determined by the backend from the referralCode
- * context and returned in OnboardingContext.flowType — the frontend must not
- * infer it from the URL path.
+ * The [flow] segment is passed along as a query parameter (?flow=) so that the
+ * frontend component remains free of business logic, delegating the resolution
+ * to the backend through the fetcher.
  */
 export default async function InviteRedirectPage({
   params,
 }: {
   params: Promise<{ flow: string; code: string }>
 }) {
-  const { code } = await params
-  redirect(`/r/${encodeURIComponent(code)}`)
+  const { flow, code } = await params;
+  const flowParam = flow ? `?flow=${encodeURIComponent(flow)}` : '';
+  redirect(`/r/${encodeURIComponent(code)}${flowParam}`);
 }
