@@ -43,6 +43,10 @@ export interface Offer {
 }
 
 export type RideStatus =
+  | 'REQUESTED'
+  | 'OWNER_DISPATCH'
+  | 'NETWORK_DISPATCH'
+  | 'OWNER_RECOVERY'
   | 'PENDING'
   | 'MATCHING'
   | 'WAITING_DRIVER'
@@ -51,6 +55,7 @@ export type RideStatus =
   | 'WAITING_GENERAL'
   | 'MATCHED'
   | 'ACCEPTED'
+  | 'STARTED'
   | 'IN_PROGRESS'
   | 'COMPLETED'
   | 'CANCELLED'
@@ -81,7 +86,13 @@ export interface Ride {
   scheduledAt: string
   status: RideStatus
   selectedDriverId: string | null
+  rootDriverId: string // Added for guideline 7
+  operationalOwnerId: string // Added for guideline 7
+  flowType: 'D2D' | 'D2P' | 'P2P' // Added for guideline 7 and 6
   createdAt: string
+  updatedAt: string // Added for guideline 16
+  createdBy: string // Added for guideline 16
+  updatedBy: string // Added for guideline 16
   context?: RideContext | null
   distanceKm?: number | null
   durationMin?: number | null
