@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { AuthProvider } from "../contexts/AuthContext";
 import "./globals.css";
+import { WebMCPIntegration } from '@/components/WebMCPIntegration';
+
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -23,6 +25,8 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${dmSans.variable} h-full`}>
       <body className={`${dmSans.variable} min-h-full bg-[#0D0700] font-[family-name:var(--font-dm-sans)] text-[#F5ECD8] antialiased`}>
         <AuthProvider>{children}</AuthProvider>
+        
+        <WebMCPIntegration />
       </body>
     </html>
   );
