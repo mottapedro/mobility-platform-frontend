@@ -80,6 +80,11 @@ export default function PassengerCreatePage() {
       return
     }
 
+    if (!originCoords || !destCoords) {
+      setSubmitError('Selecione os endereços de origem e destino na lista de sugestões para garantir dados de localização precisos.')
+      return
+    }
+
     if (new Date(scheduledAt) <= new Date()) {
       setSubmitError('A data deve ser futura.')
       return

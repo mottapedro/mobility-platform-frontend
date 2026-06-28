@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { searchAddresses, type AddressSuggestion } from '../../services/geocode'
+import { searchAddresses, getPlaceDetails, type AddressSuggestion } from '../../services/geocode'
 
 export interface AddressCoords {
   lat: number
@@ -35,21 +35,30 @@ export function AddressInput({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchSuggestions = useCallback(async (q: string) => {
-    if (q.trim().length < 4) {
+    const trimmed = q.trim()
+    if (trimmed.length < 3) {
+      console.log('[AddressInput] Query muito curta, abortando:', trimmed)
       setSuggestions([])
       setOpen(false)
       return
     }
     setLoading(true)
-    const results = await searchAddresses(q)
-    setSuggestions(results)
-    setOpen(results.length > 0)
-    setActiveIndex(-1)
-    setLoading(false)
+    try {
+      const results = await searchAddresses(trimmed)
+      console.log('[AddressInput] Resultados recebidos:', results)
+      setSuggestions(results)
+      setOpen(results.length > 0)
+      setActiveIndex(-1)
+    } catch (err) {
+      console.error('[AddressInput] Erro ao buscar sugestões:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    console.log('[AddressInput] value mudou, agendando fetch para:', value)
     debounceRef.current = setTimeout(() => fetchSuggestions(value), DEBOUNCE_MS)
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -67,14 +76,36 @@ export function AddressInput({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  function selectSuggestion(s: AddressSuggestion) {
-    onChange(s.displayName, { lat: s.lat, lng: s.lng })
+  async function selectSuggestion(s: AddressSuggestion) {
+    const placeId = s.placeId
+    const lat = s.lat ?? 0
+    const lng = s.lng ?? 0
+
+    if (!placeId) {
+      onChange(s.displayName, { lat, lng } as AddressCoords)
+      setOpen(false)
+      setSuggestions([])
+      setActiveIndex(-1)
+      return
+    }
+
+    try {
+      const details = await getPlaceDetails(placeId)
+      const displayName = details?.displayName || s.displayName
+      onChange(displayName, {
+        lat: details?.lat ?? lat,
+        lng: details?.lng ?? lng,
+      } as AddressCoords)
+    } catch {
+      onChange(s.displayName, { lat, lng } as AddressCoords)
+    }
     setOpen(false)
     setSuggestions([])
     setActiveIndex(-1)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    console.log('[AddressInput] key down:', e.key, 'open:', open, 'suggestions:', suggestions.length)
     if (!open || suggestions.length === 0) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -96,6 +127,8 @@ export function AddressInput({
     const parts = displayName.split(',').map((p) => p.trim())
     return parts.slice(0, 3).join(', ')
   }
+
+  console.log('[AddressInput] render:', { value, open, suggestionsCount: suggestions.length, loading })
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-1.5">
