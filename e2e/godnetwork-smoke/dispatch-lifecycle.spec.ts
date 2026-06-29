@@ -89,8 +89,16 @@ test.describe('Dispatch Lifecycle — RideStatus × DispatchStage × COUNT(PENDI
     try {
       // Slot 0 (72 h): operationalCutoffAt = now+48 h (in the future).
       const scheduledAt = new Date(Date.now() + 72 * 60 * 60_000).toISOString()
-      const ride = await api.createRideOrReclaim(
-        { passengerId: passenger.passengerId, origin: env!.originAddress, destination: env!.destinationAddress, scheduledAt },
+      const ride = await api.createRideOrReclaim({
+        passengerId: passenger.passengerId,
+        origin: env!.originAddress,
+        destination: env!.destinationAddress,
+        scheduledAt,
+        originLat: -23.5613,
+        originLng: -46.6565,
+        destinationLat: -23.5631,
+        destinationLng: -46.6543,
+      },
         passenger.token,
       )
       evidence.rideId = ride.id
@@ -144,7 +152,16 @@ test.describe('Dispatch Lifecycle — RideStatus × DispatchStage × COUNT(PENDI
       // Slot 1 (74 h) — distinct from scenario-1 (72 h).
       const scheduledAt = new Date(Date.now() + 74 * 60 * 60_000).toISOString()
       const ride = await api.createRide(
-        { passengerId: passenger.passengerId, origin: env!.originAddress, destination: env!.destinationAddress, scheduledAt },
+        {
+          passengerId: passenger.passengerId,
+          origin: env!.originAddress,
+          destination: env!.destinationAddress,
+          scheduledAt,
+          originLat: -23.5613,
+          originLng: -46.6565,
+          destinationLat: -23.5631,
+          destinationLng: -46.6543,
+        },
         passenger.token,
       )
       evidence.rideId = ride.id
@@ -194,8 +211,16 @@ test.describe('Dispatch Lifecycle — RideStatus × DispatchStage × COUNT(PENDI
     try {
       // Slot 2 (76 h) — distinct from scenario-1 (72 h) and scenario-2 (74 h).
       const scheduledAt = new Date(Date.now() + 76 * 60 * 60_000).toISOString()
-      const ride = await api.createRideOrReclaim(
-        { passengerId: passenger.passengerId, origin: env!.originAddress, destination: env!.destinationAddress, scheduledAt },
+      const ride = await api.createRideOrReclaim({
+        passengerId: passenger.passengerId,
+        origin: env!.originAddress,
+        destination: env!.destinationAddress,
+        scheduledAt,
+        originLat: -23.5613,
+        originLng: -46.6565,
+        destinationLat: -23.5631,
+        destinationLng: -46.6543,
+      },
         passenger.token,
       )
       evidence.rideId = ride.id
@@ -234,8 +259,16 @@ test.describe('Dispatch Lifecycle — RideStatus × DispatchStage × COUNT(PENDI
     try {
       // Slot 3 (78 h) — distinct from scenarios 1-3.
       const scheduledAt = new Date(Date.now() + 78 * 60 * 60_000).toISOString()
-      const ride = await api.createRideOrReclaim(
-        { passengerId: passenger.passengerId, origin: env!.originAddress, destination: env!.destinationAddress, scheduledAt },
+      const ride = await api.createRideOrReclaim({
+        passengerId: passenger.passengerId,
+        origin: env!.originAddress,
+        destination: env!.destinationAddress,
+        scheduledAt,
+        originLat: -23.5613,
+        originLng: -46.6565,
+        destinationLat: -23.5631,
+        destinationLng: -46.6543,
+      },
         passenger.token,
       )
       evidence.rideId = ride.id

@@ -46,8 +46,16 @@ test.describe('Contract Integrity — HTTP API response shapes', () => {
   test('POST /rides + GET /rides/:id — resposta inclui status e currentDispatchStage', async () => {
     // scheduledAt 90 h ahead — distinct from dispatch-lifecycle (72/74/76/78 h).
     const scheduledAt = new Date(Date.now() + 90 * 60 * 60_000).toISOString()
-    const ride = await api.createRideOrReclaim(
-      { passengerId: passenger.passengerId, origin: env!.originAddress, destination: env!.destinationAddress, scheduledAt },
+    const ride = await api.createRideOrReclaim({
+      passengerId: passenger.passengerId,
+      origin: env!.originAddress,
+      destination: env!.destinationAddress,
+      scheduledAt,
+      originLat: -23.5613,
+      originLng: -46.6565,
+      destinationLat: -23.5631,
+      destinationLng: -46.6543,
+    },
       passenger.token,
     )
     createdRideId = ride.id

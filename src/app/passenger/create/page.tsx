@@ -40,9 +40,9 @@ export default function PassengerCreatePage() {
   const passengerId = user?.passengerId ?? ''
 
   const [origin, setOrigin] = useState('')
-  const [originCoords, setOriginCoords] = useState<AddressCoords | undefined>()
+  const [originCoords, setOriginCoords] = useState<AddressCoords | null>(null)
   const [destination, setDestination] = useState('')
-  const [destCoords, setDestCoords] = useState<AddressCoords | undefined>()
+  const [destCoords, setDestCoords] = useState<AddressCoords | null>(null)
   const [scheduledAt, setScheduledAt] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -80,7 +80,9 @@ export default function PassengerCreatePage() {
       return
     }
 
-    if (!originCoords || !destCoords) {
+    console.log('[CreateRide] Validação de coordenadas:', { originCoords, destCoords })
+    if (!originCoords?.lat || !destCoords?.lat) {
+      alert('Por favor, selecione os endereços de origem e destino na lista de sugestões.')
       setSubmitError('Selecione os endereços de origem e destino na lista de sugestões para garantir dados de localização precisos.')
       return
     }
@@ -90,6 +92,10 @@ export default function PassengerCreatePage() {
       return
     }
 
+    console.log('[CreateRide] Coordenadas:', {
+      originCoords,
+      destCoords,
+    })
     const payload = {
       passengerId,
       origin: origin.trim(),
@@ -98,8 +104,9 @@ export default function PassengerCreatePage() {
       context: { isVip, isAirport, isAssistedTransport, isLuggage },
       ...(notes.trim() ? { notes: notes.trim() } : {}),
       ...(originCoords ? { originLat: originCoords.lat, originLng: originCoords.lng } : {}),
-      ...(destCoords ? { destLat: destCoords.lat, destLng: destCoords.lng } : {}),
+      ...(destCoords ? { destinationLat: destCoords.lat, destinationLng: destCoords.lng } : {}),
     }
+    console.log('[CreateRide] Payload final:', payload)
 
     setSubmitting(true)
     try {
@@ -110,9 +117,9 @@ export default function PassengerCreatePage() {
       localStorage.setItem('passengerRideIds', JSON.stringify(ids))
       // reset
       setOrigin('')
-      setOriginCoords(undefined)
+      setOriginCoords(null)
       setDestination('')
-      setDestCoords(undefined)
+      setDestCoords(null)
       setScheduledAt('')
       setIsVip(false)
       setIsAirport(false)
@@ -200,8 +207,10 @@ export default function PassengerCreatePage() {
           value={origin}
           required
           onChange={(val, coords) => {
+            const normalized = coords && typeof coords.lat === 'number' && typeof coords.lng === 'number' ? coords : null
+            console.log('[Page] Origin onChange:', { val, coords, normalized })
             setOrigin(val)
-            setOriginCoords(coords)
+            setOriginCoords(normalized)
           }}
         />
 
@@ -212,8 +221,10 @@ export default function PassengerCreatePage() {
           value={destination}
           required
           onChange={(val, coords) => {
+            const normalized = coords && typeof coords.lat === 'number' && typeof coords.lng === 'number' ? coords : null
+            console.log('[Page] Destination onChange:', { val, coords, normalized })
             setDestination(val)
-            setDestCoords(coords)
+            setDestCoords(normalized)
           }}
         />
 
