@@ -77,11 +77,27 @@ export class SmokeApi {
   }
 
   async createRide(
-    input: { passengerId: string; origin: string; destination: string; scheduledAt: string },
+    input: { 
+      passengerId?: string; 
+      origin: string; 
+      destination: string; 
+      scheduledAt: string;
+      originLat?: number;
+      originLng?: number;
+      destinationLat?: number;
+      destinationLng?: number;
+    },
     token?: string,
   ): Promise<{ id: string; status: string }> {
     const res = await this.ctx.post('/rides', {
-      data: input,
+      data: {
+        passengerId: input.passengerId,
+        origin: input.origin,
+        destination: input.destination,
+        scheduledAt: input.scheduledAt,
+        ...(input.originLat != null && input.originLng != null ? { originLat: input.originLat, originLng: input.originLng } : {}),
+        ...(input.destinationLat != null && input.destinationLng != null ? { destinationLat: input.destinationLat, destinationLng: input.destinationLng } : {}),
+      },
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
     if (res.status() !== 201 && res.status() !== 200) {

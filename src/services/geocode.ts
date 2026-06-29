@@ -56,7 +56,7 @@ async function ensureGoogleMapsLoaded() {
     if (!loaderConfigured) {
       setOptions({
         key: GOOGLE_MAPS_API_KEY,
-        libraries: ['places'],
+        libraries: ['places', 'geocoding'],
         ...(GOOGLE_MAPS_ID ? { id: GOOGLE_MAPS_ID } : {}),
       })
       loaderConfigured = true
@@ -70,10 +70,17 @@ async function ensureGoogleMapsLoaded() {
 
 export async function geocodeAddress(address: string): Promise<Coords | null> {
   const trimmed = address.trim()
-  if (trimmed.length < 5) return null
+  if (trimmed.length < 5) {
+    console.warn('[geocodeAddress] Endereço muito curto:', trimmed)
+    return null
+  }
 
   const key = trimmed.toLowerCase()
-  if (cache.has(key)) return cache.get(key)!
+  if (cache.has(key)) {
+    const cached = cache.get(key)
+    console.log('[geocodeAddress] Cache hit para:', trimmed, 'result:', cached)
+    return cached ?? null
+  }
 
   try {
     await ensureGoogleMapsLoaded()
@@ -96,8 +103,10 @@ export async function geocodeAddress(address: string): Promise<Coords | null> {
     const location = res[0].geometry.location
     const coords = { lat: location.lat(), lng: location.lng() }
     cache.set(key, coords)
+    console.log('[geocodeAddress] Sucesso para:', trimmed, coords)
     return coords
-  } catch {
+  } catch (err) {
+    console.error('[geocodeAddress] Falha para:', trimmed, err)
     cache.set(key, null)
     return null
   }
@@ -136,9 +145,18 @@ export async function searchAddresses(
       })
       .map((item: any) => {
         const pp = item.placePrediction
+        const coords: { lat?: number; lng?: number } = {}
+        const loc = pp?.location
+        if (loc) {
+          if (typeof loc.lat === 'function') coords.lat = loc.lat()
+          else if (typeof loc.lat === 'number') coords.lat = loc.lat
+          if (typeof loc.lng === 'function') coords.lng = loc.lng()
+          else if (typeof loc.lng === 'number') coords.lng = loc.lng
+        }
         return {
           placeId: pp.placeId,
           displayName: pp.text.text,
+          ...coords,
         } as AddressSuggestion
       })
 
