@@ -41,8 +41,16 @@ test.describe('Offer Invariant — COUNT(PENDING) ≤ 1 durante todo o ciclo de 
     try {
       // scheduledAt 120 h ahead — distinct from dispatch-lifecycle (72-78 h) and contract (90 h).
       const scheduledAt = new Date(Date.now() + 120 * 60 * 60_000).toISOString()
-      const ride = await api.createRideOrReclaim(
-        { passengerId: passenger.passengerId, origin: env!.originAddress, destination: env!.destinationAddress, scheduledAt },
+      const ride = await api.createRideOrReclaim({
+        passengerId: passenger.passengerId,
+        origin: env!.originAddress,
+        destination: env!.destinationAddress,
+        scheduledAt,
+        originLat: -23.5613,
+        originLng: -46.6565,
+        destinationLat: -23.5631,
+        destinationLng: -46.6543,
+      },
         passenger.token,
       )
       evidence.rideId = ride.id

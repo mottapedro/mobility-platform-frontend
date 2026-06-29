@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { searchAddresses, getPlaceDetails, type AddressSuggestion } from '../../services/geocode'
+import { searchAddresses, getPlaceDetails, geocodeAddress, type AddressSuggestion } from '../../services/geocode'
 
 export interface AddressCoords {
   lat: number
@@ -36,7 +36,7 @@ export function AddressInput({
 
   const fetchSuggestions = useCallback(async (q: string) => {
     const trimmed = q.trim()
-    if (trimmed.length < 3) {
+    if (trimmed.length < 4) {
       console.log('[AddressInput] Query muito curta, abortando:', trimmed)
       setSuggestions([])
       setOpen(false)
@@ -77,28 +77,38 @@ export function AddressInput({
   }, [])
 
   async function selectSuggestion(s: AddressSuggestion) {
-    const placeId = s.placeId
-    const lat = s.lat ?? 0
-    const lng = s.lng ?? 0
+    console.log('Suggestion clicada:', s)
+    const displayName = s.displayName
 
-    if (!placeId) {
-      onChange(s.displayName, { lat, lng } as AddressCoords)
-      setOpen(false)
-      setSuggestions([])
-      setActiveIndex(-1)
-      return
+    let coords: AddressCoords | undefined
+    if (s.lat != null && s.lng != null) {
+      coords = { lat: s.lat, lng: s.lng }
+    } else if (s.placeId) {
+      try {
+        const details = await getPlaceDetails(s.placeId)
+        if (details?.lat != null && details?.lng != null) {
+          coords = { lat: details.lat, lng: details.lng }
+        }
+      } catch (err) {
+        console.error('[AddressInput] Falha ao obter detalhes do lugar:', err)
+      }
     }
 
-    try {
-      const details = await getPlaceDetails(placeId)
-      const displayName = details?.displayName || s.displayName
-      onChange(displayName, {
-        lat: details?.lat ?? lat,
-        lng: details?.lng ?? lng,
-      } as AddressCoords)
-    } catch {
-      onChange(s.displayName, { lat, lng } as AddressCoords)
+    if (!coords) {
+      try {
+        const geocoded = await geocodeAddress(displayName)
+        if (geocoded) coords = geocoded
+      } catch {}
     }
+
+    if (!coords) {
+      console.warn('[AddressInput] Não foi possível obter coordenadas para:', displayName)
+      onChange(displayName, undefined)
+    } else {
+      console.log('[AddressInput] Coordenadas extraídas:', coords)
+      onChange(displayName, coords)
+    }
+
     setOpen(false)
     setSuggestions([])
     setActiveIndex(-1)
