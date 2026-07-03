@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverRides } from '../../../hooks/useDriverRides'
 import { updateRide } from '../../../services/rides'
-import { calculatePrice, formatPrice } from '../../../utils/pricing'
+import { formatPrice } from '../../../utils/pricing'
 import type { DriverRide, RideContext } from '../../../types'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
@@ -151,12 +151,14 @@ function RideCard({
         </p>
       </div>
 
-      {ride.distanceKm != null && ride.durationMin != null && (
+      {(ride.distanceKm != null || ride.durationMin != null) && (
         <div className="flex items-center justify-between rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-2.5 text-sm">
-          <span className="text-[#9A7D5A]">🚗 {ride.distanceKm} km • ⏱ {ride.durationMin} min</span>
-          <span className="font-bold text-[#3DB87A]">
-            {formatPrice(calculatePrice(ride.distanceKm, ride.durationMin))}
-          </span>
+          <span className="text-[#9A7D5A]">🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min</span>
+          {ride.priceBrl != null && (
+            <span className="font-bold text-[#3DB87A]">
+              {formatPrice(ride.priceBrl)}
+            </span>
+          )}
         </div>
       )}
 
