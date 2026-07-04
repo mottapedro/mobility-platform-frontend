@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -19,13 +19,17 @@ export default function DriverRidesPage() {
 
   const { rides, loading, error } = useDriverRides(driverId)
   const [updatingRide, setUpdatingRide] = useState<string | null>(null)
+  const [updateError, setUpdateError] = useState<string | null>(null)
 
   async function handleStartRide(rideId: string) {
     setUpdatingRide(rideId)
+    setUpdateError(null)
     try {
-      await updateRide(rideId, { status: 'IN_PROGRESS' })
-    } catch {
-      // ignore — hook will refresh
+      // Backend expects STARTED as the transition from ACCEPTED.
+      // IN_PROGRESS is the subsequent state set by the backend after STARTED.
+      await updateRide(rideId, { status: 'STARTED' })
+    } catch (e) {
+      setUpdateError(e instanceof Error ? e.message : 'Erro ao iniciar corrida.')
     } finally {
       setUpdatingRide(null)
     }
@@ -33,10 +37,11 @@ export default function DriverRidesPage() {
 
   async function handleFinishRide(rideId: string) {
     setUpdatingRide(rideId)
+    setUpdateError(null)
     try {
       await updateRide(rideId, { status: 'COMPLETED' })
-    } catch {
-      // ignore — hook will refresh
+    } catch (e) {
+      setUpdateError(e instanceof Error ? e.message : 'Erro ao finalizar corrida.')
     } finally {
       setUpdatingRide(null)
     }
@@ -45,52 +50,99 @@ export default function DriverRidesPage() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#F5ECD8]">Agenda</h1>
-        <p className="mt-1 text-sm text-[#9A7D5A]">Corridas confirmadas</p>
+        <h1 className="text-2xl font-bold text-aliado-text">Corridas</h1>
+        <p className="mt-1 text-sm text-aliado-sub">Painel do motorista · atualizando a cada 1s</p>
       </div>
 
-          {error && (
-            <div className="mb-4 rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
-              {error}
-            </div>
-          )}
+      {updateError && (
+        <div className="mb-4 rounded-xl border border-aliado-error/30 bg-aliado-error/10 px-4 py-3 text-sm text-aliado-error flex items-center justify-between gap-3">
+          <span>{updateError}</span>
+          <button
+            onClick={() => setUpdateError(null)}
+            className="shrink-0 text-aliado-error/60 hover:text-aliado-error"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
-          {!driverId && (
-            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
-              <p className="text-sm text-[#9A7D5A]">
-                Motorista não identificado. Faça login novamente.
-              </p>
-            </div>
-          )}
+      {error && (
+        <div className="mb-4 rounded-xl border border-aliado-error/30 bg-aliado-error/10 px-4 py-3 text-sm text-aliado-error">
+          {error}
+        </div>
+      )}
 
-          {driverId && loading && rides.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-16 text-[#9A7D5A]">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#5A3F22] border-t-[#F28C28]" />
-              <p className="text-sm">Carregando agenda...</p>
-            </div>
-          )}
+      {!driverId && (
+        <div className="rounded-2xl border border-aliado-border bg-aliado-card p-8 text-center">
+          <p className="text-sm text-aliado-sub">
+            Motorista não identificado. Faça login novamente.
+          </p>
+        </div>
+      )}
 
-          {driverId && !loading && rides.length === 0 && (
-            <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-8 text-center">
-              <p className="text-sm text-[#9A7D5A]">Nenhuma corrida confirmada.</p>
-            </div>
-          )}
+      {driverId && loading && rides.length === 0 && (
+        <div className="flex flex-col items-center gap-3 py-16 text-aliado-sub">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-aliado-muted border-t-aliado-orange" />
+          <p className="text-sm">Carregando corridas...</p>
+        </div>
+      )}
 
-          {rides.length > 0 && (
-            <div className="flex flex-col gap-4">
+      {driverId && !loading && rides.length === 0 && (
+        <div className="rounded-2xl border border-aliado-border bg-aliado-card p-8 text-center">
+          <p className="text-sm text-aliado-sub">Nenhuma corrida confirmada.</p>
+        </div>
+      )}
+
+      {rides.length > 0 && (
+        <div className="flex flex-col gap-4">
           {rides.map((ride) => (
-                <RideCard
-                  key={ride.id}
-                  ride={ride}
-                  updating={updatingRide === ride.id}
-                  onStartRide={() => handleStartRide(ride.id)}
-                  onFinishRide={() => handleFinishRide(ride.id)}
-                />
-              ))}
-            </div>
-          )}
+            <RideCard
+              key={ride.id}
+              ride={ride}
+              updating={updatingRide === ride.id}
+              onStartRide={() => handleStartRide(ride.id)}
+              onFinishRide={() => handleFinishRide(ride.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
+}
+
+function rideStatusBadge(status: string): { label: string; className: string } {
+  switch (status) {
+    case 'ACCEPTED':
+      return {
+        label: '✓ Confirmada',
+        className: 'border-aliado-success/30 bg-aliado-success/10 text-aliado-success',
+      }
+    case 'STARTED':
+      return {
+        label: '🚗 A caminho',
+        className: 'border-aliado-orange/30 bg-aliado-orange/10 text-aliado-orange',
+      }
+    case 'IN_PROGRESS':
+      return {
+        label: '🚗 Em andamento',
+        className: 'border-aliado-orange/30 bg-aliado-orange/10 text-aliado-orange',
+      }
+    case 'COMPLETED':
+      return {
+        label: '✓ Finalizada',
+        className: 'border-aliado-success/30 bg-aliado-success/10 text-aliado-success',
+      }
+    case 'CANCELLED':
+      return {
+        label: '✕ Cancelada',
+        className: 'border-aliado-error/30 bg-aliado-error/10 text-aliado-error',
+      }
+    default:
+      return {
+        label: status,
+        className: 'border-aliado-border bg-aliado-card text-aliado-sub',
+      }
+  }
 }
 
 function RideCard({
@@ -106,6 +158,7 @@ function RideCard({
 }) {
   const passenger = ride.passenger.user
   const context = ride.context as RideContext | null
+  const badge = rideStatusBadge(ride.status)
   const scheduledDate = new Date(ride.scheduledAt).toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -115,47 +168,49 @@ function RideCard({
   })
 
   return (
-    <div className="rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-5 flex flex-col gap-3">
+    <div className="rounded-2xl border border-aliado-border bg-aliado-card p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F28C28] text-sm font-bold text-[#0D0700]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-aliado-orange text-sm font-bold text-[#0D0700]">
             {passenger.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-aliado-sub">
               Passageiro
             </p>
-            <p className="font-semibold text-[#F5ECD8]">{passenger.name}</p>
+            <p className="font-semibold text-aliado-text">{passenger.name}</p>
             {passenger.phone && (
-              <p className="text-xs text-[#9A7D5A]">{passenger.phone}</p>
+              <p className="text-xs text-aliado-sub">{passenger.phone}</p>
             )}
           </div>
         </div>
-        <span className="flex items-center gap-1.5 rounded-full border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-3 py-1 text-xs font-semibold text-[#3DB87A]">
-          {ride.status === 'COMPLETED' ? '✓ Finalizada' : ride.status === 'IN_PROGRESS' ? '🚗 A caminho' : '✓ Confirmada'}
+        <span className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${badge.className}`}>
+          {badge.label}
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5 rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-3 text-sm">
-        <p className="text-[#F5ECD8]/70">
-          <span className="font-semibold text-[#F28C28]">De:</span>{' '}
-          <span className="text-[#F5ECD8]">{ride.origin}</span>
+      <div className="flex flex-col gap-1.5 rounded-xl border border-aliado-border bg-aliado-input px-4 py-3 text-sm">
+        <p>
+          <span className="font-semibold text-aliado-orange">De:</span>{' '}
+          <span className="text-aliado-text">{ride.origin}</span>
         </p>
-        <p className="text-[#F5ECD8]/70">
-          <span className="font-semibold text-[#F28C28]">Para:</span>{' '}
-          <span className="text-[#F5ECD8]">{ride.destination}</span>
+        <p>
+          <span className="font-semibold text-aliado-orange">Para:</span>{' '}
+          <span className="text-aliado-text">{ride.destination}</span>
         </p>
-        <p className="text-[#F5ECD8]/70">
-          <span className="font-semibold text-[#F28C28]">Horário:</span>{' '}
-          <span className="text-[#F5ECD8]">{scheduledDate}</span>
+        <p>
+          <span className="font-semibold text-aliado-orange">Horário:</span>{' '}
+          <span className="text-aliado-text">{scheduledDate}</span>
         </p>
       </div>
 
       {(ride.distanceKm != null || ride.durationMin != null) && (
-        <div className="flex items-center justify-between rounded-xl border border-[#2E1A08] bg-[#0D0700]/60 px-4 py-2.5 text-sm">
-          <span className="text-[#9A7D5A]">🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min</span>
+        <div className="flex items-center justify-between rounded-xl border border-aliado-border bg-aliado-input px-4 py-2.5 text-sm">
+          <span className="text-aliado-sub">
+            🚗 {ride.distanceKm ?? '--'} km • ⏱ {ride.durationMin ?? '--'} min
+          </span>
           {ride.priceBrl != null && (
-            <span className="font-bold text-[#3DB87A]">
+            <span className="font-bold text-aliado-success">
               {formatPrice(ride.priceBrl)}
             </span>
           )}
@@ -171,11 +226,12 @@ function RideCard({
         </div>
       )}
 
+      {/* A caminho: ACCEPTED → STARTED */}
       {ride.status === 'ACCEPTED' && (
         <button
           onClick={onStartRide}
           disabled={updating}
-          className="w-full rounded-xl bg-[#F28C28] py-2.5 text-sm font-bold text-[#0D0700] transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-xl bg-aliado-orange py-2.5 text-sm font-bold text-[#0D0700] transition-opacity hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {updating ? (
             <span className="flex items-center justify-center gap-2">
@@ -188,11 +244,12 @@ function RideCard({
         </button>
       )}
 
-      {ride.status === 'IN_PROGRESS' && (
+      {/* Finalizar: STARTED ou IN_PROGRESS → COMPLETED */}
+      {(ride.status === 'STARTED' || ride.status === 'IN_PROGRESS') && (
         <button
           onClick={onFinishRide}
           disabled={updating}
-          className="w-full rounded-xl bg-[#3DB87A] py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-xl bg-aliado-success py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {updating ? (
             <span className="flex items-center justify-center gap-2">
@@ -210,7 +267,7 @@ function RideCard({
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-[#F28C28]/30 bg-[#F28C28]/10 px-2.5 py-1 text-xs font-semibold text-[#F28C28]">
+    <span className="rounded-full border border-aliado-orange/30 bg-aliado-orange/10 px-2.5 py-1 text-xs font-semibold text-aliado-orange">
       {children}
     </span>
   )
