@@ -213,7 +213,16 @@ export class SmokeApi {
    * stale rides left by previous test runs without manual cleanup.
    */
   async createRideOrReclaim(
-    input: { passengerId: string; origin: string; destination: string; scheduledAt: string },
+    input: {
+      passengerId: string
+      origin: string
+      destination: string
+      scheduledAt: string
+      originLat?: number
+      originLng?: number
+      destinationLat?: number
+      destinationLng?: number
+    },
     token: string,
     maxAttempts = 8,
   ): Promise<{ id: string; status: string; [k: string]: unknown }> {

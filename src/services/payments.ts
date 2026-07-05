@@ -95,19 +95,13 @@ export function extractQrCodeImage(response: Record<string, unknown>): string | 
 
 export async function createPaymentIntent(
   rideId: string,
-  options?: { priceBrl?: number }
+  // priceBrl is no longer sent to the backend — price is authoritative in the DB.
+  // Parameter kept for call-site compatibility during rollout.
+  _options?: { priceBrl?: number }
 ): Promise<PaymentIntentResponse> {
-  const payload: Record<string, unknown> = {}
-
-  // Backend expects amountCents as a positive integer (centavos).
-  // Use Math.round to eliminate JavaScript floating-point drift.
-  if (options?.priceBrl != null) {
-    payload.amountCents = Math.round(options.priceBrl * 100)
-  }
-
   const response = await apiRequest<Record<string, unknown>>(`/rides/${rideId}/payment-intent`, {
     method: 'POST',
-    body: payload,
+    body: {},
   })
 
   return response as unknown as PaymentIntentResponse

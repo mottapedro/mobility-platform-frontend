@@ -15,6 +15,7 @@
     "test:e2e:network": "playwright test e2e/network-tabs-no-offers.spec.ts --reporter=line",
     "test:e2e:smoke": "cross-env PLAYWRIGHT_SUITE=smoke playwright test --grep-invert @slow",
     "test:e2e:smoke:happy": "cross-env PLAYWRIGHT_SUITE=smoke playwright test e2e/smoke/smoke-happy-path.spec.ts",
+    "test:e2e:smoke:pix": "cross-env PLAYWRIGHT_SUITE=smoke playwright test e2e/smoke/smoke-pix-payment.spec.ts",
     "test:e2e:smoke:nightly": "cross-env PLAYWRIGHT_SUITE=smoke playwright test",
     "test:e2e:godnetwork-smoke": "playwright test e2e/godnetwork-smoke",
     "test:e2e:godnetwork-governance": "playwright test e2e/godnetwork-governance",
