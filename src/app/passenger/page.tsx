@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAlliedDriver } from '../../hooks/useAlliedDriver'
 import { AlliedDriverCard } from '../../components/passenger/AlliedDriverCard'
+import { getRide } from '../../services/rides'
 import type { Ride } from '../../types'
 
 function getGreeting(): string {
@@ -18,13 +19,22 @@ function firstName(fullName: string | null | undefined): string {
   return fullName?.trim().split(/\s+/)[0] ?? 'Passageiro'
 }
 
+// Mirrors the full status mapping in /passenger/rides — kept local since
+// this widget only needs the label/color, not the fuller card styling.
 function rideStatusLabel(status: string): string {
   switch (status) {
-    case 'WAITING_REFERRAL': return 'Aguardando motorista'
+    case 'WAITING_REFERRAL': return 'Aguardando seu motorista'
     case 'MATCHING': return 'Buscando motoristas'
     case 'PENDING':
-    case 'WAITING_DRIVER': return 'Aguardando confirmação'
+    case 'WAITING_DRIVER':
+    case 'WAITING_GENERAL': return 'Aguardando'
+    case 'WAITING_PARTNER': return 'Aguardando motorista parceiro'
+    case 'MATCHED':
     case 'ACCEPTED': return 'Motorista confirmado'
+    case 'STARTED':
+    case 'IN_PROGRESS': return '🚗 A caminho'
+    case 'COMPLETED': return 'Corrida finalizada'
+    case 'CANCELLED': return 'Cancelada'
     case 'REJECTED':
     case 'EXPIRED': return 'Encerrada'
     default: return status
@@ -33,10 +43,15 @@ function rideStatusLabel(status: string): string {
 
 function rideStatusColor(status: string): string {
   switch (status) {
-    case 'ACCEPTED': return 'text-[#3DB87A]'
+    case 'MATCHED':
+    case 'ACCEPTED':
+    case 'COMPLETED': return 'text-[#3DB87A]'
+    case 'STARTED':
+    case 'IN_PROGRESS':
+    case 'WAITING_REFERRAL': return 'text-[#F28C28]'
+    case 'CANCELLED':
     case 'REJECTED':
     case 'EXPIRED': return 'text-[#E05050]'
-    case 'WAITING_REFERRAL': return 'text-[#F28C28]'
     default: return 'text-[#9A7D5A]'
   }
 }
@@ -48,22 +63,38 @@ export default function PassengerHomePage() {
   const { alliedDriver, loading, error } = useAlliedDriver(passengerId)
 
   const [recentRides, setRecentRides] = useState<Ride[]>([])
+  const [loadingRides, setLoadingRides] = useState(true)
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('passengerRideIds')
-      const ids: string[] = stored ? JSON.parse(stored) : []
-      if (ids.length > 0) {
-        // Show up to 3 ids as placeholders (no fetch to avoid waterfalls on home)
-        setRecentRides(
-          ids.slice(0, 3).map(
-            (id) =>
-              ({ id, status: 'PENDING', origin: '…', destination: '…' }) as unknown as Ride,
-          ),
-        )
+    let cancelled = false
+
+    async function load() {
+      try {
+        const stored = localStorage.getItem('passengerRideIds')
+        const ids: string[] = stored ? JSON.parse(stored) : []
+        if (ids.length === 0) {
+          setLoadingRides(false)
+          return
+        }
+
+        // Bounded to 3 ids, fetched in parallel — not a waterfall.
+        const results = await Promise.allSettled(ids.slice(0, 3).map((id) => getRide(id)))
+        if (cancelled) return
+
+        const loaded = results
+          .filter((r): r is PromiseFulfilledResult<Ride> => r.status === 'fulfilled')
+          .map((r) => r.value)
+        setRecentRides(loaded)
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) setLoadingRides(false)
       }
-    } catch {
-      /* ignore */
+    }
+
+    load()
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -139,7 +170,7 @@ export default function PassengerHomePage() {
         </section>
       )}
 
-      {recentRides.length === 0 && !loading && (
+      {recentRides.length === 0 && !loading && !loadingRides && (
         <section className="animate-[fadeUp_0.7s_ease-out] rounded-[1.5rem] border border-[#2E1A08] bg-[#1A0E04] p-6 text-center">
           <p className="mb-3 text-[#9A7D5A]">Você ainda não tem corridas.</p>
           <button
