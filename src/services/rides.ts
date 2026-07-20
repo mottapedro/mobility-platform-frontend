@@ -1,5 +1,5 @@
 import { apiRequest } from './api'
-import type { CreateRidePayload, Offer, Passenger, Ride } from '../types'
+import type { CreateRidePayload, Offer, Passenger, Ride, RideLocation } from '../types'
 
 export interface CreatePassengerPayload {
   name: string
@@ -20,6 +20,10 @@ export async function createRide(
 
 export async function getRide(rideId: string): Promise<Ride> {
   return apiRequest(`/rides/${rideId}`)
+}
+
+export async function getRideLocation(rideId: string): Promise<RideLocation> {
+  return apiRequest(`/trips/${rideId}/location`)
 }
 
 export async function getPendingRides(): Promise<Ride[]> {
