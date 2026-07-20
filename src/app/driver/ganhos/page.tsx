@@ -1,5 +1,6 @@
 ﻿'use client'
 
+import { useEffect } from 'react'
 import { useEconomicDomain } from '../../../contexts/domains/EconomicDomainProvider'
 
 function formatCurrency(value: number) {
@@ -7,7 +8,16 @@ function formatCurrency(value: number) {
 }
 
 export default function DriverGanhosPage() {
-  const { activation, snapshot: stats, loading, error } = useEconomicDomain()
+  const { activation, snapshot: stats, loading, error, refresh } = useEconomicDomain()
+
+  // EconomicDomainProvider lives at the /driver layout level and only
+  // fetches once when the economic domain activates — it never refetches on
+  // navigation. Without this, finishing a ride and coming back to "Ganhos"
+  // shows stale numbers from whenever the driver first entered /driver/*.
+  useEffect(() => {
+    if (activation.enabled) void refresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activation.enabled])
 
   return (
     <div className="mx-auto max-w-lg">

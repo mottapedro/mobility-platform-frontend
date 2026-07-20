@@ -60,16 +60,26 @@ export function startGpsTracker(
   }
 
   function handleError(error: GeolocationPositionError) {
-    options.onError?.(
-      error.code === error.PERMISSION_DENIED
-        ? 'Permissão de localização negada. Ative o GPS para continuar a viagem.'
-        : 'Não foi possível obter sua localização.',
-    )
+    if (error.code === error.PERMISSION_DENIED) {
+      options.onError?.('Permissão de localização negada. Ative o GPS para continuar a viagem.')
+      return
+    }
+    if (error.code === error.TIMEOUT) {
+      options.onError?.(
+        'Sem sinal de GPS. Verifique se a localização está ativada no sistema (Windows: Configurações > Privacidade > Localização) e tente novamente.',
+      )
+      return
+    }
+    options.onError?.('Não foi possível obter sua localização.')
   }
 
   const watchId = navigator.geolocation.watchPosition(handlePosition, handleError, {
     enableHighAccuracy: true,
     maximumAge: 0,
+    // Without a timeout, watchPosition can hang indefinitely with no
+    // success and no error callback (observed on desktop Chrome when the
+    // OS location service is off) — surface a clear error instead.
+    timeout: 10000,
   })
 
   return {
