@@ -1,0 +1,68 @@
+import { sendGpsPing } from '../../services/rides'
+
+// Throttles watchPosition callbacks (which can fire multiple times per
+// second) down to the same 4s cadence used by the passenger-side polling
+// (useRideLocationPolling), so the backend sees one ping per cycle instead
+// of a flood of updates on every GPS jitter.
+const MIN_PING_INTERVAL_MS = 4000
+
+export interface GpsTrackerHandle {
+  stop: () => void
+}
+
+export interface GpsTrackerOptions {
+  onError?: (message: string) => void
+}
+
+export function startGpsTracker(
+  rideId: string,
+  driverId: string,
+  options: GpsTrackerOptions = {},
+): GpsTrackerHandle {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    options.onError?.('Geolocalização não suportada neste dispositivo.')
+    return { stop: () => {} }
+  }
+
+  let lastPingAt = 0
+  let sending = false
+
+  function handlePosition(position: GeolocationPosition) {
+    const now = Date.now()
+    if (now - lastPingAt < MIN_PING_INTERVAL_MS || sending) return
+    lastPingAt = now
+    sending = true
+
+    const { latitude, longitude, heading } = position.coords
+
+    sendGpsPing(rideId, {
+      driverId,
+      lat: latitude,
+      lng: longitude,
+      direcaoGraus: heading ?? 0,
+    })
+      .catch(() => {
+        options.onError?.('Falha ao enviar localização. Verifique sua conexão.')
+      })
+      .finally(() => {
+        sending = false
+      })
+  }
+
+  function handleError(error: GeolocationPositionError) {
+    options.onError?.(
+      error.code === error.PERMISSION_DENIED
+        ? 'Permissão de localização negada. Ative o GPS para continuar a viagem.'
+        : 'Não foi possível obter sua localização.',
+    )
+  }
+
+  const watchId = navigator.geolocation.watchPosition(handlePosition, handleError, {
+    enableHighAccuracy: true,
+    maximumAge: 0,
+  })
+
+  return {
+    stop: () => navigator.geolocation.clearWatch(watchId),
+  }
+}
