@@ -10,8 +10,17 @@ export interface GpsTrackerHandle {
   stop: () => void
 }
 
+export interface GpsTrackerPosition {
+  lat: number
+  lng: number
+  heading: number | null
+}
+
 export interface GpsTrackerOptions {
   onError?: (message: string) => void
+  // Fires on every raw watchPosition update (unthrottled) so the UI (map
+  // marker) can track smoothly — independent of the throttled network ping.
+  onPosition?: (position: GpsTrackerPosition) => void
 }
 
 export function startGpsTracker(
@@ -28,12 +37,13 @@ export function startGpsTracker(
   let sending = false
 
   function handlePosition(position: GeolocationPosition) {
+    const { latitude, longitude, heading } = position.coords
+    options.onPosition?.({ lat: latitude, lng: longitude, heading })
+
     const now = Date.now()
     if (now - lastPingAt < MIN_PING_INTERVAL_MS || sending) return
     lastPingAt = now
     sending = true
-
-    const { latitude, longitude, heading } = position.coords
 
     sendGpsPing(rideId, {
       driverId,
