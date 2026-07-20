@@ -13,7 +13,7 @@ interface UseOffersResult {
   refresh: () => Promise<boolean>
 }
 
-const OFFERS_POLL_MS = 1000
+const OFFERS_POLL_MS = 8000
 
 export function useOffers(
   driverId: string | null,
