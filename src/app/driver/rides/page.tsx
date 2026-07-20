@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverRides } from '../../../hooks/useDriverRides'
 import { completeRideLifecycle, startRideLifecycle } from '../../../services/rides'
@@ -9,6 +10,7 @@ import type { DriverRide, RideContext } from '../../../types'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
 export default function DriverRidesPage() {
+  const router = useRouter()
   const { user } = useAuth()
   const [driverId, setDriverId] = useState<string | null>(null)
 
@@ -29,6 +31,7 @@ export default function DriverRidesPage() {
       // only) — state transitions go through the lifecycle endpoints.
       // ACCEPTED → IN_PROGRESS directly, no intermediate STARTED state.
       await startRideLifecycle(rideId)
+      router.push(`/trips/${rideId}`)
     } catch (e) {
       setUpdateError(e instanceof Error ? e.message : 'Erro ao iniciar corrida.')
     } finally {

@@ -26,6 +26,17 @@ export async function getRideLocation(rideId: string): Promise<RideLocation> {
   return apiRequest(`/trips/${rideId}/location`)
 }
 
+export interface GpsPingPayload {
+  driverId: string
+  lat: number
+  lng: number
+  direcaoGraus: number
+}
+
+export async function sendGpsPing(rideId: string, payload: GpsPingPayload): Promise<void> {
+  return apiRequest(`/trips/${rideId}/gps-ping`, { method: 'POST', body: payload })
+}
+
 export async function getPendingRides(): Promise<Ride[]> {
   return apiRequest('/rides?status=pending')
 }
