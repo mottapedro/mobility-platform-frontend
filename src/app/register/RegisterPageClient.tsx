@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import PasswordInput from '../../components/PasswordInput'
 import { useAuth } from '../../contexts/AuthContext'
@@ -9,7 +9,12 @@ import type { AuthUser } from '../../types'
 import type { OnboardingContext } from '../../types/network-v2'
 import { redirectByRole } from '../../utils/redirectByRole'
 import { Button, Input, Card, SectionTitle } from '../../design-system'
-import { isInvalidReferralErrorMessage, normalizeReferralCode } from '../../utils/referral'
+import {
+  clearStoredReferralCode,
+  getStoredReferralCode,
+  isInvalidReferralErrorMessage,
+  normalizeReferralCode,
+} from '../../utils/referral'
 
 /** Formats a raw numeric string into Brazilian phone mask: (XX) XXXXX-XXXX or (XX) XXXX-XXXX */
 function formatBrazilianPhone(value: string): string {
@@ -81,6 +86,16 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
 
   const effectiveRole: AuthUser['role'] = lockedRole ?? role
 
+  // Silent fallback for invite flows that intentionally avoid ?ref= (e.g.
+  // /invite/d2d/[code]): fetchOnboardingContext can lock role/hide the
+  // driver tab depending on how the backend classifies the code, so those
+  // flows stash the code in sessionStorage instead and it's injected here
+  // without affecting the visible role toggle or showing an invite banner.
+  const [sessionReferralCode, setSessionReferralCode] = useState('')
+  useEffect(() => {
+    setSessionReferralCode(getStoredReferralCode(sessionStorage))
+  }, [])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -122,9 +137,15 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
               region: selectedRegions,
             }
           : {}),
-        ...(activeReferralCode ? { referralCode: activeReferralCode } : {}),
+        ...(activeReferralCode || sessionReferralCode
+          ? { referralCode: activeReferralCode || sessionReferralCode }
+          : {}),
       }
       await register(payload)
+
+      if (sessionReferralCode) {
+        clearStoredReferralCode(sessionStorage)
+      }
 
       if (effectiveRole === 'driver') {
         // Per-user UI preference; unrelated to network/referral graph.
