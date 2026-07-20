@@ -9,6 +9,11 @@ import { formatPrice } from '../../../utils/pricing'
 import type { DriverRide, RideContext } from '../../../types'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 
+// Statuses the driver still needs to act on. Everything else (COMPLETED,
+// CANCELLED, REJECTED, EXPIRED, ...) is history — kept out of the default
+// view so old rides don't pile up on the screen the driver operates from.
+const ACTIVE_STATUSES = ['ACCEPTED', 'STARTED', 'IN_PROGRESS']
+
 export default function DriverRidesPage() {
   const router = useRouter()
   const { user } = useAuth()
@@ -22,6 +27,11 @@ export default function DriverRidesPage() {
   const { rides, loading, error } = useDriverRides(driverId)
   const [updatingRide, setUpdatingRide] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
+  const [tab, setTab] = useState<'active' | 'history'>('active')
+
+  const visibleRides = rides.filter((ride) =>
+    tab === 'active' ? ACTIVE_STATUSES.includes(ride.status) : !ACTIVE_STATUSES.includes(ride.status),
+  )
 
   async function handleStartRide(rideId: string) {
     setUpdatingRide(rideId)
@@ -53,9 +63,32 @@ export default function DriverRidesPage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-aliado-text">Corridas</h1>
         <p className="mt-1 text-sm text-aliado-sub">Painel do motorista · atualizando a cada 8s</p>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-2">
+        <button
+          onClick={() => setTab('active')}
+          className={`rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+            tab === 'active'
+              ? 'bg-aliado-orange text-[#0D0700]'
+              : 'border border-aliado-border bg-aliado-card text-aliado-sub'
+          }`}
+        >
+          Ativas
+        </button>
+        <button
+          onClick={() => setTab('history')}
+          className={`rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+            tab === 'history'
+              ? 'bg-aliado-orange text-[#0D0700]'
+              : 'border border-aliado-border bg-aliado-card text-aliado-sub'
+          }`}
+        >
+          Histórico
+        </button>
       </div>
 
       {updateError && (
@@ -91,15 +124,17 @@ export default function DriverRidesPage() {
         </div>
       )}
 
-      {driverId && !loading && rides.length === 0 && (
+      {driverId && !loading && visibleRides.length === 0 && (
         <div className="rounded-2xl border border-aliado-border bg-aliado-card p-8 text-center">
-          <p className="text-sm text-aliado-sub">Nenhuma corrida confirmada.</p>
+          <p className="text-sm text-aliado-sub">
+            {tab === 'active' ? 'Nenhuma corrida ativa no momento.' : 'Nenhuma corrida no histórico ainda.'}
+          </p>
         </div>
       )}
 
-      {rides.length > 0 && (
+      {visibleRides.length > 0 && (
         <div className="flex flex-col gap-4">
-          {rides.map((ride) => (
+          {visibleRides.map((ride) => (
             <RideCard
               key={ride.id}
               ride={ride}
