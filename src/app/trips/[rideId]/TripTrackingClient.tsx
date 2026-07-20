@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { completeRideLifecycle, getRide } from '../../../services/rides'
-import { startGpsTracker, type GpsTrackerHandle } from '../../../lib/gps/GpsTracker'
+import { startGpsTracker, type GpsTrackerHandle, type GpsTrackerPosition } from '../../../lib/gps/GpsTracker'
 import { sanitizeDriverId } from '../../../utils/driverId'
+import { MapTracker } from '../../../components/MapTracker'
 import type { Ride } from '../../../types'
 
 const TERMINAL_STATUSES = ['COMPLETED', 'CANCELLED']
@@ -30,6 +31,7 @@ export function TripTrackingClient({ rideId }: { rideId: string }) {
   const [ride, setRide] = useState<Ride | null>(null)
   const [loading, setLoading] = useState(true)
   const [tracking, setTracking] = useState(false)
+  const [position, setPosition] = useState<GpsTrackerPosition | null>(null)
   const [gpsError, setGpsError] = useState<string | null>(null)
   const [finishing, setFinishing] = useState(false)
   const [finishError, setFinishError] = useState<string | null>(null)
@@ -52,6 +54,7 @@ export function TripTrackingClient({ rideId }: { rideId: string }) {
 
       trackerRef.current = startGpsTracker(rideId, driverId, {
         onError: (message) => setGpsError(message),
+        onPosition: (pos) => setPosition(pos),
       })
       setTracking(true)
     }
@@ -101,6 +104,12 @@ export function TripTrackingClient({ rideId }: { rideId: string }) {
             {tracking ? 'Transmitindo GPS' : 'GPS parado'}
           </span>
         </div>
+
+        {!loading && ride && !TERMINAL_STATUSES.includes(ride.status) && (
+          <div className="mb-4">
+            <MapTracker position={position} />
+          </div>
+        )}
 
         {gpsError && (
           <div className="mb-4 rounded-xl border border-aliado-error/30 bg-aliado-error/10 px-4 py-3 text-sm text-aliado-error">
