@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { setStoredReferralCode, setStoredReferralInvite } from '../../../../utils/referral'
+import { setStoredReferralCode } from '../../../../utils/referral'
 
 const BENEFITS = [
   { icon: '🌐', label: 'Sua rede vale mais' },
@@ -16,15 +16,16 @@ export function InviteD2DClient({ code }: { code: string }) {
 
   useEffect(() => {
     if (!code) return
-    setStoredReferralCode(localStorage, code)
-    setStoredReferralInvite(localStorage, { type: 'driver', referralCode: code })
+    // sessionStorage (not localStorage/URL): /register?ref=<code> resolves
+    // via fetchOnboardingContext server-side and can lock the form to
+    // "passenger" or hide the driver tab depending on how the backend
+    // classifies the code. Storing it out of band and injecting it silently
+    // on submit keeps the full Passageiro/Motorista toggle visible.
+    setStoredReferralCode(sessionStorage, code)
   }, [code])
 
   function handleAccept() {
-    // /register?ref= is the backend-governed onboarding entry point — it
-    // resolves the invite server-side and injects referralCode into the
-    // signup payload without touching the frozen registration form fields.
-    router.push(`/register?ref=${encodeURIComponent(code)}`)
+    router.push('/register')
   }
 
   return (
