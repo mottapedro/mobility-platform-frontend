@@ -217,12 +217,20 @@ export default function PassengerRidesPage() {
                   )}
                 </div>
                 {(ride.status === 'ACCEPTED' || ride.status === 'MATCHED' || ride.status === 'IN_PROGRESS') && (
-                  <button
-                    onClick={() => setPixRideId(ride.id)}
-                    className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-4 py-2.5 text-sm font-semibold text-[#3DB87A] transition-colors hover:border-[#3DB87A]/60 hover:bg-[#3DB87A]/15"
-                  >
-                    <span>💳</span> Pagar via PIX
-                  </button>
+                  <div className="mt-1 flex gap-2">
+                    <button
+                      onClick={() => router.push(`/passenger/rides/${ride.id}/tracking`)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[#F28C28]/30 bg-[#F28C28]/10 px-4 py-2.5 text-sm font-semibold text-[#F28C28] transition-colors hover:border-[#F28C28]/60 hover:bg-[#F28C28]/15"
+                    >
+                      <span>🚗</span> Acompanhar no mapa
+                    </button>
+                    <button
+                      onClick={() => setPixRideId(ride.id)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[#3DB87A]/30 bg-[#3DB87A]/10 px-4 py-2.5 text-sm font-semibold text-[#3DB87A] transition-colors hover:border-[#3DB87A]/60 hover:bg-[#3DB87A]/15"
+                    >
+                      <span>💳</span> Pagar via PIX
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

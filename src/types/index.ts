@@ -225,6 +225,14 @@ export interface PassengerNetworkHierarchy {
   maxDepth: number
 }
 
+// â”€â”€â”€ Rastreamento ao vivo (GET /trips/:rideId/location) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export interface RideLocation {
+  lat: number
+  lng: number
+  direcaoGraus: number
+  receivedAt: string
+}
+
 // â”€â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface AuthUser {
   id: string
