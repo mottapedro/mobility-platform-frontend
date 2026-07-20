@@ -37,6 +37,25 @@ export async function updateRide(
   return apiRequest(`/rides/${rideId}`, { method: 'PATCH', body })
 }
 
+export interface RideLifecycleResult {
+  rideId: string
+  status: string
+  started?: boolean
+  completed?: boolean
+}
+
+// PATCH /rides/:id is RPC-style and only accepts action: 'reject_referral' |
+// 'reschedule' (ride.controller.ts:282). State-machine transitions go
+// through the dedicated lifecycle endpoints instead — no body needed, they
+// read only req.params.id.
+export async function startRideLifecycle(rideId: string): Promise<RideLifecycleResult> {
+  return apiRequest(`/rides/${rideId}/lifecycle/start`, { method: 'POST' })
+}
+
+export async function completeRideLifecycle(rideId: string): Promise<RideLifecycleResult> {
+  return apiRequest(`/rides/${rideId}/lifecycle/complete`, { method: 'POST' })
+}
+
 export async function getRidesByPassenger(passengerId: string): Promise<Ride[]> {
   return apiRequest(`/rides?passengerId=${passengerId}`)
 }

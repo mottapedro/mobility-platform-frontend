@@ -56,7 +56,7 @@ export function useDriverRides(
     setLoading(true)
     fetchRides()
 
-    intervalRef.current = setInterval(fetchRides, 5000)
+    intervalRef.current = setInterval(fetchRides, 8000)
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)

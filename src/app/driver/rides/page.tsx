@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useDriverRides } from '../../../hooks/useDriverRides'
-import { updateRide } from '../../../services/rides'
+import { completeRideLifecycle, startRideLifecycle } from '../../../services/rides'
 import { formatPrice } from '../../../utils/pricing'
 import type { DriverRide, RideContext } from '../../../types'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
@@ -25,9 +25,10 @@ export default function DriverRidesPage() {
     setUpdatingRide(rideId)
     setUpdateError(null)
     try {
-      // Backend expects STARTED as the transition from ACCEPTED.
-      // IN_PROGRESS is the subsequent state set by the backend after STARTED.
-      await updateRide(rideId, { status: 'STARTED' })
+      // PATCH /rides/:id is RPC-style (action: reject_referral/reschedule
+      // only) — state transitions go through the lifecycle endpoints.
+      // ACCEPTED → IN_PROGRESS directly, no intermediate STARTED state.
+      await startRideLifecycle(rideId)
     } catch (e) {
       setUpdateError(e instanceof Error ? e.message : 'Erro ao iniciar corrida.')
     } finally {
@@ -39,7 +40,7 @@ export default function DriverRidesPage() {
     setUpdatingRide(rideId)
     setUpdateError(null)
     try {
-      await updateRide(rideId, { status: 'COMPLETED' })
+      await completeRideLifecycle(rideId)
     } catch (e) {
       setUpdateError(e instanceof Error ? e.message : 'Erro ao finalizar corrida.')
     } finally {
@@ -51,7 +52,7 @@ export default function DriverRidesPage() {
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-aliado-text">Corridas</h1>
-        <p className="mt-1 text-sm text-aliado-sub">Painel do motorista · atualizando a cada 1s</p>
+        <p className="mt-1 text-sm text-aliado-sub">Painel do motorista · atualizando a cada 8s</p>
       </div>
 
       {updateError && (
