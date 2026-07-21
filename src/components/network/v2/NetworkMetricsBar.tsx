@@ -7,6 +7,8 @@ import { MetricCard } from '@/design-system'
 export interface NetworkMetricsBarProps {
   metrics: NetworkMetrics
   className?: string
+  /** Passenger flows earn cashback, not commission/revenue — swaps the label. */
+  isPassenger?: boolean
 }
 
 const formatNumber = (value: number): string =>
@@ -26,6 +28,7 @@ const formatCurrency = (value: number): string =>
 export const NetworkMetricsBar: FC<NetworkMetricsBarProps> = ({
   metrics,
   className = '',
+  isPassenger = false,
 }) => {
   const growth7 = metrics.growth?.last7Days
   const growth30 = metrics.growth?.last30Days
@@ -58,7 +61,7 @@ export const NetworkMetricsBar: FC<NetworkMetricsBarProps> = ({
       )}
       {metrics.estimatedRevenue != null && (
         <MetricCard
-          label="Receita estimada"
+          label={isPassenger ? 'Cashback estimado' : 'Receita estimada'}
           value={formatCurrency(metrics.estimatedRevenue)}
         />
       )}
