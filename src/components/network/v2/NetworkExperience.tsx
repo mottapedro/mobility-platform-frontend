@@ -81,7 +81,7 @@ export const NetworkExperience: FC<NetworkExperienceProps> = ({
       data-flow-type={flowType}
       className={`flex flex-col gap-5 ${className}`}
     >
-      <NetworkMetricsBar metrics={networkMetrics} />
+      <NetworkMetricsBar metrics={networkMetrics} isPassenger={isPassengerFlow} />
 
       {isPassengerFlow && rootDriver && (
         <RootDriverCard rootDriver={rootDriver} />

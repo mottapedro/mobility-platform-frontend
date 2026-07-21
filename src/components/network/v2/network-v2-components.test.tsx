@@ -49,6 +49,17 @@ describe('V2 components (network/v2)', () => {
       )
       expect(screen.queryByText('Receita estimada')).not.toBeInTheDocument()
     })
+
+    it('labels the metric as cashback for passenger flows', () => {
+      render(
+        <NetworkMetricsBar
+          metrics={networkContextFixtures.DRIVER_TO_DRIVER.networkMetrics}
+          isPassenger
+        />,
+      )
+      expect(screen.getByText('Cashback estimado')).toBeInTheDocument()
+      expect(screen.queryByText('Receita estimada')).not.toBeInTheDocument()
+    })
   })
 
   // ─── RootDriverCard ───────────────────────────────────────────────────
