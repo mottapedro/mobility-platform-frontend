@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 import PasswordInput from '../../components/PasswordInput'
+import { OperationalBaseInput, type OperationalBaseSelection } from '../../components/driver/OperationalBaseInput'
 import { useAuth } from '../../contexts/AuthContext'
 import type { AuthUser } from '../../types'
 import type { OnboardingContext } from '../../types/network-v2'
@@ -83,6 +84,8 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
   const [vehicleCategory, setVehicleCategory] = useState('CONFORTO')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [offerAssistedTransport, setOfferAssistedTransport] = useState(false)
+  const [operationalBase, setOperationalBase] = useState<OperationalBaseSelection | null>(null)
+  const [operationalBaseError, setOperationalBaseError] = useState<string | null>(null)
 
   const effectiveRole: AuthUser['role'] = lockedRole ?? role
 
@@ -99,6 +102,7 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setOperationalBaseError(null)
 
     const rawPhone = phoneDigits(phone)
     if (rawPhone.length < 10 || rawPhone.length > 11) {
@@ -120,6 +124,12 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
         setError('Selecione pelo menos uma região de atuação')
         return
       }
+      if (!operationalBase?.providerPlaceId || !operationalBase.formattedAddress.trim()) {
+        setOperationalBaseError(
+          'Selecione um endereço válido da lista de sugestões para sua base de atendimento'
+        )
+        return
+      }
     }
 
     setLoading(true)
@@ -135,6 +145,14 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
               experienceLevel,
               vehicle: { model: vehicleModel, brand: vehicleBrand, plate: vehiclePlate, category: vehicleCategory },
               region: selectedRegions,
+              ...(operationalBase?.providerPlaceId
+                ? {
+                    operationalBase: {
+                      formattedAddress: operationalBase.formattedAddress,
+                      providerPlaceId: operationalBase.providerPlaceId,
+                    },
+                  }
+                : {}),
             }
           : {}),
         ...(activeReferralCode || sessionReferralCode
@@ -173,7 +191,7 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
     <main className="flex min-h-screen flex-col items-center justify-center bg-[#0D0700] px-4 py-10">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center mb-2">
-          <img src="/logo-aliado.jpeg" alt="Logo Aliado" className="h-28 w-auto mb-2" />
+<img src="/aliado-logo.png" alt="Logo Aliado" className="h-28 w-auto mb-2" />
           <SectionTitle className="text-center text-3xl mb-0">Aliado</SectionTitle>
         </div>
         <p className="text-center text-sm text-gray-200 mb-4">Criar conta</p>
@@ -298,6 +316,15 @@ export default function RegisterPageClient({ referralSlug, onboarding }: Registe
                     ))}
                   </div>
                 </div>
+                <OperationalBaseInput
+                  id="operational-base"
+                  value={operationalBase}
+                  onChange={(selection) => {
+                    setOperationalBase(selection)
+                    setOperationalBaseError(null)
+                  }}
+                  error={operationalBaseError ?? undefined}
+                />
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-widest text-gray-400">Veículo</label>
                   <div className="grid grid-cols-2 gap-2 mt-1">

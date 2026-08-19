@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import RegisterPageClient from './RegisterPageClient'
@@ -13,6 +13,23 @@ async function fillRegisterForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByPlaceholderText('seu@email.com'), 'invalid.referral@test.com')
   await user.type(screen.getByPlaceholderText('(11) 99999-9999'), '21955554444')
   await user.type(screen.getByPlaceholderText('Mínimo 6 caracteres'), '123456')
+}
+
+async function fillDriverVehicle(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByPlaceholderText(/marca \(ex: toyota\)/i), 'Toyota')
+  await user.type(screen.getByPlaceholderText(/modelo \(ex: corolla\)/i), 'Corolla')
+  await user.type(screen.getByPlaceholderText(/placa \(ex: abc-1234\)/i), 'ABC1234')
+}
+
+async function fillDriverBase(user: ReturnType<typeof userEvent.setup>, text = 'Av. Rio') {
+  mockSearchAddresses.mockResolvedValue(BASE_SUGGESTIONS)
+  const baseInput = screen.getByPlaceholderText(
+    /endereço\/base de onde você normalmente/i
+  )
+  await user.type(baseInput, text)
+  const listbox = await screen.findByRole('listbox')
+  const suggestion = await within(listbox).findByText(/Av\. Rio Branco/i)
+  await user.click(suggestion)
 }
 
 const driverOnboarding: OnboardingContext = {
@@ -69,12 +86,35 @@ jest.mock('../../contexts/AuthContext', () => ({
   }),
 }))
 
+jest.mock('../../services/geocode', () => ({
+  searchAddresses: jest.fn(),
+  getPlaceDetails: jest.fn(),
+  geocodeAddress: jest.fn(),
+}))
+
+import * as geocode from '../../services/geocode'
+
+const mockSearchAddresses = geocode.searchAddresses as jest.MockedFunction<
+  typeof geocode.searchAddresses
+>
+
+const BASE_SUGGESTIONS = [
+  {
+    displayName: 'Av. Rio Branco, 1500, Centro, Rio de Janeiro, RJ',
+    placeId: 'place-rio-001',
+    lat: -22.9055,
+    lng: -43.1791,
+  },
+]
+
 describe('RegisterPageClient', () => {
   beforeEach(() => {
     localStorage.clear()
     mockPush.mockClear()
     mockRefresh.mockClear()
     mockRegister.mockReset()
+    mockSearchAddresses.mockReset()
+    mockSearchAddresses.mockResolvedValue([])
   })
 
   describe('role lock by expectedActor', () => {
@@ -189,6 +229,110 @@ describe('RegisterPageClient', () => {
 
       await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/passenger'))
       expect(mockRefresh).toHaveBeenCalled()
+    })
+  })
+
+  describe('operational base (M→A origin)', () => {
+    it('does not render the base field for passenger role', () => {
+      render(
+        <RegisterPageClient referralSlug="" onboarding={passengerOnboarding} />
+      )
+
+      expect(
+        screen.queryByPlaceholderText(/endereço\/base de onde você normalmente/i)
+      ).not.toBeInTheDocument()
+    })
+
+    it('blocks driver submit without a selected operational base', async () => {
+      const user = userEvent.setup()
+
+      render(
+        <RegisterPageClient referralSlug="" onboarding={driverOnboarding} />
+      )
+
+      await fillRegisterForm(user)
+      await fillDriverVehicle(user)
+      await user.click(screen.getByText('Zona Norte'))
+      await user.click(screen.getByRole('button', { name: /criar conta/i }))
+
+      expect(
+        await screen.findByText(/selecione um endereço válido da lista de sugestões/i)
+      ).toBeInTheDocument()
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('blocks driver submit when typed text has no valid provider selection', async () => {
+      const user = userEvent.setup()
+
+      render(
+        <RegisterPageClient referralSlug="" onboarding={driverOnboarding} />
+      )
+
+      await fillRegisterForm(user)
+      await fillDriverVehicle(user)
+      await user.click(screen.getByText('Zona Norte'))
+
+      // Type in the base field but never pick a Google suggestion
+      await user.type(
+        screen.getByPlaceholderText(/endereço\/base de onde você normalmente/i),
+        'Av. Rio sem selecionar'
+      )
+      await user.click(screen.getByRole('button', { name: /criar conta/i }))
+
+      expect(
+        await screen.findByText(/selecione um endereço válido da lista de sugestões/i)
+      ).toBeInTheDocument()
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('submits operationalBase (formattedAddress + providerPlaceId) without lat/lng', async () => {
+      const user = userEvent.setup()
+      mockRegister.mockResolvedValueOnce(undefined)
+
+      render(
+        <RegisterPageClient referralSlug="" onboarding={driverOnboarding} />
+      )
+
+      await fillRegisterForm(user)
+      await fillDriverVehicle(user)
+      await user.click(screen.getByText('Zona Norte'))
+      await fillDriverBase(user)
+
+      await user.click(screen.getByRole('button', { name: /criar conta/i }))
+
+      await waitFor(() => expect(mockRegister).toHaveBeenCalledTimes(1))
+      const payload = mockRegister.mock.calls[0][0]
+      expect(payload.operationalBase).toEqual({
+        formattedAddress: 'Av. Rio Branco, 1500, Centro, Rio de Janeiro, RJ',
+        providerPlaceId: 'place-rio-001',
+      })
+      expect(payload.operationalBase).not.toHaveProperty('lat')
+      expect(payload.operationalBase).not.toHaveProperty('lng')
+      expect(payload).not.toHaveProperty('latitude')
+      expect(payload).not.toHaveProperty('longitude')
+      expect(payload.role).toBe('driver')
+      expect(payload.region).toEqual(['ZN'])
+    })
+
+    it('shows backend refusal without persisting an invalid selection', async () => {
+      const user = userEvent.setup()
+      mockRegister.mockRejectedValueOnce(new Error('Endereço da base não reconhecido'))
+
+      render(
+        <RegisterPageClient referralSlug="" onboarding={driverOnboarding} />
+      )
+
+      await fillRegisterForm(user)
+      await fillDriverVehicle(user)
+      await user.click(screen.getByText('Zona Norte'))
+      await fillDriverBase(user)
+
+      await user.click(screen.getByRole('button', { name: /criar conta/i }))
+
+      expect(
+        await screen.findByText(/endereço da base não reconhecido/i)
+      ).toBeInTheDocument()
+      expect(mockPush).not.toHaveBeenCalled()
     })
   })
 })
