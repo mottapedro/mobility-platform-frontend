@@ -60,14 +60,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prisma contract checks (if prisma schema exists)
+      - name: Prisma contract checks (if a real Prisma schema exists)
         shell: bash
         run: |
-          if [ -f prisma/schema.prisma ]; then
+          PRISMA_SCHEMA="prisma/schema.prisma"
+          if [ -s "$PRISMA_SCHEMA" ] && grep -Eq '^[[:space:]]*datasource[[:space:]]+[A-Za-z_][A-Za-z0-9_]*' "$PRISMA_SCHEMA"; then
             npx prisma validate
             npx prisma generate
           else
-            echo "No prisma/schema.prisma in this repository; skipping Prisma contract checks."
+            echo "Prisma gate SKIP — prisma/schema.prisma ausente, vazio ou sem datasource (frontend nao possui contrato Prisma)."
           fi
 
   lint:
