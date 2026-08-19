@@ -19,8 +19,7 @@ describe('PixModal', () => {
       status: 'pending',
     })
     render(<PixModal rideId="ride-abc123" onClose={() => {}} />)
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText(/Pagar via PIX/)).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /pagar via pix/i })).toBeInTheDocument()
     expect(payments.createPaymentIntent).toHaveBeenCalledWith('ride-abc123', undefined)
   })
 
@@ -91,7 +90,7 @@ describe('PixModal', () => {
     expect(copyBtn).toBeInTheDocument()
   })
 
-  it('renders the confirm payment button', async () => {
+  it('renders the confirm payment button', () => {
     jest.mocked(payments.createPaymentIntent).mockResolvedValue({
       qrCode: '',
       pixCopiaCola: '',
@@ -99,7 +98,9 @@ describe('PixModal', () => {
       status: 'pending',
     })
     render(<PixModal rideId="test-ride" onClose={() => {}} />)
-    await screen.findByText('Confirmar pagamento')
-    expect(screen.getByRole('button', { name: /confirmar pagamento/i })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /pagar via pix/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /já paguei/i }),
+    ).toBeInTheDocument()
   })
 })
