@@ -3,7 +3,7 @@ import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 // Tipos globais do Google Maps em runtime
 declare global {
   interface Window {
-    google?: any
+    google?: unknown
   }
 }
 
@@ -34,6 +34,54 @@ interface GooglePlaceResult {
   formatted_address: string
 }
 
+interface GoogleGeocodeResult {
+  geometry: { location: { lat: () => number; lng: () => number } }
+}
+
+interface GoogleGeocoder {
+  geocode: (
+    request: { address: string },
+    callback: (results: GoogleGeocodeResult[] | null, status: string) => void,
+  ) => void
+}
+
+interface GeocodingLib {
+  Geocoder: new () => GoogleGeocoder
+}
+
+interface PlaceSuggestion {
+  placePrediction?: {
+    placeId?: string
+    text?: { text?: string }
+    types?: string[]
+    location?: {
+      lat?: number | (() => number)
+      lng?: number | (() => number)
+    }
+  }
+}
+
+interface PlaceSuggestionResponse {
+  predictions?: PlaceSuggestion[]
+  suggestions?: PlaceSuggestion[]
+}
+
+interface PlacesLib {
+  AutocompleteSuggestion: {
+    fetchAutocompleteSuggestions: (request: {
+      input: string
+      sessionToken: unknown
+    }) => Promise<unknown>
+  }
+  AutocompleteSessionToken: new () => unknown
+  PlacesService: new (node: HTMLElement) => {
+    getDetails: (
+      request: { placeId: string; fields?: string[] },
+      callback: (place: GooglePlaceResult | null, status: string) => void,
+    ) => void
+  }
+}
+
 type Coords = { lat: number; lng: number }
 
 // Simple in-memory cache to avoid hammering Google on re-renders
@@ -42,7 +90,7 @@ const suggestCache = new Map<string, AddressSuggestion[]>()
 const placeCache = new Map<string, GooglePlaceResult>()
 
 let loaderPromise: Promise<void> | null = null
-let placesLib: any = null
+let placesLib: PlacesLib | null = null
 let loaderConfigured = false
 
 async function ensureGoogleMapsLoaded() {
@@ -85,22 +133,26 @@ export async function geocodeAddress(address: string): Promise<Coords | null> {
   try {
     await ensureGoogleMapsLoaded()
 
-    const geocoding: any = await importLibrary('geocoding')
+    const geocoding = (await importLibrary('geocoding')) as GeocodingLib
     const geocoder = new geocoding.Geocoder()
-    const res = await new Promise<any[]>((resolve, reject) => {
+    const res = await new Promise<GoogleGeocodeResult[] | null>((resolve, reject) => {
       geocoder.geocode(
         { address: `${trimmed}, Brasil` },
-        (results: any[], status: string) => {
-          if ((status as string) !== 'OK' || !(results as any[])?.length) {
+        (results, status) => {
+          if (status !== 'OK' || !results?.length) {
             reject(new Error(`Geocoding failed: ${status}`))
             return
           }
-          resolve(results as any[])
+          resolve(results)
         },
       )
     })
 
-    const location = res[0].geometry.location
+    const location = res?.[0]?.geometry.location
+    if (!location) {
+      cache.set(key, null)
+      return null
+    }
     const coords = { lat: location.lat(), lng: location.lng() }
     cache.set(key, coords)
     console.log('[geocodeAddress] Sucesso para:', trimmed, coords)
@@ -124,26 +176,26 @@ export async function searchAddresses(
   try {
     await ensureGoogleMapsLoaded()
 
-    const { AutocompleteSuggestion } = placesLib
+    const { AutocompleteSuggestion } = placesLib!
 
-    const sessionToken = new placesLib.AutocompleteSessionToken()
-    const response = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+    const sessionToken = new placesLib!.AutocompleteSessionToken()
+    const response = (await AutocompleteSuggestion.fetchAutocompleteSuggestions({
       input: trimmed,
       sessionToken,
-    })
+    })) as unknown as PlaceSuggestion[] | PlaceSuggestionResponse
 
     // A nova API pode retornar { predictions: [...] } ou um array diretamente
     const items = Array.isArray(response)
       ? response
-      : (response as any)?.predictions ?? (response as any)?.suggestions ?? []
+      : response.predictions ?? response.suggestions ?? []
 
     const mapped: AddressSuggestion[] = items
-      .filter((item: any) => {
+      .filter((item) => {
         const types: string[] = item.placePrediction?.types ?? []
         const text: string = item.placePrediction?.text?.text ?? ''
         return types.includes('address') || text.length > 5
       })
-      .map((item: any) => {
+      .map((item) => {
         const pp = item.placePrediction
         const coords: { lat?: number; lng?: number } = {}
         const loc = pp?.location
@@ -154,16 +206,16 @@ export async function searchAddresses(
           else if (typeof loc.lng === 'number') coords.lng = loc.lng
         }
         return {
-          placeId: pp.placeId,
-          displayName: pp.text.text,
+          placeId: pp?.placeId,
+          displayName: pp?.text?.text ?? '',
           ...coords,
         } as AddressSuggestion
       })
 
     suggestCache.set(key, mapped)
     return mapped
-  } catch (err: any) {
-    const msg = err?.message ?? String(err)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes('blocked') || msg.includes('REQUEST_DENIED') || msg.includes('not authorized')) {
       console.error('[Google Maps API Error]: A Places API não está habilitada ou a chave está restrita. Habilite Places API e Maps JavaScript API no Google Cloud Console.')
     } else {
@@ -184,21 +236,21 @@ export async function getPlaceDetails(
   try {
     await ensureGoogleMapsLoaded()
 
-    const service = new placesLib.PlacesService(
+    const service = new placesLib!.PlacesService(
       document.createElement('div'),
     )
     const res = await new Promise<GooglePlaceResult | null>((resolve) => {
       service.getDetails(
         {
           placeId,
-          fields: ['address_components', 'geometry', 'formatted_address'] as any,
+          fields: ['address_components', 'geometry', 'formatted_address'],
         },
-        (place: any, status: string) => {
+        (place, status) => {
           if (status !== 'OK' || !place) {
             resolve(null)
             return
           }
-          resolve(place as GooglePlaceResult)
+          resolve(place)
         },
       )
     })
