@@ -16,6 +16,7 @@ const TOKEN_KEY = 'aliado:token'
 
 interface ApiAuthResponse {
   token?: string
+  accessToken?: string
   user: { id: string; name: string; email: string; role: string }
   driverId?: string
   passengerId?: string
@@ -37,6 +38,7 @@ interface RegisterPayload {
   experienceLevel?: string
   vehicle?: { model: string; brand: string; plate: string; category: string }
   region?: string[]
+  operationalBase?: { formattedAddress: string; providerPlaceId: string }
 }
 
 interface AuthContextValue {
@@ -98,7 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
-    if (data.token) localStorage.setItem(TOKEN_KEY, data.token)
+    const accessToken = data.accessToken ?? data.token
+    if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken)
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)
@@ -134,7 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
-    if (data.token) localStorage.setItem(TOKEN_KEY, data.token)
+    const accessToken = data.accessToken ?? data.token
+    if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken)
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)

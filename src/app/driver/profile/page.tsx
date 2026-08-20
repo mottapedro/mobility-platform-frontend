@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import { DriverReferralCard } from '../../../components/driver/DriverReferralCard'
+import { OperationalBaseSection } from '../../../components/driver/OperationalBaseSection'
 import { useNetworkContext } from '../../../hooks/useNetworkContext'
 import { readStoredDriverId, resolveDriverId } from '../../../utils/driverId'
 import { resolveInviteUrl } from '../../../utils/inviteUrls'
@@ -62,6 +63,9 @@ export default function DriverProfilePage() {
           capabilities={context?.capabilities}
         />
       </div>
+
+      {/* Base de atendimento (Fase E — self-service) */}
+      <OperationalBaseSection />
 
       {/* Especialidades */}
       <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">

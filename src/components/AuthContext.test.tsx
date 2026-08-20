@@ -126,6 +126,28 @@ describe('AuthContext', () => {
     expect(localStorage.getItem('aliado:token')).toBe('jwt-driver-token-xyz')
   })
 
+  it('stores accessToken (Bearer) from the backend when token is absent', async () => {
+    const apiResponse = {
+      accessToken: 'jwt-access-abc',
+      user: { id: '4', name: 'Ana', email: 'ana@test.com', role: 'driver' },
+      driverId: 'driver-88',
+    }
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify(apiResponse)),
+    } as unknown as Response)
+
+    render(<AuthProvider><TestConsumer /></AuthProvider>)
+    await waitFor(() => expect(screen.getByText('fazer login')).toBeInTheDocument())
+
+    await act(async () => {
+      await userEvent.click(screen.getByText('fazer login'))
+    })
+
+    await waitFor(() => expect(screen.getByTestId('name')).toBeInTheDocument())
+    expect(localStorage.getItem('aliado:token')).toBe('jwt-access-abc')
+  })
+
   it('removes JWT token from localStorage on logout', async () => {
     localStorage.setItem('aliado:auth', JSON.stringify({ id: '1', name: 'Ana', email: 'a@b.com', role: 'passenger' as const }))
     localStorage.setItem('aliado:token', 'old-token')

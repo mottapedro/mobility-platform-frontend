@@ -138,6 +138,81 @@ export async function getDriverOffers(driverId: string): Promise<DriverOffer[]> 
   return apiRequest<DriverOffer[]>(`/drivers/${safeDriverId}/offers`)
 }
 
+export interface DriverMeProfile {
+  driverId: string
+  name: string
+  email: string
+  phone: string | null
+  referralCode: string | null
+  publicSlug: string | null
+  networkLevel: number
+  experienceLevel: string
+  regions: string[]
+}
+
+/**
+ * Perfil do motorista autenticado via Bearer (GET /drivers/me).
+ * O token é injetado automaticamente pelo apiRequest a partir de
+ * `aliado:token` — nunca usa x-driver-id.
+ */
+export async function getDriverMe(): Promise<DriverMeProfile> {
+  return apiRequest<DriverMeProfile>('/drivers/me')
+}
+
+export interface DriverOperationalBase {
+  id: string
+  driverId: string
+  formattedAddress: string
+  providerPlaceId: string | null
+  latitude: number
+  longitude: number
+  updatedAt: string
+}
+
+export type OperationalBaseUpdateInput = {
+  formattedAddress: string
+  providerPlaceId: string
+}
+
+type OperationalBaseGetResponse = {
+  operationalBase: DriverOperationalBase | null
+}
+
+type OperationalBasePutResponse = {
+  operationalBase: DriverOperationalBase
+  source: 'GOOGLE_PLACE_DETAILS' | 'CLIENT_FALLBACK'
+}
+
+/**
+ * Base operacional do motorista autenticado (GET /drivers/me/operational-base).
+ * Bearer-only: o token é injetado pelo apiRequest via `aliado:token`.
+ * 200 com operationalBase null significa "ainda não configurada" (estado NO_BASE).
+ */
+export async function getDriverOperationalBase(): Promise<DriverOperationalBase | null> {
+  const response = await apiRequest<OperationalBaseGetResponse>(
+    '/drivers/me/operational-base',
+  )
+  return response.operationalBase
+}
+
+/**
+ * Cria/atualiza a base operacional (PUT /drivers/me/operational-base).
+ * Envia APENAS formattedAddress + providerPlaceId — nunca lat/lng: o backend
+ * resolve as coordenadas autoritativas via Google Place Details.
+ */
+export async function updateDriverOperationalBase(
+  input: OperationalBaseUpdateInput,
+): Promise<DriverOperationalBase> {
+  if (!input.providerPlaceId || !input.providerPlaceId.trim()) {
+    throw new Error('providerPlaceId é obrigatório — selecione uma sugestão do Google Places')
+  }
+  const response = await apiRequest<OperationalBasePutResponse>(
+    '/drivers/me/operational-base',
+    { method: 'PUT', body: input },
+  )
+  return response.operationalBase
+}
+
 export async function getDriverRides(driverId: string): Promise<DriverRide[]> {
   const safeDriverId = assertDriverId(driverId)
   return apiRequest<DriverRide[]>(`/drivers/${safeDriverId}/rides`)
