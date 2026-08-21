@@ -1,49 +1,74 @@
-import { request as pwRequest, APIRequestContext } from '@playwright/test'
+import { request as pwRequest, APIRequestContext } from "@playwright/test";
 
 export interface LoginDriverResult {
-  user: { id: string; name: string; email: string; role: 'driver' }
-  driverId: string
-  referralCode: string
-  publicSlug: string | null
-  networkLevel: number
-  referredByDriverId: string | null
+  user: { id: string; name: string; email: string; role: "driver" };
+  driverId: string;
+  referralCode: string;
+  publicSlug: string | null;
+  networkLevel: number;
+  referredByDriverId: string | null;
 }
 
 export interface LoginPassengerResult {
-  user: { id: string; name: string; email: string; role: 'passenger' }
-  passengerId: string
-  referredByDriverId: string | null
-  token: string
+  user: { id: string; name: string; email: string; role: "passenger" };
+  passengerId: string;
+  referredByDriverId: string | null;
+  token: string;
 }
 
 export interface RideOffer {
-  id: string
-  driverId: string
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED'
-  expiresAt: string
+  id: string;
+  driverId: string;
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
+  expiresAt: string;
   rideRequest: {
-    id: string
-    origin: string
-    destination: string
-    scheduledAt: string
-    status: string
-  }
+    id: string;
+    origin: string;
+    destination: string;
+    scheduledAt: string;
+    status: string;
+  };
+}
+
+export interface RideFullResponse {
+  message: string;
+  ride: { id: string; status: string; [k: string]: unknown };
+  quote: unknown;
+  rideQuote: {
+    id: string;
+    status: string;
+    version: number;
+    grossFinalCents: number;
+    driverReceivableAmountCents: number;
+    expiresAt: string;
+    [k: string]: unknown;
+  } | null;
+}
+
+export interface ConfirmQuoteResponse {
+  message: string;
+  ride: { id: string; status: string; [k: string]: unknown };
+  rideQuote: { id: string; status: string; [k: string]: unknown } | null;
+  firstOfferId: string | null;
 }
 
 export class SmokeApi {
-  private constructor(private readonly ctx: APIRequestContext, private readonly baseUrl: string) {}
+  private constructor(
+    private readonly ctx: APIRequestContext,
+    private readonly baseUrl: string,
+  ) {}
 
   static async create(baseUrl: string): Promise<SmokeApi> {
     const ctx = await pwRequest.newContext({
       baseURL: baseUrl,
       // Bypass ngrok's browser-warning HTML interstitial on free-plan tunnels.
-      extraHTTPHeaders: { 'ngrok-skip-browser-warning': 'any' },
-    })
-    return new SmokeApi(ctx, baseUrl)
+      extraHTTPHeaders: { "ngrok-skip-browser-warning": "any" },
+    });
+    return new SmokeApi(ctx, baseUrl);
   }
 
   async dispose() {
-    await this.ctx.dispose()
+    await this.ctx.dispose();
   }
 
   /**
@@ -55,32 +80,53 @@ export class SmokeApi {
     params?: Record<string, string>,
     extraHeaders?: Record<string, string>,
   ): Promise<unknown> {
-    const res = await this.ctx.get(path, { params, headers: extraHeaders })
-    if (!res.ok()) throw new Error(`GET ${path} failed (${res.status()}): ${await res.text()}`)
-    return res.json()
+    const res = await this.ctx.get(path, { params, headers: extraHeaders });
+    if (!res.ok())
+      throw new Error(
+        `GET ${path} failed (${res.status()}): ${await res.text()}`,
+      );
+    return res.json();
   }
 
-  async loginDriver(email: string, password: string): Promise<LoginDriverResult> {
-    const res = await this.ctx.post('/auth/login', { data: { email, password } })
-    if (!res.ok()) throw new Error(`Driver login failed (${res.status()}): ${await res.text()}`)
-    const body = (await res.json()) as LoginDriverResult
-    if (body.user.role !== 'driver') throw new Error(`Expected driver role, got ${body.user.role}`)
-    return body
+  async loginDriver(
+    email: string,
+    password: string,
+  ): Promise<LoginDriverResult> {
+    const res = await this.ctx.post("/auth/login", {
+      data: { email, password },
+    });
+    if (!res.ok())
+      throw new Error(
+        `Driver login failed (${res.status()}): ${await res.text()}`,
+      );
+    const body = (await res.json()) as LoginDriverResult;
+    if (body.user.role !== "driver")
+      throw new Error(`Expected driver role, got ${body.user.role}`);
+    return body;
   }
 
-  async loginPassenger(email: string, password: string): Promise<LoginPassengerResult> {
-    const res = await this.ctx.post('/auth/login', { data: { email, password } })
-    if (!res.ok()) throw new Error(`Passenger login failed (${res.status()}): ${await res.text()}`)
-    const body = (await res.json()) as LoginPassengerResult
-    if (body.user.role !== 'passenger') throw new Error(`Expected passenger role, got ${body.user.role}`)
-    return body
+  async loginPassenger(
+    email: string,
+    password: string,
+  ): Promise<LoginPassengerResult> {
+    const res = await this.ctx.post("/auth/login", {
+      data: { email, password },
+    });
+    if (!res.ok())
+      throw new Error(
+        `Passenger login failed (${res.status()}): ${await res.text()}`,
+      );
+    const body = (await res.json()) as LoginPassengerResult;
+    if (body.user.role !== "passenger")
+      throw new Error(`Expected passenger role, got ${body.user.role}`);
+    return body;
   }
 
   async createRide(
-    input: { 
-      passengerId?: string; 
-      origin: string; 
-      destination: string; 
+    input: {
+      passengerId?: string;
+      origin: string;
+      destination: string;
       scheduledAt: string;
       originLat?: number;
       originLng?: number;
@@ -89,29 +135,142 @@ export class SmokeApi {
     },
     token?: string,
   ): Promise<{ id: string; status: string }> {
-    const res = await this.ctx.post('/rides', {
+    const res = await this.ctx.post("/rides", {
       data: {
         passengerId: input.passengerId,
         origin: input.origin,
         destination: input.destination,
         scheduledAt: input.scheduledAt,
-        ...(input.originLat != null && input.originLng != null ? { originLat: input.originLat, originLng: input.originLng } : {}),
-        ...(input.destinationLat != null && input.destinationLng != null ? { destinationLat: input.destinationLat, destinationLng: input.destinationLng } : {}),
+        ...(input.originLat != null && input.originLng != null
+          ? { originLat: input.originLat, originLng: input.originLng }
+          : {}),
+        ...(input.destinationLat != null && input.destinationLng != null
+          ? {
+              destinationLat: input.destinationLat,
+              destinationLng: input.destinationLng,
+            }
+          : {}),
       },
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    })
+    });
     if (res.status() !== 201 && res.status() !== 200) {
-      throw new Error(`POST /rides failed (${res.status()}): ${await res.text()}`)
+      throw new Error(
+        `POST /rides failed (${res.status()}): ${await res.text()}`,
+      );
     }
     // Backend wraps the ride in { message, ride: { ... } }; fall back to bare body.
-    const body = (await res.json()) as Record<string, unknown>
-    return ((body['ride'] as Record<string, unknown>) ?? body) as { id: string; status: string }
+    const body = (await res.json()) as Record<string, unknown>;
+    return ((body["ride"] as Record<string, unknown>) ?? body) as {
+      id: string;
+      status: string;
+    };
   }
 
-  async getRide(rideId: string): Promise<{ id: string; status: string; selectedDriverId: string | null }> {
-    const res = await this.ctx.get(`/rides/${rideId}`)
-    if (!res.ok()) throw new Error(`GET /rides/${rideId} failed (${res.status()})`)
-    return (await res.json()) as { id: string; status: string; selectedDriverId: string | null }
+  async getRide(
+    rideId: string,
+  ): Promise<{ id: string; status: string; selectedDriverId: string | null }> {
+    const res = await this.ctx.get(`/rides/${rideId}`);
+    if (!res.ok())
+      throw new Error(`GET /rides/${rideId} failed (${res.status()})`);
+    return (await res.json()) as {
+      id: string;
+      status: string;
+      selectedDriverId: string | null;
+    };
+  }
+
+  /**
+   * POST /rides exposing the full Fase E response body ({ ride, quote, rideQuote })
+   * so the smoke can assert QUOTED/0-offers before confirming.
+   */
+  async createRideFull(
+    input: {
+      passengerId?: string;
+      origin: string;
+      destination: string;
+      scheduledAt: string;
+      originLat?: number;
+      originLng?: number;
+      destinationLat?: number;
+      destinationLng?: number;
+    },
+    token?: string,
+  ): Promise<RideFullResponse> {
+    const res = await this.ctx.post("/rides", {
+      data: {
+        passengerId: input.passengerId,
+        origin: input.origin,
+        destination: input.destination,
+        scheduledAt: input.scheduledAt,
+        ...(input.originLat != null && input.originLng != null
+          ? { originLat: input.originLat, originLng: input.originLng }
+          : {}),
+        ...(input.destinationLat != null && input.destinationLng != null
+          ? {
+              destinationLat: input.destinationLat,
+              destinationLng: input.destinationLng,
+            }
+          : {}),
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (res.status() !== 201 && res.status() !== 200) {
+      throw new Error(
+        `POST /rides failed (${res.status()}): ${await res.text()}`,
+      );
+    }
+    return (await res.json()) as RideFullResponse;
+  }
+
+  /**
+   * Create a ride with full Fase E body, automatically resolving SCHEDULE_CONFLICT
+   * (409) by cancelling the stale conflicting ride and retrying.
+   */
+  async createRideFullOrReclaim(
+    input: {
+      passengerId: string;
+      origin: string;
+      destination: string;
+      scheduledAt: string;
+      originLat?: number;
+      originLng?: number;
+      destinationLat?: number;
+      destinationLng?: number;
+    },
+    token: string,
+    maxAttempts = 8,
+  ): Promise<RideFullResponse> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await this.createRideFull(input, token);
+      } catch (err: unknown) {
+        const msg = String(err);
+        const m = msg.match(/"conflictingRideId":"([a-f0-9-]+)"/);
+        if (m && attempt < maxAttempts - 1) {
+          console.log(
+            `[createRideFullOrReclaim] 409 conflict with ${m[1]}, cancelling and retrying (attempt ${attempt + 1}/${maxAttempts})`,
+          );
+          await this.tryCancel(m[1], token);
+          await new Promise((r) => setTimeout(r, 800));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw new Error("createRideFullOrReclaim: all attempts exhausted");
+  }
+
+  /**
+   * Fase E — POST /rides/:id/confirm-quote: transita QUOTED → AGREED e emite a
+   * primeira oferta para o M1. Idempotente: retry após AGREED não duplica oferta.
+   */
+  async confirmQuote(rideId: string): Promise<ConfirmQuoteResponse> {
+    const res = await this.ctx.post(`/rides/${rideId}/confirm-quote`);
+    if (!res.ok())
+      throw new Error(
+        `POST /rides/${rideId}/confirm-quote failed (${res.status()}): ${await res.text()}`,
+      );
+    return (await res.json()) as ConfirmQuoteResponse;
   }
 
   /**
@@ -119,73 +278,104 @@ export class SmokeApi {
    * Used by dispatch-invariant smoke to assert "at most one PENDING offer at a time".
    */
   async getRideWithOffers(rideId: string): Promise<{
-    id: string
-    status: string
-    selectedDriverId: string | null
-    offers: Array<{ id: string; driverId: string; status: string; expiresAt: string }>
+    id: string;
+    status: string;
+    selectedDriverId: string | null;
+    offers: Array<{
+      id: string;
+      driverId: string;
+      status: string;
+      expiresAt: string;
+    }>;
   }> {
-    const res = await this.ctx.get(`/rides/${rideId}`)
-    if (!res.ok()) throw new Error(`GET /rides/${rideId} failed (${res.status()})`)
+    const res = await this.ctx.get(`/rides/${rideId}`);
+    if (!res.ok())
+      throw new Error(`GET /rides/${rideId} failed (${res.status()})`);
     return (await res.json()) as {
-      id: string
-      status: string
-      selectedDriverId: string | null
-      offers: Array<{ id: string; driverId: string; status: string; expiresAt: string }>
-    }
+      id: string;
+      status: string;
+      selectedDriverId: string | null;
+      offers: Array<{
+        id: string;
+        driverId: string;
+        status: string;
+        expiresAt: string;
+      }>;
+    };
   }
 
   async listDriverOffers(driverId: string): Promise<RideOffer[]> {
     const res = await this.ctx.get(`/drivers/${driverId}/offers`, {
-      headers: { 'x-driver-id': driverId },
-    })
-    if (!res.ok()) throw new Error(`GET /drivers/${driverId}/offers failed (${res.status()})`)
-    return (await res.json()) as RideOffer[]
+      headers: { "x-driver-id": driverId },
+    });
+    if (!res.ok())
+      throw new Error(
+        `GET /drivers/${driverId}/offers failed (${res.status()})`,
+      );
+    return (await res.json()) as RideOffer[];
   }
 
-  async respondOffer(offerId: string, accept: boolean): Promise<{ accepted: boolean }> {
-    const res = await this.ctx.patch(`/offers/${offerId}/respond`, { data: { accept } })
-    if (!res.ok()) throw new Error(`PATCH /offers/${offerId}/respond failed (${res.status()}): ${await res.text()}`)
-    return (await res.json()) as { accepted: boolean }
+  async respondOffer(
+    offerId: string,
+    accept: boolean,
+  ): Promise<{ accepted: boolean }> {
+    const res = await this.ctx.patch(`/offers/${offerId}/respond`, {
+      data: { accept },
+    });
+    if (!res.ok())
+      throw new Error(
+        `PATCH /offers/${offerId}/respond failed (${res.status()}): ${await res.text()}`,
+      );
+    return (await res.json()) as { accepted: boolean };
   }
 
   async waitForOfferForRide(
     driverId: string,
     rideId: string,
-    opts: { timeoutMs?: number; pollMs?: number } = {}
+    opts: { timeoutMs?: number; pollMs?: number } = {},
   ): Promise<RideOffer> {
-    const timeoutMs = opts.timeoutMs ?? 30_000
-    const pollMs = opts.pollMs ?? 1_000
-    const deadline = Date.now() + timeoutMs
-    let lastErr: unknown = null
+    const timeoutMs = opts.timeoutMs ?? 30_000;
+    const pollMs = opts.pollMs ?? 1_000;
+    const deadline = Date.now() + timeoutMs;
+    let lastErr: unknown = null;
     while (Date.now() < deadline) {
       try {
-        const offers = await this.listDriverOffers(driverId)
-        const match = offers.find((o) => o.rideRequest?.id === rideId && o.status === 'PENDING')
-        if (match) return match
+        const offers = await this.listDriverOffers(driverId);
+        const match = offers.find(
+          (o) => o.rideRequest?.id === rideId && o.status === "PENDING",
+        );
+        if (match) return match;
       } catch (err) {
-        lastErr = err
+        lastErr = err;
       }
-      await new Promise((r) => setTimeout(r, pollMs))
+      await new Promise((r) => setTimeout(r, pollMs));
     }
-    throw new Error(`Offer for ride ${rideId} not received by driver ${driverId} within ${timeoutMs}ms${lastErr ? ` (last error: ${String(lastErr)})` : ''}`)
+    throw new Error(
+      `Offer for ride ${rideId} not received by driver ${driverId} within ${timeoutMs}ms${lastErr ? ` (last error: ${String(lastErr)})` : ""}`,
+    );
   }
 
   async waitForRideStatus(
     rideId: string,
-    predicate: (r: { status: string; selectedDriverId: string | null }) => boolean,
-    opts: { timeoutMs?: number; pollMs?: number } = {}
+    predicate: (r: {
+      status: string;
+      selectedDriverId: string | null;
+    }) => boolean,
+    opts: { timeoutMs?: number; pollMs?: number } = {},
   ): Promise<{ status: string; selectedDriverId: string | null }> {
-    const timeoutMs = opts.timeoutMs ?? 30_000
-    const pollMs = opts.pollMs ?? 1_000
-    const deadline = Date.now() + timeoutMs
-    let last: { status: string; selectedDriverId: string | null } | null = null
+    const timeoutMs = opts.timeoutMs ?? 30_000;
+    const pollMs = opts.pollMs ?? 1_000;
+    const deadline = Date.now() + timeoutMs;
+    let last: { status: string; selectedDriverId: string | null } | null = null;
     while (Date.now() < deadline) {
-      const ride = await this.getRide(rideId)
-      last = { status: ride.status, selectedDriverId: ride.selectedDriverId }
-      if (predicate(last)) return last
-      await new Promise((r) => setTimeout(r, pollMs))
+      const ride = await this.getRide(rideId);
+      last = { status: ride.status, selectedDriverId: ride.selectedDriverId };
+      if (predicate(last)) return last;
+      await new Promise((r) => setTimeout(r, pollMs));
     }
-    throw new Error(`Ride ${rideId} did not reach expected status within ${timeoutMs}ms (last: ${JSON.stringify(last)})`)
+    throw new Error(
+      `Ride ${rideId} did not reach expected status within ${timeoutMs}ms (last: ${JSON.stringify(last)})`,
+    );
   }
 
   /**
@@ -199,9 +389,9 @@ export class SmokeApi {
    */
   async tryCancel(rideId: string, token?: string): Promise<void> {
     try {
-      const headers: Record<string, string> = {}
-      if (token) headers['Authorization'] = `Bearer ${token}`
-      await this.ctx.delete(`/rides/${rideId}`, { headers })
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      await this.ctx.delete(`/rides/${rideId}`, { headers });
     } catch {
       // Best-effort; ignore endpoint not supported or ride already terminal.
     }
@@ -214,36 +404,36 @@ export class SmokeApi {
    */
   async createRideOrReclaim(
     input: {
-      passengerId: string
-      origin: string
-      destination: string
-      scheduledAt: string
-      originLat?: number
-      originLng?: number
-      destinationLat?: number
-      destinationLng?: number
+      passengerId: string;
+      origin: string;
+      destination: string;
+      scheduledAt: string;
+      originLat?: number;
+      originLng?: number;
+      destinationLat?: number;
+      destinationLng?: number;
     },
     token: string,
     maxAttempts = 8,
   ): Promise<{ id: string; status: string; [k: string]: unknown }> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        return await this.createRide(input, token)
+        return await this.createRide(input, token);
       } catch (err: unknown) {
-        const msg = String(err)
-        const m = msg.match(/"conflictingRideId":"([a-f0-9-]+)"/)
+        const msg = String(err);
+        const m = msg.match(/"conflictingRideId":"([a-f0-9-]+)"/);
         if (m && attempt < maxAttempts - 1) {
           console.log(
             `[createRideOrReclaim] 409 conflict with ${m[1]}, cancelling and retrying (attempt ${attempt + 1}/${maxAttempts})`,
-          )
-          await this.tryCancel(m[1], token)
+          );
+          await this.tryCancel(m[1], token);
           // Brief pause for the backend to process the cancellation.
-          await new Promise((r) => setTimeout(r, 800))
-          continue
+          await new Promise((r) => setTimeout(r, 800));
+          continue;
         }
-        throw err
+        throw err;
       }
     }
-    throw new Error('createRideOrReclaim: all attempts exhausted')
+    throw new Error("createRideOrReclaim: all attempts exhausted");
   }
 }

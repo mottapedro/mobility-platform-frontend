@@ -1,101 +1,148 @@
-﻿'use client'
+﻿"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createRide } from '../../../services/rides'
-import { ApiError } from '../../../services/api'
-import { usePassenger } from '../../../hooks/usePassenger'
-import { useAuth } from '../../../contexts/AuthContext'
-import { AddressInput, type AddressCoords } from '../../../components/passenger/AddressInput'
-import type { DriverSummary } from '../../../services/drivers'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { confirmRideQuote, createRide } from "../../../services/rides";
+import { ApiError } from "../../../services/api";
+import { usePassenger } from "../../../hooks/usePassenger";
+import { useAuth } from "../../../contexts/AuthContext";
+import {
+  AddressInput,
+  type AddressCoords,
+} from "../../../components/passenger/AddressInput";
+import { formatPrice } from "../../../utils/pricing";
+import type { DriverSummary } from "../../../services/drivers";
 
-interface ContextCheckboxProps {
-  label: string
-  emoji: string
-  checked: boolean
-  onChange: (v: boolean) => void
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-function ContextCheckbox({ label, emoji, checked, onChange }: ContextCheckboxProps) {
+interface ContextCheckboxProps {
+  label: string;
+  emoji: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}
+
+function ContextCheckbox({
+  label,
+  emoji,
+  checked,
+  onChange,
+}: ContextCheckboxProps) {
   return (
     <button
       type="button"
       onClick={() => onChange(!checked)}
       className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
         checked
-          ? 'border-[#F28C28]/60 bg-[#F28C28]/10 text-[#F28C28]'
-          : 'border-[#2E1A08] bg-[#1A0E04] text-[#9A7D5A] hover:border-[#5A3F22]'
+          ? "border-[#F28C28]/60 bg-[#F28C28]/10 text-[#F28C28]"
+          : "border-[#2E1A08] bg-[#1A0E04] text-[#9A7D5A] hover:border-[#5A3F22]"
       }`}
     >
       <span>{emoji}</span>
       <span>{label}</span>
       {checked && <span className="ml-auto text-[#F28C28]">✓</span>}
     </button>
-  )
+  );
 }
 
 export default function PassengerCreatePage() {
-  const router = useRouter()
-  const { user } = useAuth()
-  const passengerId = user?.passengerId ?? ''
+  const router = useRouter();
+  const { user } = useAuth();
+  const passengerId = user?.passengerId ?? "";
 
-  const [origin, setOrigin] = useState('')
-  const [originCoords, setOriginCoords] = useState<AddressCoords | null>(null)
-  const [destination, setDestination] = useState('')
-  const [destCoords, setDestCoords] = useState<AddressCoords | null>(null)
-  const [scheduledAt, setScheduledAt] = useState('')
-  const [notes, setNotes] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [origin, setOrigin] = useState("");
+  const [originCoords, setOriginCoords] = useState<AddressCoords | null>(null);
+  const [destination, setDestination] = useState("");
+  const [destCoords, setDestCoords] = useState<AddressCoords | null>(null);
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [isVip, setIsVip] = useState(false)
-  const [isAirport, setIsAirport] = useState(false)
-  const [isAssistedTransport, setIsAssistedTransport] = useState(false)
-  const [isLuggage, setIsLuggage] = useState(false)
+  // Fase E (bifase) — etapa de confirmação da RideQuote QUOTED emitida pelo
+  // backend após POST /rides. A navegação só ocorre após POST /rides/:id/confirm-quote.
+  const [pendingConfirm, setPendingConfirm] = useState<{
+    rideId: string;
+    origin: string;
+    destination: string;
+    scheduledAt: string;
+    priceCents: number;
+    expiresAt: string;
+  } | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [confirmStatus, setConfirmStatus] = useState<
+    "QUOTE_EXPIRED" | "QUOTE_CONFLICT" | "RIDE_NOT_MATCHABLE" | "NETWORK" | null
+  >(null);
 
-  const { data, loading, error } = usePassenger(passengerId)
+  const [isVip, setIsVip] = useState(false);
+  const [isAirport, setIsAirport] = useState(false);
+  const [isAssistedTransport, setIsAssistedTransport] = useState(false);
+  const [isLuggage, setIsLuggage] = useState(false);
 
-  const [localDriver, setLocalDriver] = useState<DriverSummary | null>(null)
+  const { data, loading, error } = usePassenger(passengerId);
+
+  const [localDriver, setLocalDriver] = useState<DriverSummary | null>(null);
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('aliado:referredDriver')
-      if (stored) setLocalDriver(JSON.parse(stored))
-    } catch { /* ignore */ }
-  }, [])
+      const stored = localStorage.getItem("aliado:referredDriver");
+      if (stored) setLocalDriver(JSON.parse(stored));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const referredDriver = data?.referredByDriver
-    ? { name: data.referredByDriver.user.name, phone: data.referredByDriver.user.phone }
+    ? {
+        name: data.referredByDriver.user.name,
+        phone: data.referredByDriver.user.phone,
+      }
     : localDriver
       ? { name: localDriver.name, phone: localDriver.phone }
-      : null
+      : null;
 
-  const showDriverLoadError = Boolean(error && !referredDriver)
+  const showDriverLoadError = Boolean(error && !referredDriver);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSubmitError(null)
+    e.preventDefault();
+    setSubmitError(null);
 
     if (!origin.trim() || !destination.trim() || !scheduledAt) {
-      setSubmitError('Preencha todos os campos obrigatórios.')
-      return
+      setSubmitError("Preencha todos os campos obrigatórios.");
+      return;
     }
 
-    console.log('[CreateRide] Validação de coordenadas:', { originCoords, destCoords })
+    console.log("[CreateRide] Validação de coordenadas:", {
+      originCoords,
+      destCoords,
+    });
     if (!originCoords?.lat || !destCoords?.lat) {
-      alert('Por favor, selecione os endereços de origem e destino na lista de sugestões.')
-      setSubmitError('Selecione os endereços de origem e destino na lista de sugestões para garantir dados de localização precisos.')
-      return
+      alert(
+        "Por favor, selecione os endereços de origem e destino na lista de sugestões.",
+      );
+      setSubmitError(
+        "Selecione os endereços de origem e destino na lista de sugestões para garantir dados de localização precisos.",
+      );
+      return;
     }
 
     if (new Date(scheduledAt) <= new Date()) {
-      setSubmitError('A data deve ser futura.')
-      return
+      setSubmitError("A data deve ser futura.");
+      return;
     }
 
-    console.log('[CreateRide] Coordenadas:', {
+    console.log("[CreateRide] Coordenadas:", {
       originCoords,
       destCoords,
-    })
+    });
     const payload = {
       passengerId,
       origin: origin.trim(),
@@ -103,40 +150,117 @@ export default function PassengerCreatePage() {
       scheduledAt: new Date(scheduledAt).toISOString(),
       context: { isVip, isAirport, isAssistedTransport, isLuggage },
       ...(notes.trim() ? { notes: notes.trim() } : {}),
-      ...(originCoords ? { originLat: originCoords.lat, originLng: originCoords.lng } : {}),
-      ...(destCoords ? { destinationLat: destCoords.lat, destinationLng: destCoords.lng } : {}),
-    }
-    console.log('[CreateRide] Payload final:', payload)
+      ...(originCoords
+        ? { originLat: originCoords.lat, originLng: originCoords.lng }
+        : {}),
+      ...(destCoords
+        ? { destinationLat: destCoords.lat, destinationLng: destCoords.lng }
+        : {}),
+    };
+    console.log("[CreateRide] Payload final:", payload);
 
-    setSubmitting(true)
+    setSubmitting(true);
     try {
-      const { ride } = await createRide(payload)
-      const stored = localStorage.getItem('passengerRideIds')
-      const ids: string[] = stored ? JSON.parse(stored) : []
-      ids.unshift(ride.id)
-      localStorage.setItem('passengerRideIds', JSON.stringify(ids))
+      const { ride, rideQuote } = await createRide(payload);
+
+      // Fase E (bifase) — corrida com M1: o backend emitiu a RideQuote QUOTED e
+      // ZERO ofertas. Não navegar ainda: exigir a confirmação explícita do
+      // passageiro (POST /rides/:id/confirm-quote) que transita QUOTED → AGREED
+      // e só então emite a primeira oferta para o motorista aliado.
+      if (rideQuote) {
+        setPendingConfirm({
+          rideId: ride.id,
+          origin: ride.origin,
+          destination: ride.destination,
+          scheduledAt: ride.scheduledAt,
+          priceCents: rideQuote.grossFinalCents,
+          expiresAt: rideQuote.expiresAt,
+        });
+        setConfirmError(null);
+        setConfirmStatus(null);
+        return;
+      }
+
+      // Fluxo clássico (sem M1/quote) — navegação imediata.
+      const stored = localStorage.getItem("passengerRideIds");
+      const ids: string[] = stored ? JSON.parse(stored) : [];
+      ids.unshift(ride.id);
+      localStorage.setItem("passengerRideIds", JSON.stringify(ids));
       // reset
-      setOrigin('')
-      setOriginCoords(null)
-      setDestination('')
-      setDestCoords(null)
-      setScheduledAt('')
-      setIsVip(false)
-      setIsAirport(false)
-      setIsAssistedTransport(false)
-      setIsLuggage(false)
-      setNotes('')
-      router.push('/passenger/rides')
+      setOrigin("");
+      setOriginCoords(null);
+      setDestination("");
+      setDestCoords(null);
+      setScheduledAt("");
+      setIsVip(false);
+      setIsAirport(false);
+      setIsAssistedTransport(false);
+      setIsLuggage(false);
+      setNotes("");
+      router.push("/passenger/rides");
     } catch (err: unknown) {
-      if (process.env.NODE_ENV !== 'production') console.error('[createRide]', err)
+      if (process.env.NODE_ENV !== "production")
+        console.error("[createRide]", err);
       const msg =
         err instanceof ApiError
           ? err.message
-          : (err as Error)?.message ?? 'Erro ao criar corrida.'
-      setSubmitError(msg)
+          : ((err as Error)?.message ?? "Erro ao criar corrida.");
+      setSubmitError(msg);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
+  }
+
+  async function handleConfirmQuote() {
+    if (!pendingConfirm) return;
+    setConfirming(true);
+    setConfirmError(null);
+    setConfirmStatus(null);
+    try {
+      // Idempotente no backend: um retry reutiliza a MESMA rideId e nunca
+      // recria a RideRequest — a quote já está firmada no servidor.
+      await confirmRideQuote(pendingConfirm.rideId);
+      const stored = localStorage.getItem("passengerRideIds");
+      const ids: string[] = stored ? JSON.parse(stored) : [];
+      if (!ids.includes(pendingConfirm.rideId))
+        ids.unshift(pendingConfirm.rideId);
+      localStorage.setItem("passengerRideIds", JSON.stringify(ids));
+      setPendingConfirm(null);
+      router.push("/passenger/rides");
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.code === "QUOTE_EXPIRED") {
+        setConfirmStatus("QUOTE_EXPIRED");
+        setConfirmError(
+          "A cotação expirou. Solicite uma nova cotação para continuar com a corrida.",
+        );
+      } else if (err instanceof ApiError && err.code === "QUOTE_CONFLICT") {
+        // Cada retry relê a quote mais recente no servidor (versão/estado
+        // frescos) e confirma com base nela — recarregar o estado da corrida
+        // acontece naturalmente no próximo POST /rides/:id/confirm-quote.
+        setConfirmStatus("QUOTE_CONFLICT");
+        setConfirmError(
+          "O estado da cotação foi atualizado. Confirme novamente para continuar.",
+        );
+      } else if (err instanceof ApiError && err.code === "RIDE_NOT_MATCHABLE") {
+        setConfirmStatus("RIDE_NOT_MATCHABLE");
+        setConfirmError("A corrida não está mais disponível para oferta.");
+      } else {
+        // Falha de rede ou erro inesperado: a corrida e a quote estão
+        // preservadas no backend. O retry repete a confirmação da mesma corrida.
+        setConfirmStatus("NETWORK");
+        setConfirmError(
+          "Falha ao confirmar a corrida. Verifique sua conexão e tente novamente — seus dados foram preservados.",
+        );
+      }
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  function dismissConfirm() {
+    setPendingConfirm(null);
+    setConfirmError(null);
+    setConfirmStatus(null);
   }
 
   return (
@@ -147,17 +271,21 @@ export default function PassengerCreatePage() {
       </div>
 
       {/* Motorista aliado */}
-      <div className={`mb-6 rounded-2xl border p-4 ${
-            referredDriver
-              ? 'border-[#F28C28]/40 bg-[#1A0E04]'
-              : 'border-[#2E1A08] bg-[#1A0E04]'
-          }`}>
+      <div
+        className={`mb-6 rounded-2xl border p-4 ${
+          referredDriver
+            ? "border-[#F28C28]/40 bg-[#1A0E04]"
+            : "border-[#2E1A08] bg-[#1A0E04]"
+        }`}
+      >
         <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#F28C28]/70">
           Motorista aliado indicado
         </p>
 
         {loading && (
-          <p className="text-sm text-[#9A7D5A]">Carregando motorista aliado...</p>
+          <p className="text-sm text-[#9A7D5A]">
+            Carregando motorista aliado...
+          </p>
         )}
 
         {showDriverLoadError && (
@@ -171,9 +299,13 @@ export default function PassengerCreatePage() {
                 {referredDriver.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-[#F5ECD8]">{referredDriver.name}</p>
+                <p className="font-semibold text-[#F5ECD8]">
+                  {referredDriver.name}
+                </p>
                 {referredDriver.phone && (
-                  <p className="text-xs text-[#9A7D5A]">{referredDriver.phone}</p>
+                  <p className="text-xs text-[#9A7D5A]">
+                    {referredDriver.phone}
+                  </p>
                 )}
               </div>
             </div>
@@ -190,7 +322,7 @@ export default function PassengerCreatePage() {
             </p>
             <button
               type="button"
-              onClick={() => router.push('/register')}
+              onClick={() => router.push("/register")}
               className="w-fit rounded-xl border border-[#F28C28]/30 px-4 py-2 text-xs font-semibold text-[#F28C28] transition-colors hover:border-[#F28C28] hover:bg-[#F28C28]/10"
             >
               Vincular agora
@@ -199,106 +331,232 @@ export default function PassengerCreatePage() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <AddressInput
-          id="origin"
-          label="Origem"
-          placeholder="Ex: Barra da Tijuca, Rio de Janeiro"
-          value={origin}
-          required
-          onChange={(val, coords) => {
-            const normalized = coords && typeof coords.lat === 'number' && typeof coords.lng === 'number' ? coords : null
-            console.log('[Page] Origin onChange:', { val, coords, normalized })
-            setOrigin(val)
-            setOriginCoords(normalized)
-          }}
-        />
+      {pendingConfirm ? (
+        <div className="rounded-2xl border border-[#F28C28]/40 bg-[#1A0E04] p-5">
+          <h2 className="text-xl font-bold text-[#F5ECD8]">
+            Confirmar corrida
+          </h2>
+          <p className="mt-1 text-sm text-[#9A7D5A]">
+            Confira o trajeto e o preço final antes de confirmar
+          </p>
 
-        <AddressInput
-          id="destination"
-          label="Destino"
-          placeholder="Ex: Aeroporto Galeão, Rio de Janeiro"
-          value={destination}
-          required
-          onChange={(val, coords) => {
-            const normalized = coords && typeof coords.lat === 'number' && typeof coords.lng === 'number' ? coords : null
-            console.log('[Page] Destination onChange:', { val, coords, normalized })
-            setDestination(val)
-            setDestCoords(normalized)
-          }}
-        />
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-1 min-w-0">
+              <div className="flex items-center gap-2 text-sm text-[#F5ECD8]">
+                <span className="text-[#F28C28]">◉</span>
+                <span className="truncate">{pendingConfirm.origin}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-[#9A7D5A]">
+                <span className="text-[#5A3F22]">◉</span>
+                <span className="truncate">{pendingConfirm.destination}</span>
+              </div>
+            </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#F5ECD8]/70">Horário da corrida</label>
-          <input
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] outline-none focus:border-[#F28C28]/60 transition-colors scheme-dark"
-          />
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-[#2E1A08] bg-black/10 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">
+                  Horário
+                </p>
+                <p className="mt-1.5 text-sm font-medium text-[#F5ECD8]">
+                  {formatDateTime(pendingConfirm.scheduledAt)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-[#2E1A08] bg-black/10 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F28C28]/70">
+                  Cotação válida até
+                </p>
+                <p className="mt-1.5 text-sm font-medium text-[#F5ECD8]">
+                  {formatDateTime(pendingConfirm.expiresAt)}
+                </p>
+              </div>
+            </div>
 
-        {/* Transporte Assistido highlight */}
-        <button
-          type="button"
-          onClick={() => setIsAssistedTransport((v) => !v)}
-          className={`flex items-center gap-3 rounded-2xl border px-4 py-4 text-left transition-all ${
-            isAssistedTransport
-              ? 'border-violet-500/40 bg-violet-500/8'
-              : 'border-[#2E1A08] bg-[#1A0E04] hover:border-[#5A3F22]'
-          }`}
-        >
-          <span className="text-2xl">♿</span>
-          <div className="flex-1">
-            <p className={`text-sm font-semibold ${isAssistedTransport ? 'text-violet-300' : 'text-[#F5ECD8]'}`}>
-              Precisa de auxílio durante a corrida?
-            </p>
-            <p className="mt-0.5 text-xs text-[#9A7D5A]">
-              Transporte Assistido — acompanhamento, cadeirante ou mobilidade reduzida
-            </p>
+            <div className="rounded-2xl border border-[#3DB87A]/30 bg-[#3DB87A]/10 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#3DB87A]">
+                Preço final
+              </p>
+              <p className="mt-1 text-2xl font-bold text-[#F5ECD8]">
+                {formatPrice(pendingConfirm.priceCents / 100)}
+              </p>
+            </div>
+
+            {confirmError && (
+              <p className="rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
+                {confirmError}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleConfirmQuote}
+              disabled={confirming}
+              className="mt-1 rounded-xl bg-[#F28C28] px-6 py-4 font-bold text-[#0D0700] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            >
+              {confirming ? "Confirmando..." : "Confirmar corrida"}
+            </button>
+
+            {confirmStatus === "QUOTE_EXPIRED" ? (
+              <button
+                type="button"
+                onClick={dismissConfirm}
+                className="rounded-xl border border-[#F28C28]/30 px-4 py-2 text-xs font-semibold text-[#F28C28] transition-colors hover:border-[#F28C28] hover:bg-[#F28C28]/10"
+              >
+                Solicitar nova cotação
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={dismissConfirm}
+                className="rounded-xl border border-[#2E1A08] px-4 py-2 text-xs font-semibold text-[#9A7D5A] transition-colors hover:border-[#5A3F22]"
+              >
+                Voltar para edição
+              </button>
+            )}
           </div>
-          {isAssistedTransport && (
-            <span className="shrink-0 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-bold text-violet-300">✓ Ativo</span>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <AddressInput
+            id="origin"
+            label="Origem"
+            placeholder="Ex: Barra da Tijuca, Rio de Janeiro"
+            value={origin}
+            required
+            onChange={(val, coords) => {
+              const normalized =
+                coords &&
+                typeof coords.lat === "number" &&
+                typeof coords.lng === "number"
+                  ? coords
+                  : null;
+              console.log("[Page] Origin onChange:", {
+                val,
+                coords,
+                normalized,
+              });
+              setOrigin(val);
+              setOriginCoords(normalized);
+            }}
+          />
+
+          <AddressInput
+            id="destination"
+            label="Destino"
+            placeholder="Ex: Aeroporto Galeão, Rio de Janeiro"
+            value={destination}
+            required
+            onChange={(val, coords) => {
+              const normalized =
+                coords &&
+                typeof coords.lat === "number" &&
+                typeof coords.lng === "number"
+                  ? coords
+                  : null;
+              console.log("[Page] Destination onChange:", {
+                val,
+                coords,
+                normalized,
+              });
+              setDestination(val);
+              setDestCoords(normalized);
+            }}
+          />
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[#F5ECD8]/70">
+              Horário da corrida
+            </label>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] outline-none focus:border-[#F28C28]/60 transition-colors scheme-dark"
+            />
+          </div>
+
+          {/* Transporte Assistido highlight */}
+          <button
+            type="button"
+            onClick={() => setIsAssistedTransport((v) => !v)}
+            className={`flex items-center gap-3 rounded-2xl border px-4 py-4 text-left transition-all ${
+              isAssistedTransport
+                ? "border-violet-500/40 bg-violet-500/8"
+                : "border-[#2E1A08] bg-[#1A0E04] hover:border-[#5A3F22]"
+            }`}
+          >
+            <span className="text-2xl">♿</span>
+            <div className="flex-1">
+              <p
+                className={`text-sm font-semibold ${isAssistedTransport ? "text-violet-300" : "text-[#F5ECD8]"}`}
+              >
+                Precisa de auxílio durante a corrida?
+              </p>
+              <p className="mt-0.5 text-xs text-[#9A7D5A]">
+                Transporte Assistido — acompanhamento, cadeirante ou mobilidade
+                reduzida
+              </p>
+            </div>
+            {isAssistedTransport && (
+              <span className="shrink-0 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-bold text-violet-300">
+                ✓ Ativo
+              </span>
+            )}
+          </button>
+
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
+              Informações adicionais
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <ContextCheckbox
+                emoji="⭐"
+                label="VIP"
+                checked={isVip}
+                onChange={setIsVip}
+              />
+              <ContextCheckbox
+                emoji="✈️"
+                label="Aeroporto"
+                checked={isAirport}
+                onChange={setIsAirport}
+              />
+              <ContextCheckbox
+                emoji="🧳"
+                label="Bagagem"
+                checked={isLuggage}
+                onChange={setIsLuggage}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[#F5ECD8]/70">
+              Observações
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Ex: Preciso de espaço para cadeira de rodas, embarque no portão 2..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="resize-none rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
+            />
+          </div>
+
+          {submitError && (
+            <p className="rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
+              {submitError}
+            </p>
           )}
-        </button>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-[#2E1A08] bg-[#1A0E04] p-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#9A7D5A]">
-            Informações adicionais
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <ContextCheckbox emoji="⭐" label="VIP" checked={isVip} onChange={setIsVip} />
-            <ContextCheckbox emoji="✈️" label="Aeroporto" checked={isAirport} onChange={setIsAirport} />
-            <ContextCheckbox emoji="🧳" label="Bagagem" checked={isLuggage} onChange={setIsLuggage} />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-[#F5ECD8]/70">Observações</label>
-          <textarea
-            rows={3}
-            placeholder="Ex: Preciso de espaço para cadeira de rodas, embarque no portão 2..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="resize-none rounded-xl border border-[#2E1A08] bg-[#1A0E04] px-4 py-3 text-sm text-[#F5ECD8] placeholder-[#5A3F22] outline-none focus:border-[#F28C28]/60 transition-colors"
-          />
-        </div>
-
-        {submitError && (
-          <p className="rounded-xl border border-[#E05050]/30 bg-[#E05050]/10 px-4 py-3 text-sm text-[#E05050]">
-            {submitError}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-2 rounded-xl bg-[#F28C28] px-6 py-4 font-bold text-[#0D0700] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-        >
-          {submitting ? 'Criando corrida...' : 'Criar corrida'}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-2 rounded-xl bg-[#F28C28] px-6 py-4 font-bold text-[#0D0700] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+          >
+            {submitting ? "Criando corrida..." : "Criar corrida"}
+          </button>
+        </form>
+      )}
     </div>
-  )
+  );
 }
-
