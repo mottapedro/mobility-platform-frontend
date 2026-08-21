@@ -1,10 +1,13 @@
 import { apiRequest } from './api'
 
+export type BreakdownCode = 'TRANSPORT_SERVICE' | 'DRIVER_APPROACH' | 'PLATFORM_FEE'
+
 export interface BreakdownItem {
-  /** Display label for the pricing component. */
+  /** Stable code for the pricing component. */
+  code: BreakdownCode
   label: string
-  /** Value in BRL for this component. */
-  value: number
+  /** Persisted component value in cents. */
+  amountCents: number
 }
 
 export interface PaymentIntentResponse {

@@ -103,4 +103,27 @@ describe('PixModal', () => {
       screen.getByRole('button', { name: /já paguei/i }),
     ).toBeInTheDocument()
   })
+
+  it('renders only the backend breakdown components in cents', async () => {
+    jest.mocked(payments.createPaymentIntent).mockResolvedValue({
+      qrCode: '00020126580014br.gov.bcb.pix0136123456789005204000053039865802BR5909Aliado6008BRASILIA62070503***63041234',
+      amount: 73.66,
+      status: 'pending',
+      breakdown: [
+        { code: 'TRANSPORT_SERVICE', label: 'Serviço de transporte', amountCents: 6336 },
+        { code: 'DRIVER_APPROACH', label: 'Deslocamento do motorista', amountCents: 780 },
+        { code: 'PLATFORM_FEE', label: 'Taxa da plataforma', amountCents: 250 },
+      ],
+    })
+
+    render(<PixModal rideId="ride-breakdown" onClose={() => {}} />)
+
+    expect(await screen.findByText('Serviço de transporte')).toBeInTheDocument()
+    expect(screen.getByText('Deslocamento do motorista')).toBeInTheDocument()
+    expect(screen.getByText('Taxa da plataforma')).toBeInTheDocument()
+    expect(screen.queryByText('Aliado Mobilidade')).not.toBeInTheDocument()
+    expect(screen.getAllByText('R$ 63,36').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('R$ 7,80').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('R$ 2,50').length).toBeGreaterThan(0)
+  })
 })
