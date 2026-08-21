@@ -158,27 +158,13 @@ export function PixModal({ rideId, onClose, priceBrl, onPaymentSuccess }: PixMod
                         {item.label}
                       </span>
                       <span className={isFee ? 'font-semibold text-aliado-orange' : 'text-aliado-sub'}>
-                        {formatPrice(item.value)}
+                        {formatPrice(item.amountCents / 100)}
                       </span>
                     </div>
                   )
                 })}
-                <div className="my-1 border-t border-aliado-border/40" />
-                <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-aliado-sub">Aliado Mobilidade</span>
-                  <span className="font-bold text-aliado-success">
-                    {displayAmount != null ? formatPrice(displayAmount) : '—'}
-                  </span>
-                </div>
               </>
-            ) : (
-              <div className="flex justify-between text-xs">
-                <span className="text-aliado-sub">Aliado Mobilidade</span>
-                <span className="font-bold text-aliado-success">
-                  {displayAmount != null ? formatPrice(displayAmount) : '—'}
-                </span>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
 
