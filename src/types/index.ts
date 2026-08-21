@@ -118,6 +118,50 @@ export interface CreateRidePayload {
   destinationLongitude?: number
 }
 
+// ————— Fase E — RideQuote (POST /rides + POST /rides/:id/confirm-quote) —————
+export type RideQuoteStatus = 'QUOTED' | 'AGREED' | 'EXPIRED' | 'CONFLICTED'
+
+export interface RideQuote {
+  id: string
+  rideRequestId: string
+  pricingDriverId: string
+  status: RideQuoteStatus
+  version: number
+  grossFinalCents: number
+  driverReceivableAmountCents: number
+  expiresAt: string
+  agreedAt: string | null
+  createdAt: string
+}
+
+export interface PricingQuote {
+  baseCOE: number | null
+  zoneMultiplier: number | null
+  liquidityMargin: number | null
+  liquidityAmount: number | null
+  baseFare: number | null
+  driverNetAmount: number | null
+  platformFee: number | null
+  totalPassengerPrice: number | null
+  distanceKm: number | null
+  estimatedDurationMin: number | null
+  pricingVersion: string | null
+}
+
+export interface CreateRideResponse {
+  message: string
+  ride: Ride
+  quote: PricingQuote | null
+  rideQuote: RideQuote | null
+}
+
+export interface ConfirmQuoteResponse {
+  message: string
+  ride: Ride
+  rideQuote: RideQuote | null
+  firstOfferId: string | null
+}
+
 // â”€â”€â”€ Driver Offer (retornado por GET /drivers/:id/offers) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface DriverOffer {
   id: string
