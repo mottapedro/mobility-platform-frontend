@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PixModal } from './PixModal'
 import * as payments from '../../services/payments'
@@ -8,6 +8,7 @@ jest.mock('../../services/payments')
 describe('PixModal', () => {
   beforeEach(() => {
     jest.mocked(payments.createPaymentIntent).mockReset()
+    jest.mocked(payments.confirmPaymentManually).mockReset()
   })
 
   it('renders the modal and calls API on mount', async () => {
@@ -125,5 +126,80 @@ describe('PixModal', () => {
     expect(screen.getAllByText('R$ 63,36').length).toBeGreaterThan(0)
     expect(screen.getAllByText('R$ 7,80').length).toBeGreaterThan(0)
     expect(screen.getAllByText('R$ 2,50').length).toBeGreaterThan(0)
+  })
+
+  it('confirms the same ride through the manual endpoint and shows success only after 2xx', async () => {
+    jest.mocked(payments.createPaymentIntent).mockResolvedValue({ amount: 50, status: 'pending' })
+    jest.mocked(payments.confirmPaymentManually).mockResolvedValue({
+      success: true,
+      rideId: 'ride-manual',
+      intentId: 'intent-1',
+      status: 'CONFIRMED',
+      settlementId: 'settlement-1',
+      settled: true,
+      confirmationMode: 'MANUAL',
+    })
+    const user = userEvent.setup()
+    render(<PixModal rideId="ride-manual" onClose={() => {}} />)
+
+    const button = await screen.findByRole('button', { name: /paguei/i })
+    await user.click(button)
+
+    await waitFor(() => expect(payments.confirmPaymentManually).toHaveBeenCalledWith('ride-manual'))
+    expect(payments.createPaymentIntent).toHaveBeenCalledTimes(1)
+    expect(await screen.findByRole('dialog', { name: /pagamento confirmado/i })).toBeInTheDocument()
+  })
+
+  it('keeps the modal open and retries the same ride after a confirmation error', async () => {
+    jest.mocked(payments.createPaymentIntent).mockResolvedValue({ amount: 50, status: 'pending' })
+    jest.mocked(payments.confirmPaymentManually)
+      .mockRejectedValueOnce(new Error('Pagamento ainda não confirmado'))
+      .mockResolvedValueOnce({
+        success: true,
+        rideId: 'ride-retry',
+        intentId: 'intent-2',
+        status: 'CONFIRMED',
+        settlementId: 'settlement-2',
+        settled: false,
+        confirmationMode: 'MANUAL',
+      })
+    const user = userEvent.setup()
+    render(<PixModal rideId="ride-retry" onClose={() => {}} />)
+    const button = await screen.findByRole('button', { name: /paguei/i })
+
+    await user.click(button)
+    expect(await screen.findByText('Pagamento ainda não confirmado')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /pagar via pix/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /paguei/i }))
+    await waitFor(() => expect(payments.confirmPaymentManually).toHaveBeenCalledTimes(2))
+    expect(payments.confirmPaymentManually).toHaveBeenNthCalledWith(1, 'ride-retry')
+    expect(payments.confirmPaymentManually).toHaveBeenNthCalledWith(2, 'ride-retry')
+    expect(payments.createPaymentIntent).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores a double click while manual confirmation is pending', async () => {
+    jest.mocked(payments.createPaymentIntent).mockResolvedValue({ amount: 50, status: 'pending' })
+    let resolveConfirmation!: (value: payments.ManualPaymentConfirmationResponse) => void
+    jest.mocked(payments.confirmPaymentManually).mockReturnValue(new Promise((resolve) => {
+      resolveConfirmation = resolve
+    }))
+    const user = userEvent.setup()
+    render(<PixModal rideId="ride-double" onClose={() => {}} />)
+    const button = await screen.findByRole('button', { name: /paguei/i })
+
+    await user.click(button)
+    await user.click(button)
+    expect(payments.confirmPaymentManually).toHaveBeenCalledTimes(1)
+    resolveConfirmation({
+      success: true,
+      rideId: 'ride-double',
+      intentId: 'intent-3',
+      status: 'CONFIRMED',
+      settlementId: 'settlement-3',
+      settled: true,
+      confirmationMode: 'MANUAL',
+    })
+    await waitFor(() => expect(screen.getByRole('dialog', { name: /pagamento confirmado/i })).toBeInTheDocument())
   })
 })

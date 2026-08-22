@@ -28,6 +28,16 @@ export interface PaymentIntentResponse {
   [key: string]: unknown
 }
 
+export interface ManualPaymentConfirmationResponse {
+  success: boolean
+  rideId: string
+  intentId: string
+  status: string
+  settlementId: string
+  settled: boolean
+  confirmationMode: 'MANUAL'
+}
+
 /**
  * Checks if a string value looks like image data: either a base64-encoded PNG
  * (reasonable length, valid base64 chars) or an HTTP(S) URL, and NOT an EMVCo
@@ -112,4 +122,14 @@ export async function createPaymentIntent(
 
 export async function getPaymentStatus(rideId: string): Promise<PaymentIntentResponse> {
   return apiRequest(`/rides/${rideId}/payment-intent`)
+}
+
+/** Confirms a completed static PIX payment; never calls the PSP webhook route. */
+export async function confirmPaymentManually(
+  rideId: string,
+): Promise<ManualPaymentConfirmationResponse> {
+  return apiRequest<ManualPaymentConfirmationResponse>(
+    `/rides/${rideId}/payment-intent/manual-confirm`,
+    { method: 'POST', body: {} },
+  )
 }
