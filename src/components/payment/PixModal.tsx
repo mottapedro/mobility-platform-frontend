@@ -3,7 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Copy, CheckCircle2, AlertCircle } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { createPaymentIntent, type PaymentIntentResponse } from '../../services/payments'
+import {
+  confirmPaymentManually,
+  createPaymentIntent,
+  type PaymentIntentResponse,
+} from '../../services/payments'
 import { formatPrice } from '../../utils/pricing'
 
 interface PixModalProps {
@@ -33,6 +37,8 @@ export function PixModal({ rideId, onClose, priceBrl, onPaymentSuccess }: PixMod
   const [error, setError] = useState<string | null>(null)
   const [payment, setPayment] = useState<PaymentIntentResponse | null>(null)
   const [confirmed, setConfirmed] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [confirmationError, setConfirmationError] = useState<string | null>(null)
   const mountedRef = useRef(true)
   const { remaining, label: timerLabel, expired } = useCountdown(PIX_TTL_SECONDS)
 
@@ -70,13 +76,30 @@ export function PixModal({ rideId, onClose, priceBrl, onPaymentSuccess }: PixMod
     })
   }
 
-  function handleConfirm() {
-    setConfirmed(true)
-    setTimeout(() => {
+  async function handleConfirm() {
+    if (expired || loading || confirming) return
+    setConfirming(true)
+    setConfirmationError(null)
+    try {
+      await confirmPaymentManually(rideId)
+      if (mountedRef.current) setConfirmed(true)
+    } catch (err) {
+      if (mountedRef.current) {
+        setConfirmationError(err instanceof Error ? err.message : 'NÃ£o foi possÃ­vel registrar o pagamento. Tente novamente.')
+      }
+    } finally {
+      if (mountedRef.current) setConfirming(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!confirmed) return
+    const timer = setTimeout(() => {
       onPaymentSuccess?.()
       onClose()
     }, 1200)
-  }
+    return () => clearTimeout(timer)
+  }, [confirmed, onClose, onPaymentSuccess])
 
   /* ── Confirmed state ── */
   if (confirmed) {
@@ -236,9 +259,19 @@ export function PixModal({ rideId, onClose, priceBrl, onPaymentSuccess }: PixMod
 
         {/* ── Action buttons ── */}
         <div className="mx-4 mb-6 flex flex-col gap-2.5">
+          <p className="text-center text-xs text-aliado-sub">
+            Confirme somente apos concluir o PIX. O comprovante podera ser solicitado pelo motorista.
+          </p>
+          {confirmationError && (
+            <div className="flex items-center gap-2 rounded-lg border border-aliado-error/30 bg-aliado-error/10 px-4 py-2.5 text-sm text-aliado-error">
+              <AlertCircle size={15} className="shrink-0" />
+              <span>{confirmationError}</span>
+            </div>
+          )}
           <button
             onClick={handleConfirm}
-            disabled={expired}
+            disabled={expired || loading || confirming}
+            aria-busy={confirming}
             className="w-full rounded-xl bg-aliado-success py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             ✓ Já paguei
