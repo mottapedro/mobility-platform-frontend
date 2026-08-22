@@ -9,7 +9,7 @@
  *   • 404       → rede não encontrada
  *   • generic   → mensagem genérica
  *   • refresh() → retries the fetch
- *   • window focus → re-fetches automatically
+ *   • window focus → does not trigger a duplicate fetch
  */
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { useNetworkContext } from './useNetworkContext'
@@ -178,8 +178,8 @@ describe('useNetworkContext — error handling', () => {
   })
 
   // ─── window focus re-fetch ────────────────────────────────────────────────
-  describe('window focus — re-fetches on visibility change', () => {
-    it('calls fetchNetworkContext again when window regains focus', async () => {
+  describe('window focus — no duplicate refetch', () => {
+    it('does not call fetchNetworkContext again when window regains focus', async () => {
       mockFetch.mockResolvedValue({ flowType: 'DRIVER_TO_DRIVER' } as never)
 
       renderHook(() =>
@@ -192,7 +192,8 @@ describe('useNetworkContext — error handling', () => {
         window.dispatchEvent(new Event('focus'))
       })
 
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+      await act(async () => {})
+      expect(mockFetch).toHaveBeenCalledTimes(1)
     })
   })
 })

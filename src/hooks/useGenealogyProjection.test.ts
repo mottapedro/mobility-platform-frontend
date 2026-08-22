@@ -167,4 +167,19 @@ describe('useGenealogyProjection', () => {
     expect(result.current.projection).toEqual(projectionFixture)
     expect(result.current.error).toBeNull()
   })
+
+  it('does not refetch on window focus; refresh remains explicit', async () => {
+    mockFetch.mockResolvedValue(projectionFixture)
+
+    renderHook(() => useGenealogyProjection({ driverId: 'drv-root' }))
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1))
+
+    act(() => {
+      window.dispatchEvent(new Event('focus'))
+    })
+    await act(async () => {})
+
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
 })
