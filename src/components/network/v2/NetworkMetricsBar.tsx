@@ -18,7 +18,8 @@ const formatCurrency = (value: number): string =>
   new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value)
 
 /**
@@ -55,14 +56,16 @@ export const NetworkMetricsBar: FC<NetworkMetricsBarProps> = ({
       />
       {metrics.ridesFromNetwork != null && (
         <MetricCard
-          label="Corridas da rede"
+          label={isPassenger ? 'Corridas da rede' : 'Corridas liquidadas'}
           value={formatNumber(metrics.ridesFromNetwork)}
+          sub={isPassenger ? undefined : 'Últimos 30 dias'}
         />
       )}
       {metrics.estimatedRevenue != null && (
         <MetricCard
-          label={isPassenger ? 'Cashback estimado' : 'Receita estimada'}
+          label={isPassenger ? 'Cashback estimado' : 'Receita liquidada da rede'}
           value={formatCurrency(metrics.estimatedRevenue)}
+          sub={isPassenger ? undefined : 'Últimos 30 dias'}
         />
       )}
     </div>

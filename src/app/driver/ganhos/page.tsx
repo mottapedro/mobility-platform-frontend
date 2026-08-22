@@ -4,7 +4,12 @@ import { useEffect } from 'react'
 import { useEconomicDomain } from '../../../contexts/domains/EconomicDomainProvider'
 
 function formatCurrency(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 export default function DriverGanhosPage() {
@@ -43,9 +48,9 @@ export default function DriverGanhosPage() {
       {stats && (
         <div className="flex flex-col gap-4">
           <StatCard
-            label="Receita estimada"
+            label="Seus ganhos liquidados"
             value={formatCurrency(stats.revenue)}
-            sub="da sua rede de passageiros"
+            sub="Últimos 30 dias"
             highlight
           />
           <div className="grid grid-cols-2 gap-4">
@@ -55,9 +60,9 @@ export default function DriverGanhosPage() {
               sub="vinculados"
             />
             <StatCard
-              label="Corridas"
+              label="Corridas liquidadas"
               value={String(stats.rides)}
-              sub="realizadas"
+              sub="Últimos 30 dias"
             />
           </div>
 
