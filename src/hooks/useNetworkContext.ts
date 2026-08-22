@@ -64,13 +64,5 @@ export function useNetworkContext(
     load()
   }, [enabled, load])
 
-  // Re-fetch on window focus so the actor sees newly-joined network members.
-  useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return
-    const onFocus = () => { load() }
-    window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
-  }, [enabled, load])
-
   return { context, loading, error, refresh: load }
 }
