@@ -32,13 +32,15 @@ describe('V2 components (network/v2)', () => {
       expect(within(bar).getByText(/\+1 \(7d\) · \+4 \(30d\)/)).toBeInTheDocument()
     })
 
-    it('formats estimatedRevenue when present', () => {
+    it('renders settled network revenue with cent precision', () => {
       render(
         <NetworkMetricsBar
           metrics={networkContextFixtures.DRIVER_TO_DRIVER.networkMetrics}
         />,
       )
-      expect(screen.getByText(/R\$\s?2\.541/)).toBeInTheDocument()
+      expect(screen.getByText('Receita liquidada da rede')).toBeInTheDocument()
+      expect(screen.getByText(/R\$\s?2\.540,50/)).toBeInTheDocument()
+      expect(screen.getAllByText('Últimos 30 dias')).toHaveLength(2)
     })
 
     it('hides revenue card when metric absent', () => {
@@ -47,7 +49,7 @@ describe('V2 components (network/v2)', () => {
           metrics={networkContextFixtures.DRIVER_TO_PASSENGER.networkMetrics}
         />,
       )
-      expect(screen.queryByText('Receita estimada')).not.toBeInTheDocument()
+      expect(screen.queryByText('Receita liquidada da rede')).not.toBeInTheDocument()
     })
 
     it('labels the metric as cashback for passenger flows', () => {
@@ -58,7 +60,7 @@ describe('V2 components (network/v2)', () => {
         />,
       )
       expect(screen.getByText('Cashback estimado')).toBeInTheDocument()
-      expect(screen.queryByText('Receita estimada')).not.toBeInTheDocument()
+      expect(screen.queryByText('Receita liquidada da rede')).not.toBeInTheDocument()
     })
   })
 
