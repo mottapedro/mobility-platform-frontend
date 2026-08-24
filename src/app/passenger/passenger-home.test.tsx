@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import PassengerHomePage from './page'
-import { getRide } from '../../services/rides'
+import { getRidesByPassenger } from '../../services/rides'
 
 const mockPush = jest.fn()
 jest.mock('next/navigation', () => ({
@@ -24,15 +24,16 @@ jest.mock('../../components/passenger/AlliedDriverCard', () => ({
 }))
 
 jest.mock('../../services/rides', () => ({
-  getRide: jest.fn(),
+  getRidesByPassenger: jest.fn(),
 }))
 
-const mockGetRide = getRide as jest.MockedFunction<typeof getRide>
+const mockGetRidesByPassenger = getRidesByPassenger as jest.MockedFunction<typeof getRidesByPassenger>
 
 describe('PassengerHomePage', () => {
   beforeEach(() => {
     mockPush.mockClear()
-    mockGetRide.mockReset()
+    mockGetRidesByPassenger.mockReset()
+    mockGetRidesByPassenger.mockResolvedValue([])
     localStorage.clear()
   })
 
@@ -57,19 +58,21 @@ describe('PassengerHomePage', () => {
     expect(screen.queryByText(/corridas recentes/i)).not.toBeInTheDocument()
   })
 
-  it('renders recent rides fetched by id, with their real status', async () => {
-    localStorage.setItem(
-      'passengerRideIds',
-      JSON.stringify(['aaaa-1111-bbbb-2222-000000000001', 'cccc-3333-dddd-4444-000000000002']),
-    )
-    mockGetRide.mockImplementation((id: string) =>
-      Promise.resolve({
-        id,
-        status: id.endsWith('001') ? 'COMPLETED' : 'IN_PROGRESS',
+  it('renders recent rides from the authenticated passenger collection', async () => {
+    mockGetRidesByPassenger.mockResolvedValue([
+      {
+        id: 'aaaa-1111-bbbb-2222-000000000001',
+        status: 'COMPLETED',
         origin: 'Origem',
         destination: 'Destino',
-      } as never),
-    )
+      } as never,
+      {
+        id: 'cccc-3333-dddd-4444-000000000002',
+        status: 'IN_PROGRESS',
+        origin: 'Origem',
+        destination: 'Destino',
+      } as never,
+    ])
 
     render(<PassengerHomePage />)
 
@@ -78,13 +81,14 @@ describe('PassengerHomePage', () => {
     expect(await screen.findByText('🚗 A caminho')).toBeInTheDocument()
   })
 
-  it('does not render a ride that failed to fetch', async () => {
+  it('ignores stale passengerRideIds and does not fetch them', async () => {
     localStorage.setItem('passengerRideIds', JSON.stringify(['ghost-0000-0000-0000-000000000000']))
-    mockGetRide.mockRejectedValue(new Error('404'))
+    mockGetRidesByPassenger.mockResolvedValue([])
 
     render(<PassengerHomePage />)
 
     await screen.findByText('Você ainda não tem corridas.')
     expect(screen.queryByText(/corridas recentes/i)).not.toBeInTheDocument()
+    expect(mockGetRidesByPassenger).toHaveBeenCalledTimes(1)
   })
 })
