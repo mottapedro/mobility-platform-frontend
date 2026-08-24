@@ -5,14 +5,19 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { API_URL } from '../config/api'
 import { redirectByRole } from '../utils/redirectByRole'
 import type { AuthUser } from '../types'
-const STORAGE_KEY = 'aliado:auth'
-const TOKEN_KEY = 'aliado:token'
+import {
+  AUTH_INVALIDATED_EVENT,
+  AUTH_STORAGE_KEY,
+  AUTH_TOKEN_STORAGE_KEY,
+  clearStoredAuth,
+} from '../services/api'
 
 interface ApiAuthResponse {
   token?: string
@@ -54,20 +59,88 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const bootstrapCompleted = useRef(false)
   const router = useRouter()
+  const pathname = usePathname()
+
+  const redirectToLogin = useCallback(() => {
+    if (pathname !== '/login') router.replace('/login')
+  }, [pathname, router])
+
+  const invalidateSession = useCallback(() => {
+    clearStoredAuth()
+    setUser(null)
+    redirectToLogin()
+  }, [redirectToLogin])
+
+  const parseStoredUser = useCallback((stored: string): AuthUser | null => {
+    try {
+      const parsed = JSON.parse(stored) as Partial<AuthUser>
+      const role = typeof parsed.role === 'string' ? parsed.role.toLowerCase() : ''
+      if (
+        typeof parsed.id !== 'string' ||
+        typeof parsed.name !== 'string' ||
+        typeof parsed.email !== 'string' ||
+        (role !== 'passenger' && role !== 'driver')
+      ) {
+        return null
+      }
+      return { ...parsed, role } as AuthUser
+    } catch {
+      return null
+    }
+  }, [])
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        // normalise legacy uppercase roles from old deployments
-        if (parsed?.role) parsed.role = parsed.role.toLowerCase()
-        setUser(parsed)
-      } catch { localStorage.removeItem(STORAGE_KEY) }
+    if (bootstrapCompleted.current) return
+    bootstrapCompleted.current = true
+
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+
+    if (!stored && !token) {
+      setLoading(false)
+      return
+    }
+
+    const parsed = stored && token ? parseStoredUser(stored) : null
+    if (!parsed) {
+      clearStoredAuth()
+      setUser(null)
+      redirectToLogin()
+    } else {
+      setUser(parsed)
     }
     setLoading(false)
-  }, [])
+  }, [parseStoredUser, redirectToLogin])
+
+  useEffect(() => {
+    const onAuthInvalidated = () => invalidateSession()
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== AUTH_STORAGE_KEY && event.key !== AUTH_TOKEN_STORAGE_KEY) return
+
+      if (event.newValue === null) {
+        invalidateSession()
+        return
+      }
+
+      const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+      const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+      const parsed = stored && token ? parseStoredUser(stored) : null
+      if (parsed) {
+        setUser(parsed)
+      } else {
+        invalidateSession()
+      }
+    }
+
+    window.addEventListener(AUTH_INVALIDATED_EVENT, onAuthInvalidated)
+    window.addEventListener('storage', onStorage)
+    return () => {
+      window.removeEventListener(AUTH_INVALIDATED_EVENT, onAuthInvalidated)
+      window.removeEventListener('storage', onStorage)
+    }
+  }, [invalidateSession, parseStoredUser])
 
   const login = useCallback(async (email: string, password: string) => {
     const url = `${API_URL}/auth/login`
@@ -88,6 +161,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) throw new Error(data.error ?? data.message ?? 'Email ou senha incorretos')
     if (!data.user) throw new Error('Resposta inválida do servidor')
 
+    const accessToken = data.accessToken ?? data.token
+    if (!accessToken) throw new Error('Authentication response missing access token')
+
     const authUser: AuthUser = {
       id: data.user.id,
       name: data.user.name,
@@ -99,9 +175,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(data.referralCode ? { referralCode: data.referralCode } : {}),
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
-    const accessToken = data.accessToken ?? data.token
-    if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken)
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser))
+    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, accessToken)
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)
@@ -125,6 +200,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) throw new Error(data.error ?? data.message ?? 'Erro ao cadastrar')
     if (!data.user) throw new Error('Resposta inválida do servidor')
 
+    const accessToken = data.accessToken ?? data.token
+    if (!accessToken) throw new Error('Authentication response missing access token')
+
     const authUser: AuthUser = {
       id: data.user.id,
       name: data.user.name,
@@ -136,19 +214,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(data.referralCode ? { referralCode: data.referralCode } : {}),
       ...(data.referredByDriverId != null ? { referredByDriverId: data.referredByDriverId } : {}),
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
-    const accessToken = data.accessToken ?? data.token
-    if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken)
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser))
+    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, accessToken)
     if (data.passengerId) localStorage.setItem('passengerId', data.passengerId)
     if (data.driverId) localStorage.setItem('driverId', data.driverId)
     setUser(authUser)
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY)
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem('passengerId')
-    localStorage.removeItem('driverId')
+    clearStoredAuth()
     setUser(null)
     router.replace('/login')
   }, [router])
