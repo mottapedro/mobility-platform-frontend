@@ -12,6 +12,18 @@ export class ApiError extends Error {
   }
 }
 
+export const AUTH_STORAGE_KEY = "aliado:auth";
+export const AUTH_TOKEN_STORAGE_KEY = "aliado:token";
+export const AUTH_INVALIDATED_EVENT = "aliado:auth-invalidated";
+
+export function clearStoredAuth(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  localStorage.removeItem("passengerId");
+  localStorage.removeItem("driverId");
+}
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
@@ -64,6 +76,16 @@ export async function apiRequest<T>(
     const message = typeof raw === "string" ? raw : response.statusText;
     const code =
       typeof errorBody?.code === "string" ? errorBody.code : undefined;
+
+    if (
+      response.status === 401 &&
+      typeof window !== "undefined" &&
+      !endpoint.startsWith("/auth/")
+    ) {
+      clearStoredAuth();
+      window.dispatchEvent(new Event(AUTH_INVALIDATED_EVENT));
+    }
+
     throw new ApiError(response.status, message, code);
   }
 

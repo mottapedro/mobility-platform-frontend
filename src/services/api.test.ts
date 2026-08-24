@@ -1,4 +1,4 @@
-import { ApiError, api } from './api'
+import { AUTH_INVALIDATED_EVENT, ApiError, api } from './api'
 
 describe('ApiError', () => {
   it('is an instance of Error', () => {
@@ -53,6 +53,44 @@ describe('api.get — request()', () => {
 
     await expect(api.get('/missing')).rejects.toThrow(ApiError)
     await expect(api.get('/missing')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('dispatches auth invalidation on protected endpoint 401', async () => {
+    const listener = jest.fn()
+    localStorage.setItem('aliado:auth', JSON.stringify({ id: 'u1' }))
+    localStorage.setItem('aliado:token', 'expired-token')
+    localStorage.setItem('passengerId', 'p1')
+    localStorage.setItem('driverId', 'd1')
+    window.addEventListener(AUTH_INVALIDATED_EVENT, listener)
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      text: () => Promise.resolve(JSON.stringify({ error: 'Unauthorized' })),
+    } as unknown as Response)
+
+    await expect(api.get('/protected')).rejects.toMatchObject({ status: 401 })
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(localStorage.getItem('aliado:auth')).toBeNull()
+    expect(localStorage.getItem('aliado:token')).toBeNull()
+    expect(localStorage.getItem('passengerId')).toBeNull()
+    expect(localStorage.getItem('driverId')).toBeNull()
+    window.removeEventListener(AUTH_INVALIDATED_EVENT, listener)
+  })
+
+  it('does not dispatch auth invalidation for login 401', async () => {
+    const listener = jest.fn()
+    window.addEventListener(AUTH_INVALIDATED_EVENT, listener)
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      text: () => Promise.resolve(JSON.stringify({ error: 'Invalid credentials' })),
+    } as unknown as Response)
+
+    await expect(api.post('/auth/login', { email: 'a@b.com', password: 'bad' })).rejects.toMatchObject({ status: 401 })
+    expect(listener).not.toHaveBeenCalled()
+    window.removeEventListener(AUTH_INVALIDATED_EVENT, listener)
   })
 
   it('returns undefined when response body is empty', async () => {

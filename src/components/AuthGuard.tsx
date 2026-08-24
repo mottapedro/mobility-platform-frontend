@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { redirectByRole } from '../utils/redirectByRole'
 import type { AuthUser } from '../types'
+import { AUTH_TOKEN_STORAGE_KEY } from '../services/api'
 
 interface Props {
   children: React.ReactNode
@@ -25,11 +26,14 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const hasAccessToken =
+    typeof window !== 'undefined' &&
+    Boolean(localStorage.getItem(AUTH_TOKEN_STORAGE_KEY))
 
   useEffect(() => {
     if (loading) return
 
-    if (!user) {
+    if (!user || !hasAccessToken) {
       router.replace('/login')
       return
     }
@@ -38,7 +42,7 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
       const fallback = redirectByRole(user.role)
       router.replace(fallback)
     }
-  }, [loading, user, requiredRole, router, pathname])
+  }, [loading, user, hasAccessToken, requiredRole, router, pathname])
 
   if (loading) {
     return (
@@ -48,7 +52,7 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
     )
   }
 
-  if (!user) return null
+  if (!user || !hasAccessToken) return null
   if (requiredRole && user.role !== requiredRole) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
