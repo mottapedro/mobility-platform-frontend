@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAlliedDriver } from '../../hooks/useAlliedDriver'
 import { AlliedDriverCard } from '../../components/passenger/AlliedDriverCard'
-import { getRide } from '../../services/rides'
+import { getRidesByPassenger } from '../../services/rides'
 import type { Ride } from '../../types'
 
 function getGreeting(): string {
@@ -67,24 +67,19 @@ export default function PassengerHomePage() {
 
   useEffect(() => {
     let cancelled = false
+    setRecentRides([])
+    setLoadingRides(true)
 
     async function load() {
       try {
-        const stored = localStorage.getItem('passengerRideIds')
-        const ids: string[] = stored ? JSON.parse(stored) : []
-        if (ids.length === 0) {
+        if (!passengerId) {
           setLoadingRides(false)
           return
         }
 
-        // Bounded to 3 ids, fetched in parallel — not a waterfall.
-        const results = await Promise.allSettled(ids.slice(0, 3).map((id) => getRide(id)))
+        const loaded = await getRidesByPassenger()
         if (cancelled) return
-
-        const loaded = results
-          .filter((r): r is PromiseFulfilledResult<Ride> => r.status === 'fulfilled')
-          .map((r) => r.value)
-        setRecentRides(loaded)
+        setRecentRides(loaded.slice(0, 3))
       } catch {
         /* ignore */
       } finally {
@@ -96,7 +91,7 @@ export default function PassengerHomePage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [passengerId])
 
   return (
     <div className="mx-auto max-w-lg">

@@ -120,6 +120,7 @@ describe('AuthContext', () => {
     localStorage.setItem('aliado:token', 'stored-token')
     localStorage.setItem('passengerId', 'passenger-1')
     localStorage.setItem('driverId', 'driver-1')
+    localStorage.setItem('passengerRideIds', JSON.stringify(['legacy-ride']))
 
     render(<AuthProvider><TestConsumer /></AuthProvider>)
     await waitFor(() => expect(screen.getByText('sair')).toBeInTheDocument())
@@ -132,6 +133,7 @@ describe('AuthContext', () => {
     expect(localStorage.getItem('aliado:token')).toBeNull()
     expect(localStorage.getItem('passengerId')).toBeNull()
     expect(localStorage.getItem('driverId')).toBeNull()
+    expect(localStorage.getItem('passengerRideIds')).toBeNull()
     expect(mockReplace).toHaveBeenCalledWith('/login')
   })
 

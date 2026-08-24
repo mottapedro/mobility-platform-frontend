@@ -1,4 +1,4 @@
-import { confirmRideQuote, createRide } from "./rides";
+import { confirmRideQuote, createRide, getRidesByPassenger } from "./rides";
 
 jest.mock("./api", () => ({
   apiRequest: jest.fn(),
@@ -116,5 +116,12 @@ describe("rides service — Fase E (contrato bifásico create → confirm-quote)
       status: 409,
       code: "QUOTE_CONFLICT",
     });
+  });
+
+  it("lista corridas pelo endpoint autenticado, sem aceitar passengerId do cliente", async () => {
+    mockApiRequest.mockResolvedValue([]);
+
+    await expect(getRidesByPassenger()).resolves.toEqual([]);
+    expect(mockApiRequest).toHaveBeenCalledWith("/rides");
   });
 });

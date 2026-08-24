@@ -22,6 +22,8 @@ export function clearStoredAuth(): void {
   localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
   localStorage.removeItem("passengerId");
   localStorage.removeItem("driverId");
+  // Legacy ride ids are not an ownership source and must not survive identity changes.
+  localStorage.removeItem("passengerRideIds");
 }
 
 type RequestOptions = {

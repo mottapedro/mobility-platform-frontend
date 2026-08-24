@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 
 import PassengerRidesPage from './page'
+import { getRidesByPassenger } from '../../../services/rides'
 
 const mockPush = jest.fn()
 const mockUsePassenger = jest.fn()
@@ -28,14 +29,18 @@ jest.mock('../../../components/AppHeader', () => ({
 }))
 
 jest.mock('../../../services/rides', () => ({
-  getRide: jest.fn(),
+  getRidesByPassenger: jest.fn(),
 }))
+
+const mockGetRidesByPassenger = getRidesByPassenger as jest.MockedFunction<typeof getRidesByPassenger>
 
 describe('PassengerRidesPage dashboard', () => {
   beforeEach(() => {
     localStorage.clear()
     mockPush.mockClear()
     mockUsePassenger.mockReset()
+    mockGetRidesByPassenger.mockReset()
+    mockGetRidesByPassenger.mockResolvedValue([])
   })
 
   it('renders the allied driver relationship card with backend data', () => {
@@ -60,7 +65,7 @@ describe('PassengerRidesPage dashboard', () => {
     expect(screen.getAllByRole('button', { name: 'Solicitar corrida' }).length).toBeGreaterThan(0)
   })
 
-  it('renders an empty allied-driver state when no relationship exists', () => {
+  it('renders an empty allied-driver state when no relationship exists', async () => {
     mockUsePassenger.mockReturnValue({
       data: { referredByDriver: null },
       loading: false,
@@ -70,6 +75,6 @@ describe('PassengerRidesPage dashboard', () => {
     render(<PassengerRidesPage />)
 
     expect(screen.getByText('Nenhum motorista aliado vinculado')).toBeInTheDocument()
-    expect(screen.getByText(/nenhuma corrida/i)).toBeInTheDocument()
+    expect(await screen.findByText(/nenhuma corrida/i)).toBeInTheDocument()
   })
 })

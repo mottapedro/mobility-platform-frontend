@@ -270,8 +270,7 @@ describe("PassengerCreatePage", () => {
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith("/passenger/rides"),
     );
-    const stored = JSON.parse(localStorage.getItem("passengerRideIds") ?? "[]");
-    expect(stored).toContain("ride_001");
+    expect(localStorage.getItem("passengerRideIds")).toBeNull();
   });
 
   it("falha de rede no confirm-quote: retry reutiliza a mesma rideId e nunca cria outra RideRequest", async () => {
@@ -429,8 +428,7 @@ describe("PassengerCreatePage", () => {
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith("/passenger/rides"),
     );
-    const stored = JSON.parse(localStorage.getItem("passengerRideIds") ?? "[]");
-    expect(stored).toContain("ride_001");
+    expect(localStorage.getItem("passengerRideIds")).toBeNull();
     expect(mockConfirmRideQuote).not.toHaveBeenCalled();
   });
 });

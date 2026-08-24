@@ -182,10 +182,6 @@ export default function PassengerCreatePage() {
       }
 
       // Fluxo clássico (sem M1/quote) — navegação imediata.
-      const stored = localStorage.getItem("passengerRideIds");
-      const ids: string[] = stored ? JSON.parse(stored) : [];
-      ids.unshift(ride.id);
-      localStorage.setItem("passengerRideIds", JSON.stringify(ids));
       // reset
       setOrigin("");
       setOriginCoords(null);
@@ -220,11 +216,6 @@ export default function PassengerCreatePage() {
       // Idempotente no backend: um retry reutiliza a MESMA rideId e nunca
       // recria a RideRequest — a quote já está firmada no servidor.
       await confirmRideQuote(pendingConfirm.rideId);
-      const stored = localStorage.getItem("passengerRideIds");
-      const ids: string[] = stored ? JSON.parse(stored) : [];
-      if (!ids.includes(pendingConfirm.rideId))
-        ids.unshift(pendingConfirm.rideId);
-      localStorage.setItem("passengerRideIds", JSON.stringify(ids));
       setPendingConfirm(null);
       router.push("/passenger/rides");
     } catch (err: unknown) {

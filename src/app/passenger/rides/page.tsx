@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getRide } from '../../../services/rides'
+import { getRidesByPassenger } from '../../../services/rides'
 import { useAlliedDriver } from '../../../hooks/useAlliedDriver'
 import { AlliedDriverCard } from '../../../components/passenger/AlliedDriverCard'
 import { PixModal } from '../../../components/payment/PixModal'
@@ -82,53 +82,25 @@ export default function PassengerRidesPage() {
   const { alliedDriver, loading: loadingPassenger, error: passengerError } = useAlliedDriver(passengerId)
 
   const fetchRides = useCallback(async () => {
-    const stored = localStorage.getItem('passengerRideIds')
-    const ids: string[] = stored ? JSON.parse(stored) : []
-    if (ids.length === 0) {
+    if (!passengerId) {
       setLoading(false)
       setRides([])
       return
     }
     setLoading(true)
     setError(null)
+    setRides([])
 
-    const results = await Promise.allSettled(ids.map((id) => getRide(id)))
-    const loaded: Ride[] = []
-    const ghostIds: string[] = []
-
-    for (let i = 0; i < results.length; i++) {
-      const id = ids[i]
-      const r = results[i]
-      if (r.status === 'fulfilled') {
-        loaded.push(r.value)
-      } else {
-        // Check if it's a 404 — ghost ride that no longer exists
-        const reason = r.reason
-        if (
-          reason &&
-          typeof reason === 'object' &&
-          'status' in reason &&
-          (reason as { status: number }).status === 404
-        ) {
-          ghostIds.push(id)
-        }
-      }
-    }
-
-    // Silently remove ghost (404) IDs from localStorage so polling stops retrying them
-    if (ghostIds.length > 0) {
-      const remaining = ids.filter((x) => !ghostIds.includes(x))
-      localStorage.setItem('passengerRideIds', JSON.stringify(remaining))
-    }
-
-    setRides(loaded)
-
-    if (results.length > 0 && loaded.length === 0 && ghostIds.length === 0) {
+    try {
+      const loaded = await getRidesByPassenger()
+      setRides(loaded)
+    } catch {
+      setRides([])
       setError('Erro ao carregar corridas.')
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
-  }, [])
+  }, [passengerId])
 
   useEffect(() => {
     fetchRides()

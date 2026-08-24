@@ -99,10 +99,10 @@ export async function completeRideLifecycle(
   return apiRequest(`/rides/${rideId}/lifecycle/complete`, { method: "POST" });
 }
 
-export async function getRidesByPassenger(
-  passengerId: string,
-): Promise<Ride[]> {
-  return apiRequest(`/rides?passengerId=${passengerId}`);
+export async function getRidesByPassenger(): Promise<Ride[]> {
+  // The backend derives ownership from the authenticated Passenger session.
+  // A client-supplied passengerId is intentionally not accepted as authority.
+  return apiRequest("/rides");
 }
 
 export async function respondOffer(
