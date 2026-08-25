@@ -1,4 +1,4 @@
-import { AUTH_INVALIDATED_EVENT, ApiError, api } from './api'
+import { AUTH_INVALIDATED_EVENT, ApiError, api, apiRequest } from './api'
 
 describe('ApiError', () => {
   it('is an instance of Error', () => {
@@ -161,6 +161,17 @@ describe('api.get — auto token injection from localStorage', () => {
     await api.get('/drivers/d1/network')
 
     const callHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers
+    expect(callHeaders).not.toHaveProperty('x-driver-id')
+  })
+
+  it('can disable the legacy x-driver-id header for Bearer-only resources', async () => {
+    localStorage.setItem('aliado:token', 'jwt-history')
+    localStorage.setItem('driverId', 'legacy-driver')
+
+    await apiRequest('/drivers/me/offers/history', { includeDriverIdHeader: false })
+
+    const callHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers
+    expect(callHeaders).toEqual(expect.objectContaining({ Authorization: 'Bearer jwt-history' }))
     expect(callHeaders).not.toHaveProperty('x-driver-id')
   })
 })
