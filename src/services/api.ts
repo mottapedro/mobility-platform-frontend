@@ -30,13 +30,15 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   token?: string;
+  /** Disable only the legacy x-driver-id compatibility header when a route is Bearer-only. */
+  includeDriverIdHeader?: boolean;
 };
 
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body } = options;
+  const { method = "GET", body, includeDriverIdHeader = true } = options;
   const token =
     options.token ??
     (typeof window !== "undefined"
@@ -51,7 +53,7 @@ export async function apiRequest<T>(
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(driverId ? { "x-driver-id": driverId } : {}),
+      ...(includeDriverIdHeader && driverId ? { "x-driver-id": driverId } : {}),
       ...(API_URL?.includes("ngrok")
         ? { "ngrok-skip-browser-warning": "true" }
         : {}),

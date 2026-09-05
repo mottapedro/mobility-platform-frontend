@@ -6,6 +6,7 @@ import {
   getDriverOffers,
   getDriverOperationalBase,
   getDriverRides,
+  getMyOfferHistory,
   getRegionLabelFromSlug,
   toDriverReferralProfile,
   updateDriverOperationalBase,
@@ -90,6 +91,20 @@ describe('driver scoped service guards', () => {
 
     expect(mockApiRequest).toHaveBeenCalledWith('/drivers/me')
     expect(profile.driverId).toBe('drv_me')
+  })
+
+  it('calls the authenticated offer history endpoint with cursor and limit only', async () => {
+    const page = { items: [], nextCursor: 'next-cursor' }
+    mockApiRequest.mockResolvedValue(page)
+
+    const result = await getMyOfferHistory({ cursor: 'cursor-1', limit: 10 })
+
+    expect(mockApiRequest).toHaveBeenCalledWith('/drivers/me/offers/history?cursor=cursor-1&limit=10', {
+      includeDriverIdHeader: false,
+    })
+    expect(result).toEqual(page)
+    expect(JSON.stringify(mockApiRequest.mock.calls[0])).not.toContain('driverId')
+    expect(JSON.stringify(mockApiRequest.mock.calls[0])).not.toContain('x-driver-id')
   })
 })
 

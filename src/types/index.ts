@@ -186,6 +186,41 @@ export interface DriverOffer {
   }
 }
 // â”€â”€â”€ Driver Ride (retornado por GET /drivers/:id/rides) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Persistent offer book (GET /drivers/me/offers/history). The backend is the
+// sole authority for bookStatus/outcomeReason; the frontend only presents it.
+export type OfferBookStatus = 'ACTIVE' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'LOST' | 'UNAVAILABLE'
+
+export type OfferBookOutcomeReason =
+  | 'ACTIVE_OFFER'
+  | 'DRIVER_ACCEPTED'
+  | 'DRIVER_REJECTED'
+  | 'OFFER_EXPIRED'
+  | 'ANOTHER_DRIVER_ACCEPTED'
+  | 'RIDE_UNAVAILABLE'
+
+export interface OfferBookItem {
+  offerId: string
+  rideRequestId: string
+  bookStatus: OfferBookStatus
+  createdAt: string
+  expiresAt: string
+  respondedAt: string | null
+  rideStatus: RideStatus | string
+  scheduledAt: string | null
+  origin: string
+  destination: string
+  driverReceivableAmountCents: number | null
+  selectedByOtherDriver: boolean
+  outcomeReason: OfferBookOutcomeReason
+  rideDistanceKm: number | null
+  driverToPickupDistanceKm: number | null
+}
+
+export interface OfferBookPage {
+  items: OfferBookItem[]
+  nextCursor: string | null
+}
+
 export interface DriverRide {
   id: string
   origin: string

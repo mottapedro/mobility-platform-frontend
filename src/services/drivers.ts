@@ -1,6 +1,13 @@
 import { API_URL } from '../config/api'
 import { apiRequest } from './api'
-import type { DriverNetwork, DriverNetworkHierarchy, DriverNetworkPassenger, DriverOffer, DriverRide } from '../types'
+import type {
+  DriverNetwork,
+  DriverNetworkHierarchy,
+  DriverNetworkPassenger,
+  DriverOffer,
+  DriverRide,
+  OfferBookPage,
+} from '../types'
 import { assertDriverId } from '../utils/driverId'
 
 export interface DriverSummary {
@@ -136,6 +143,25 @@ export async function getDriverByReferralSlug(slug: string): Promise<DriverRefer
 export async function getDriverOffers(driverId: string): Promise<DriverOffer[]> {
   const safeDriverId = assertDriverId(driverId)
   return apiRequest<DriverOffer[]>(`/drivers/${safeDriverId}/offers`)
+}
+
+export interface OfferHistoryQuery {
+  cursor?: string
+  limit?: number
+}
+
+/**
+ * Persistent history for the authenticated driver. Ownership and lifecycle
+ * are derived by the backend; no driverId or legacy identity header is used.
+ */
+export async function getMyOfferHistory(query: OfferHistoryQuery = {}): Promise<OfferBookPage> {
+  const params = new URLSearchParams()
+  if (query.cursor) params.set('cursor', query.cursor)
+  if (query.limit !== undefined) params.set('limit', String(query.limit))
+  const suffix = params.toString() ? `?${params.toString()}` : ''
+  return apiRequest<OfferBookPage>(`/drivers/me/offers/history${suffix}`, {
+    includeDriverIdHeader: false,
+  })
 }
 
 export interface DriverMeProfile {
